@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "Witch Walk",
+    "slug": "witch-walk",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./App Icon/APP LOGO.png",
+    "scheme": "witchwalk",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.housearauz.witchwalk"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./App Icon/APP LOGO.png",
+        "backgroundColor": "#170E24"
+      },
+      "package": "com.housearauz.witchwalk",
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./App Icon/APP LOGO.png"
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
