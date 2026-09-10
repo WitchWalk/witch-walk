@@ -22,7 +22,7 @@ export const homeActions: HomeAction[] = [
     icon: 'map',
     accent: colors.purple,
     image: require('../../assets/images/home/live-map.png'),
-    href: '/live-map',
+    href: '/map',
   },
   {
     title: 'Wait Times',

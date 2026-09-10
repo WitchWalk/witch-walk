@@ -17,6 +17,8 @@ export type Restaurant = {
   tags: string[];
   priceRange: '$' | '$$' | '$$$';
   address: string;
+  latitude: number;
+  longitude: number;
   description: string;
   longDescription: string;
   hours: string;
@@ -51,6 +53,8 @@ export const restaurants: Restaurant[] = [
     tags: ['Seafood', 'Historic Salem', 'Casual'],
     priceRange: '$$',
     address: '43 Church Street, Salem, MA',
+    latitude: 42.5224278,
+    longitude: -70.8952659,
     description: 'Fresh New England seafood served in a warm, historic downtown setting.',
     longDescription:
       'A downtown Salem seafood restaurant serving regional favorites, fresh catches, and classic New England dishes in a welcoming atmosphere.',
@@ -70,6 +74,8 @@ export const restaurants: Restaurant[] = [
     tags: ['American', 'Pub', 'Family'],
     priceRange: '$$',
     address: '168 Essex Street, Salem, MA',
+    latitude: 42.5222386,
+    longitude: -70.8927344,
     description: 'Tavern favorites, hearty plates, and drinks in the center of downtown Salem.',
     longDescription:
       'A casual downtown tavern with a broad American menu, shareable plates, and an easygoing atmosphere for groups and families.',
@@ -88,6 +94,8 @@ export const restaurants: Restaurant[] = [
     tags: ['Coffee', 'Breakfast', 'Casual'],
     priceRange: '$',
     address: '247 Essex Street, Salem, MA',
+    latitude: 42.521323,
+    longitude: -70.8962821,
     description: 'Coffee, creative drinks, light bites, and a lively café atmosphere.',
     longDescription:
       'A colorful downtown café offering coffee, drinks, and casual food in a creative setting that works for a quick stop or a relaxed visit.',
@@ -107,6 +115,8 @@ export const restaurants: Restaurant[] = [
     tags: ['Pizza', 'Family', 'Casual'],
     priceRange: '$$',
     address: '118 Washington Street, Salem, MA',
+    latitude: 42.5211986,
+    longitude: -70.8962507,
     description: 'Inventive pizzas with playful sci-fi style and plenty of dietary options.',
     longDescription:
       'A Salem pizza destination pairing creative specialty pies with a playful science-fiction theme and choices for a range of dietary preferences.',
@@ -126,6 +136,8 @@ export const restaurants: Restaurant[] = [
     tags: ['Breakfast', 'American', 'Family'],
     priceRange: '$',
     address: '15 Central Street, Salem, MA',
+    latitude: 42.5210943,
+    longitude: -70.8934875,
     description: 'A longtime Salem stop for generous breakfasts, sandwiches, and comfort food.',
     longDescription:
       'A classic Salem breakfast and lunch spot known for approachable comfort food, generous portions, and a convenient downtown location.',
@@ -145,6 +157,8 @@ export const restaurants: Restaurant[] = [
     tags: ['Seafood', 'Pub', 'Casual'],
     priceRange: '$$',
     address: '25 Front Street, Salem, MA',
+    latitude: 42.5202719,
+    longitude: -70.8946188,
     description: 'A compact neighborhood spot for seafood, burgers, and laid-back pub fare.',
     longDescription:
       'A relaxed downtown restaurant serving seafood, pub favorites, and drinks in an intimate setting near Salem’s central attractions.',

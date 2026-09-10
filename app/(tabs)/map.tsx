@@ -1,5 +1,5 @@
-import { RestroomLiveMapScreen } from '@/components/bathrooms/RestroomLiveMapScreen';
+import { LiveMapScreen } from '@/components/map/LiveMapScreen';
 
 export default function MapScreen() {
-  return <RestroomLiveMapScreen />;
+  return <LiveMapScreen />;
 }

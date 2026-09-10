@@ -9,6 +9,8 @@ export type Attraction = {
   category: AttractionCategory;
   tags: string[];
   address: string;
+  latitude: number;
+  longitude: number;
   description: string;
   longDescription: string;
   hours: string;
@@ -17,6 +19,7 @@ export type Attraction = {
   distance: string;
   image: ImageSourcePropType;
   featured?: boolean;
+  crowdStatus?: 'light' | 'moderate' | 'busy';
   websiteUrl?: string;
   historicalFact: string;
   visitorTips: string[];
@@ -59,6 +62,8 @@ export const attractions: Attraction[] = [
     category: 'Historic',
     tags: ['Historic', 'Self-Guided', 'Must See'],
     address: '310 1/2 Essex Street, Salem, MA',
+    latitude: 42.5215539,
+    longitude: -70.8988987,
     description: 'Salem’s only remaining structure with direct ties to the 1692 witch trials.',
     longDescription:
       'Step inside the former home of Judge Jonathan Corwin and explore everyday life, architecture, superstition, and history from 17th-century Salem.',
@@ -68,6 +73,7 @@ export const attractions: Attraction[] = [
     distance: '0.5 mi',
     image: witchHouseImage,
     featured: true,
+    crowdStatus: 'moderate',
     websiteUrl: 'https://www.salemma.gov/witch-house',
     historicalFact: 'Judge Jonathan Corwin purchased the house in 1675 and lived here for more than forty years.',
     visitorTips: ['Self-guided experience', 'Popular in October', 'Allow 30–45 minutes', 'Historic site'],
@@ -82,6 +88,8 @@ export const attractions: Attraction[] = [
     category: 'Historic',
     tags: ['Historic', 'Literary'],
     address: '115 Derby Street, Salem, MA',
+    latitude: 42.5218159,
+    longitude: -70.8838227,
     description: 'Explore the seaside mansion that inspired Nathaniel Hawthorne’s iconic novel.',
     longDescription: 'A landmark waterfront property connecting Salem’s maritime history, architecture, and literary legacy.',
     hours: '10:00 AM – 5:00 PM',
@@ -89,6 +97,7 @@ export const attractions: Attraction[] = [
     statusLabel: 'Open Today',
     distance: '0.8 mi',
     image: sevenGablesImage,
+    crowdStatus: 'light',
     websiteUrl: 'https://7gables.org',
     historicalFact: 'The Turner-Ingersoll Mansion was built in 1668 and later inspired Nathaniel Hawthorne’s famous novel.',
     visitorTips: ['Guided tours available', 'Waterfront grounds', 'Allow about 1 hour'],
@@ -99,6 +108,8 @@ export const attractions: Attraction[] = [
     category: 'Museums',
     tags: ['Museum', 'Arts & Culture'],
     address: '161 Essex Street, Salem, MA',
+    latitude: 42.5215925,
+    longitude: -70.8921931,
     description: 'World-class art and cultural collections in the heart of downtown Salem.',
     longDescription: 'Explore global art, architecture, maritime history, and rotating exhibitions in a major downtown museum.',
     hours: '10:00 AM – 5:00 PM',
@@ -106,6 +117,7 @@ export const attractions: Attraction[] = [
     statusLabel: 'Open Today',
     distance: '0.3 mi',
     image: peabodyEssexMuseumImage,
+    crowdStatus: 'light',
     websiteUrl: 'https://www.pem.org',
     historicalFact: 'The museum traces its origins to the East India Marine Society, founded in Salem in 1799.',
     visitorTips: ['Indoor attraction', 'Allow 2–3 hours', 'Check current exhibitions'],
@@ -116,6 +128,8 @@ export const attractions: Attraction[] = [
     category: 'Historic',
     tags: ['Historic', 'Memorial'],
     address: '24 Liberty Street, Salem, MA',
+    latitude: 42.5208173,
+    longitude: -70.8920724,
     description: 'A quiet memorial honoring the victims of the Salem witch trials.',
     longDescription: 'A contemplative downtown memorial formed by stone benches inscribed with the names of the 1692 victims.',
     hours: 'Open daily',
@@ -132,6 +146,8 @@ export const attractions: Attraction[] = [
     category: 'Museums',
     tags: ['Museum', 'Horror'],
     address: '217 Essex Street, Salem, MA',
+    latitude: 42.5214528,
+    longitude: -70.894817,
     description: 'A cinematic monster museum celebrating horror film history.',
     longDescription: 'A specialty museum featuring detailed tributes to classic and modern creatures from horror cinema.',
     hours: 'Hours vary',
@@ -148,6 +164,8 @@ export const attractions: Attraction[] = [
     category: 'Family',
     tags: ['Family', 'Theatre'],
     address: '7 Lynde Street, Salem, MA',
+    latitude: 42.5221296,
+    longitude: -70.8966569,
     description: 'An immersive theatrical presentation inspired by Salem history and folklore.',
     longDescription: 'A compact live attraction combining storytelling, theatrical effects, and Salem-themed history.',
     hours: 'Hours vary',
@@ -165,6 +183,8 @@ export const attractions: Attraction[] = [
     category: 'Historic',
     tags: ['Historic', 'Cemetery'],
     address: '51 Charter Street, Salem, MA',
+    latitude: 42.5203735,
+    longitude: -70.8922086,
     description: 'One of Salem’s oldest burial grounds, beside the Witch Trials Memorial.',
     longDescription: 'A historic cemetery containing early Salem gravestones and the burial places of notable residents.',
     hours: 'Hours vary seasonally',
@@ -181,6 +201,8 @@ export const attractions: Attraction[] = [
     category: 'Waterfront',
     tags: ['Waterfront', 'Transportation'],
     address: '10 Blaney Street, Salem, MA',
+    latitude: 42.5218599,
+    longitude: -70.8804573,
     description: 'Seasonal passenger ferry service connecting Salem and Boston.',
     longDescription: 'Enjoy harbor views and a scenic seasonal trip between Salem and Boston aboard a high-speed passenger ferry.',
     hours: 'Seasonal schedule',
@@ -197,6 +219,8 @@ export const attractions: Attraction[] = [
     category: 'Museums',
     tags: ['Museum', 'Historic'],
     address: '16 Lynde Street, Salem, MA',
+    latitude: 42.5225674,
+    longitude: -70.8971921,
     description: 'A presentation and recreated dungeon experience focused on the 1692 trials.',
     longDescription: 'A guided presentation followed by exhibits interpreting imprisonment during the Salem witch trials.',
     hours: '10:00 AM – 5:00 PM',
@@ -213,6 +237,8 @@ export const attractions: Attraction[] = [
     category: 'Landmarks',
     tags: ['Landmark', 'Photo Spot'],
     address: 'Lappin Park, Essex Street, Salem, MA',
+    latitude: 42.5213319,
+    longitude: -70.8958518,
     description: 'A popular downtown photo stop honoring television’s Bewitched.',
     longDescription: 'A bronze statue of Samantha Stephens located at a lively pedestrian intersection downtown.',
     hours: 'Open daily',
@@ -229,6 +255,8 @@ export const attractions: Attraction[] = [
     category: 'Museums',
     tags: ['Museum', 'Family Friendly'],
     address: '19 1/2 Washington Square North, Salem, MA',
+    latitude: 42.5237449,
+    longitude: -70.8911625,
     description: 'An immersive exhibition about the 1692 trials and their enduring legacy.',
     longDescription: 'A landmark museum presenting the history and changing interpretation of the Salem witch trials.',
     hours: '10:00 AM – 5:00 PM',
@@ -236,6 +264,7 @@ export const attractions: Attraction[] = [
     statusLabel: 'Open Today',
     distance: '0.4 mi',
     image: witchMuseumImage,
+    crowdStatus: 'busy',
     websiteUrl: 'https://salemwitchmuseum.com',
     historicalFact: 'The museum is housed in a former church built in the mid-19th century.',
     visitorTips: ['Timed entry', 'Indoor attraction', 'Reserve early in October'],
@@ -246,6 +275,8 @@ export const attractions: Attraction[] = [
     category: 'Waterfront',
     tags: ['Waterfront', 'Shopping'],
     address: 'Pickering Wharf, Salem, MA',
+    latitude: 42.5195102,
+    longitude: -70.8885698,
     description: 'Waterfront walkways, shops, restaurants, and harbor views.',
     longDescription: 'A walkable harbor district with local businesses, outdoor seating, and views of Salem’s waterfront.',
     hours: 'Business hours vary',
@@ -253,6 +284,7 @@ export const attractions: Attraction[] = [
     statusLabel: 'Open Today',
     distance: '0.7 mi',
     image: pickeringWharfImage,
+    crowdStatus: 'moderate',
     historicalFact: 'The wharf sits within Salem’s historic waterfront, once central to the city’s global trade.',
     visitorTips: ['Outdoor walking area', 'Good sunset views', 'Individual hours vary'],
   },
@@ -262,6 +294,8 @@ export const attractions: Attraction[] = [
     category: 'Landmarks',
     tags: ['Downtown', 'Shopping'],
     address: 'Essex Street, Salem, MA',
+    latitude: 42.52142,
+    longitude: -70.8957,
     description: 'A walkable downtown corridor lined with shops, museums, and restaurants.',
     longDescription: 'The pedestrian heart of downtown Salem, connecting major attractions and local businesses.',
     hours: 'Open daily',
@@ -279,6 +313,8 @@ export const attractions: Attraction[] = [
     category: 'Waterfront',
     tags: ['Historic', 'Waterfront'],
     address: '160 Derby Street, Salem, MA',
+    latitude: 42.5190589,
+    longitude: -70.8855837,
     description: 'Historic wharves, maritime buildings, and harbor views along Derby Street.',
     longDescription: 'Explore Salem’s maritime heritage through historic structures, waterfront landscapes, and interpretive sites.',
     hours: '9:00 AM – 5:00 PM',
@@ -295,6 +331,8 @@ export const attractions: Attraction[] = [
     category: 'Tours',
     tags: ['Tour', 'Family'],
     address: '282 Derby Street, Salem, MA',
+    latitude: 42.5204583,
+    longitude: -70.8913991,
     description: 'A Salem-themed attraction exploring witchcraft history and folklore.',
     longDescription: 'A guided experience introducing visitors to the evolving history and folklore associated with witchcraft.',
     hours: 'Hours vary',

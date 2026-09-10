@@ -16,7 +16,7 @@ export default function HomeScreen() {
     <Screen scroll contentContainerStyle={styles.content}>
       <BrandHeader onSettingsPress={() => router.push('/more')} />
 
-      <CrowdStatusCard onPress={() => router.push('/live-map')} />
+      <CrowdStatusCard onPress={() => router.push('/map')} />
 
       <View style={styles.shortcutsSection}>
         <Text style={styles.sectionTitle}>Explore Salem</Text>

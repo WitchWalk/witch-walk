@@ -25,7 +25,15 @@
       "output": "static",
       "favicon": "./App Icon/APP LOGO.png"
     },
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Witch Walk to use your location when you tap Locate Me so we can show nearby Salem places."
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true
     }

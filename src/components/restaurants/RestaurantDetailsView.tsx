@@ -58,7 +58,7 @@ export function RestaurantDetailsView({ restaurant }: RestaurantDetailsViewProps
               accessibilityLabel="Open live map"
               accessibilityRole="button"
               hitSlop={10}
-              onPress={() => router.push('/live-map')}
+              onPress={() => router.push('/map')}
               style={styles.iconButton}
             >
               <Ionicons name="map-outline" size={20} color={colors.gold} />

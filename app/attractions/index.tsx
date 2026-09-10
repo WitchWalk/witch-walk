@@ -79,7 +79,7 @@ export default function AttractionsScreen() {
               <Ionicons name="chevron-back" size={26} color={colors.text} />
             </Pressable>
             <Text style={styles.brand}>Witch <Text style={styles.brandStar}>✦</Text> Walk</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="Open live map" hitSlop={10} onPress={() => router.push('/live-map')} style={styles.circleButton}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Open live map" hitSlop={10} onPress={() => router.push('/map')} style={styles.circleButton}>
               <Ionicons name="map-outline" size={22} color={colors.gold} />
             </Pressable>
           </View>

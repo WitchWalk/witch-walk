@@ -112,7 +112,7 @@ export default function RestaurantsScreen() {
               accessibilityLabel="Open live map"
               accessibilityRole="button"
               hitSlop={10}
-              onPress={() => router.push('/live-map')}
+              onPress={() => router.push('/map')}
               style={styles.circleButton}
             >
               <Ionicons name="map-outline" size={22} color={colors.gold} />

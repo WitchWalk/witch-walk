@@ -1,5 +1,5 @@
-import { RestroomLiveMapScreen } from '@/components/bathrooms/RestroomLiveMapScreen';
+import { Redirect } from 'expo-router';
 
 export default function LiveMapHomeScreen() {
-  return <RestroomLiveMapScreen showBackButton />;
+  return <Redirect href="/map" />;
 }
