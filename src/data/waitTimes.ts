@@ -4,14 +4,8 @@ import { attractions } from '@/data/attractions';
 
 export type CrowdLevel = 'light' | 'moderate' | 'busy';
 
-export type WaitTimeRecord = {
+export type WaitTimeAttraction = {
   attractionId: string;
-  estimatedMinutes: number;
-  crowdLevel: CrowdLevel;
-  lastUpdated: string;
-};
-
-export type WaitTimeAttraction = WaitTimeRecord & {
   name: string;
   address: string;
   latitude: number;
@@ -20,21 +14,21 @@ export type WaitTimeAttraction = WaitTimeRecord & {
   image: ImageSourcePropType;
 };
 
-export const waitTimeRecords: WaitTimeRecord[] = [
-  { attractionId: 'salem-witch-museum', estimatedMinutes: 55, crowdLevel: 'busy', lastUpdated: '4 min ago' },
-  { attractionId: 'witch-house', estimatedMinutes: 20, crowdLevel: 'moderate', lastUpdated: '7 min ago' },
-  { attractionId: 'house-seven-gables', estimatedMinutes: 10, crowdLevel: 'light', lastUpdated: '12 min ago' },
-  { attractionId: 'peabody-essex-museum', estimatedMinutes: 15, crowdLevel: 'light', lastUpdated: '9 min ago' },
-  { attractionId: 'witch-dungeon-museum', estimatedMinutes: 25, crowdLevel: 'moderate', lastUpdated: '15 min ago' },
-  { attractionId: 'salem-maritime', estimatedMinutes: 5, crowdLevel: 'light', lastUpdated: '18 min ago' },
+export const waitReportingAttractionIds = [
+  'salem-witch-museum',
+  'witch-house',
+  'house-seven-gables',
+  'peabody-essex-museum',
+  'witch-dungeon-museum',
+  'salem-maritime',
 ];
 
-export const waitTimeAttractions: WaitTimeAttraction[] = waitTimeRecords.flatMap((record) => {
-  const attraction = attractions.find((item) => item.id === record.attractionId);
+export const waitTimeAttractions: WaitTimeAttraction[] = waitReportingAttractionIds.flatMap((attractionId) => {
+  const attraction = attractions.find((item) => item.id === attractionId);
   if (!attraction) return [];
 
   return [{
-    ...record,
+    attractionId,
     name: attraction.name,
     address: attraction.address,
     latitude: attraction.latitude,

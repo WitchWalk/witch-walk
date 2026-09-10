@@ -1,12 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { WaitTimeCard } from '@/components/wait-times/WaitTimeCard';
 import { WaitTimesHeader } from '@/components/wait-times/WaitTimesHeader';
 import { crowdPresentation, waitTimeAttractions } from '@/data/waitTimes';
+import { getWaitTimeAggregates } from '@/services/waitAggregationService';
+import { aggregateWaitReports, type WaitTimeAggregate } from '@/services/waitReportCore';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 type WaitFilter = 'All' | 'Lowest Wait' | 'Highest Wait' | 'Nearby';
@@ -14,14 +16,33 @@ const filters: WaitFilter[] = ['All', 'Lowest Wait', 'Highest Wait', 'Nearby'];
 
 export function WaitTimesScreenView() {
   const [filter, setFilter] = useState<WaitFilter>('All');
+  const [aggregates, setAggregates] = useState<Record<string, WaitTimeAggregate>>({});
+
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    const refresh = () => {
+      void getWaitTimeAggregates().then((next) => {
+        if (active) setAggregates(next);
+      });
+    };
+    refresh();
+    const interval = setInterval(refresh, 60_000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []));
+
+  const aggregateFor = useCallback((id: string) =>
+    aggregates[id] ?? aggregateWaitReports([], id), [aggregates]);
 
   const items = useMemo(() => {
     const next = [...waitTimeAttractions];
-    if (filter === 'Lowest Wait') return next.sort((a, b) => a.estimatedMinutes - b.estimatedMinutes);
-    if (filter === 'Highest Wait') return next.sort((a, b) => b.estimatedMinutes - a.estimatedMinutes);
+    if (filter === 'Lowest Wait') return next.sort((a, b) => (aggregateFor(a.attractionId).estimatedWaitMinutes ?? Number.POSITIVE_INFINITY) - (aggregateFor(b.attractionId).estimatedWaitMinutes ?? Number.POSITIVE_INFINITY));
+    if (filter === 'Highest Wait') return next.sort((a, b) => (aggregateFor(b.attractionId).estimatedWaitMinutes ?? -1) - (aggregateFor(a.attractionId).estimatedWaitMinutes ?? -1));
     if (filter === 'Nearby') return next.sort((a, b) => Number.parseFloat(a.distance) - Number.parseFloat(b.distance));
     return next;
-  }, [filter]);
+  }, [aggregateFor, filter]);
 
   const openDetails = (id: string) => router.push({ pathname: '/attractions/[id]', params: { id } });
   const openReport = (id: string) => router.push({ pathname: '/report-wait/[id]', params: { id } });
@@ -46,12 +67,12 @@ export function WaitTimesScreenView() {
         <View style={styles.snapshot}>
           <View style={styles.snapshotLead}>
             <Ionicons name="people" size={31} color={colors.gold} />
-            <View><Text style={styles.snapshotTitle}>Downtown Salem</Text><Text style={styles.snapshotSubtitle}>Sample crowd snapshot</Text></View>
+            <View><Text style={styles.snapshotTitle}>Downtown Salem</Text><Text style={styles.snapshotSubtitle}>Recent local reports</Text></View>
           </View>
           <View style={styles.snapshotCounts}>
             {(['light', 'moderate', 'busy'] as const).map((level) => (
               <View key={level} style={styles.snapshotItem}>
-                <Text style={[styles.snapshotNumber, { color: crowdPresentation[level].color }]}>{waitTimeAttractions.filter((item) => item.crowdLevel === level).length}</Text>
+                <Text style={[styles.snapshotNumber, { color: crowdPresentation[level].color }]}>{Object.values(aggregates).filter((item) => item.crowdLevel === level).length}</Text>
                 <Text style={styles.snapshotLabel}>{crowdPresentation[level].label}</Text>
               </View>
             ))}
@@ -65,7 +86,7 @@ export function WaitTimesScreenView() {
         </View>
 
         <View style={styles.list}>
-          {items.map((item) => <WaitTimeCard key={item.attractionId} item={item} onDetails={() => openDetails(item.attractionId)} onReport={() => openReport(item.attractionId)} />)}
+          {items.map((item) => <WaitTimeCard key={item.attractionId} item={item} aggregate={aggregateFor(item.attractionId)} onDetails={() => openDetails(item.attractionId)} onReport={() => openReport(item.attractionId)} />)}
         </View>
 
         <Pressable accessibilityRole="button" onPress={() => openReport(items[0]?.attractionId ?? 'witch-house')} style={({ pressed }) => [styles.reportBanner, pressed && styles.pressed]}>
@@ -74,7 +95,7 @@ export function WaitTimesScreenView() {
           <Ionicons name="chevron-forward" size={22} color={colors.text} />
         </Pressable>
 
-        <Text style={styles.sampleNote}>Waits and update times shown in Phase 7A are sample data.</Text>
+        <Text style={styles.sampleNote}>Current estimates use recent GPS-verified reports stored on this device.</Text>
       </ScrollView>
     </SafeAreaView>
   );

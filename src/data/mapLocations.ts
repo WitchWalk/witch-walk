@@ -4,6 +4,7 @@ import { attractions } from '@/data/attractions';
 import { bathroomLocations, getBathroomMapDestination, getVisibleBathroomLocations } from '@/data/bathrooms';
 import { getParkingMapDestination, parkingLocations } from '@/data/parking';
 import { restaurants } from '@/data/restaurants';
+import type { WaitTimeAggregate } from '@/services/waitReportCore';
 
 export type MapCategory = 'attractions' | 'restaurants' | 'parking' | 'bathrooms';
 export type MapFilter = 'all' | MapCategory;
@@ -21,6 +22,9 @@ export type MapLocation = {
   image: ImageSourcePropType;
   directionsDestination: string;
   crowdLevel?: CrowdLevel;
+  waitReportingSupported?: boolean;
+  waitEstimateLabel?: string;
+  waitFreshnessLabel?: string;
 };
 
 export const mapFilters: { id: MapFilter; label: string }[] = [
@@ -35,22 +39,28 @@ function hasCoordinates(location: { latitude: number | null; longitude: number |
   return Number.isFinite(location.latitude) && Number.isFinite(location.longitude);
 }
 
-export function getMapLocations(now = new Date()): MapLocation[] {
+export function getMapLocations(waitAggregates: Record<string, WaitTimeAggregate> = {}, now = new Date()): MapLocation[] {
   const attractionPins: MapLocation[] = attractions
     .filter(hasCoordinates)
-    .map((location) => ({
-      mapId: `attractions:${location.id}`,
-      sourceId: location.id,
-      name: location.name,
-      category: 'attractions',
-      categoryLabel: 'Attraction',
-      latitude: location.latitude,
-      longitude: location.longitude,
-      address: location.address,
-      image: location.image,
-      directionsDestination: `${location.name}, ${location.address}`,
-      crowdLevel: location.crowdStatus,
-    }));
+    .map((location) => {
+      const aggregate = waitAggregates[location.id];
+      return {
+        mapId: `attractions:${location.id}`,
+        sourceId: location.id,
+        name: location.name,
+        category: 'attractions',
+        categoryLabel: 'Attraction',
+        latitude: location.latitude,
+        longitude: location.longitude,
+        address: location.address,
+        image: location.image,
+        directionsDestination: `${location.name}, ${location.address}`,
+        crowdLevel: aggregate?.crowdLevel ?? undefined,
+        waitReportingSupported: Boolean(aggregate),
+        waitEstimateLabel: aggregate?.estimatedWaitLabel,
+        waitFreshnessLabel: aggregate?.freshnessLabel,
+      };
+    });
 
   const restaurantPins: MapLocation[] = restaurants
     .filter(hasCoordinates)

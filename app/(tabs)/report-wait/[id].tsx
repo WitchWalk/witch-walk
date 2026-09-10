@@ -1,12 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { WaitTimesHeader } from '@/components/wait-times/WaitTimesHeader';
 import { crowdPresentation, getWaitTimeAttraction, type CrowdLevel } from '@/data/waitTimes';
 import { waitReportProximityRules } from '@/services/proximity';
+import { getWaitTimeAggregate } from '@/services/waitAggregationService';
 import {
   verifyWaitReportLocation,
   type WaitReportVerificationResult,
@@ -15,23 +16,32 @@ import {
   APPROVED_WAIT_MINUTES,
   cooldownMinutesRemaining,
   createSubmissionKey,
-  WAIT_REPORT_NOTE_MAX_LENGTH,
+  WAIT_QUICK_STATUS_OPTIONS,
   waitReportService,
 } from '@/services/waitReportService';
+import type { WaitQuickStatusTag, WaitTimeAggregate } from '@/services/waitReportCore';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
-
-const quickNotes = ['Line moving quickly', 'Ticket line only', 'Line wraps outside'];
 
 export default function ReportWaitScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const item = getWaitTimeAttraction(id);
-  const [wait, setWait] = useState<number | null>(item?.estimatedMinutes ?? null);
-  const [crowd, setCrowd] = useState<CrowdLevel | null>(item?.crowdLevel ?? null);
-  const [note, setNote] = useState('');
+  const [wait, setWait] = useState<number | null>(null);
+  const [crowd, setCrowd] = useState<CrowdLevel | null>(null);
+  const [quickStatusTag, setQuickStatusTag] = useState<WaitQuickStatusTag | null>(null);
+  const [aggregate, setAggregate] = useState<WaitTimeAggregate | null>(null);
   const [verification, setVerification] = useState<WaitReportVerificationResult | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const submissionKey = useRef(createSubmissionKey());
+
+  useEffect(() => {
+    if (!item) return;
+    let active = true;
+    void getWaitTimeAggregate(item.attractionId).then((result) => {
+      if (active) setAggregate(result);
+    });
+    return () => { active = false; };
+  }, [item]);
 
   useEffect(() => {
     if (!verification?.verified || !verification.locationTimestamp) return;
@@ -86,7 +96,7 @@ export default function ReportWaitScreen() {
         attractionId: item.attractionId,
         waitMinutes: wait,
         crowdLevel: crowd,
-        note,
+        quickStatusTag,
         submissionKey: submissionKey.current,
         verification: currentVerification,
       });
@@ -117,7 +127,7 @@ export default function ReportWaitScreen() {
         return;
       }
 
-      Alert.alert('Report submitted', 'Location Verified. Your update was saved locally for cooldown protection.', [
+      Alert.alert('Report submitted', 'Location Verified. Your update was saved on this device.', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } finally {
@@ -151,9 +161,11 @@ export default function ReportWaitScreen() {
             <Text style={styles.attractionName}>{item.name}</Text>
             <Text numberOfLines={2} style={styles.address}>{item.address}</Text>
             <View style={styles.currentRow}>
-              <Ionicons name="people" size={20} color={crowdPresentation[item.crowdLevel].color} />
-              <Text style={[styles.currentCrowd, { color: crowdPresentation[item.crowdLevel].color }]}>{crowdPresentation[item.crowdLevel].label}</Text>
-              <Text style={styles.currentWait}>{item.estimatedMinutes} min sample</Text>
+              <Ionicons name="people" size={20} color={aggregate?.crowdLevel ? crowdPresentation[aggregate.crowdLevel].color : colors.textMuted} />
+              <Text style={[styles.currentCrowd, { color: aggregate?.crowdLevel ? crowdPresentation[aggregate.crowdLevel].color : colors.textMuted }]}>
+                {aggregate?.crowdLevel ? crowdPresentation[aggregate.crowdLevel].label : 'No recent reports'}
+              </Text>
+              <Text style={styles.currentWait}>{aggregate?.estimatedWaitLabel ?? 'No recent wait reports'}</Text>
             </View>
           </View>
         </View>
@@ -213,27 +225,23 @@ export default function ReportWaitScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Anything else to share? <Text style={styles.optional}>(Optional)</Text></Text>
-          <View style={styles.quickNotes}>
-            {quickNotes.map((quickNote) => (
-              <Pressable key={quickNote} accessibilityRole="button" onPress={() => setNote(quickNote)} style={styles.noteChip}>
-                <Text style={styles.noteChipText}>{quickNote}</Text>
-              </Pressable>
-            ))}
-          </View>
-          <View style={styles.noteField}>
-            <Ionicons name="chatbubble-outline" size={21} color={colors.textMuted} />
-            <TextInput
-              accessibilityLabel="Optional report note"
-              maxLength={WAIT_REPORT_NOTE_MAX_LENGTH}
-              multiline
-              onChangeText={setNote}
-              placeholder="Add a quick note"
-              placeholderTextColor="#8D8296"
-              style={styles.noteInput}
-              value={note}
-            />
-            <Text style={styles.characterCount}>{note.length}/{WAIT_REPORT_NOTE_MAX_LENGTH}</Text>
+          <Text style={styles.sectionTitle}>Quick status <Text style={styles.optional}>(Optional • choose one)</Text></Text>
+          <View style={styles.quickStatuses}>
+            {WAIT_QUICK_STATUS_OPTIONS.map((option) => {
+              const selected = quickStatusTag === option.id;
+              return (
+                <Pressable
+                  key={option.id}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  onPress={() => setQuickStatusTag(selected ? null : option.id)}
+                  style={[styles.statusChip, selected && styles.statusChipSelected]}
+                >
+                  <Ionicons name={selected ? 'checkmark-circle' : 'ellipse-outline'} size={15} color={selected ? colors.gold : colors.textMuted} />
+                  <Text style={[styles.statusChipText, selected && styles.statusChipTextSelected]}>{option.label}</Text>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
 
@@ -286,12 +294,11 @@ const styles = StyleSheet.create({
   crowdOption: { minWidth: 0, flex: 1, minHeight: 120, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#4A4055', borderRadius: radius.md, backgroundColor: '#0D0D14', padding: 6 },
   crowdTitle: { marginTop: 3, fontSize: 13, fontWeight: '900' },
   crowdHint: { color: colors.textMuted, fontSize: 9.5, lineHeight: 13, textAlign: 'center' },
-  quickNotes: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  noteChip: { minHeight: 36, justifyContent: 'center', borderWidth: 1, borderColor: '#505A77', borderRadius: radius.sm, backgroundColor: '#11131E', paddingHorizontal: 10 },
-  noteChipText: { color: colors.text, fontSize: 11 },
-  noteField: { minHeight: 90, flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, borderWidth: 1, borderColor: '#505A77', borderRadius: radius.md, backgroundColor: '#0F1320', padding: spacing.md },
-  noteInput: { minWidth: 0, flex: 1, minHeight: 56, color: colors.text, fontSize: 14, lineHeight: 19, padding: 0, textAlignVertical: 'top' },
-  characterCount: { alignSelf: 'flex-end', color: colors.textMuted, fontSize: 10 },
+  quickStatuses: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  statusChip: { minHeight: 38, flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderColor: '#505A77', borderRadius: radius.sm, backgroundColor: '#11131E', paddingHorizontal: 10 },
+  statusChipSelected: { borderColor: colors.gold, backgroundColor: '#2A1C1B' },
+  statusChipText: { color: colors.textMuted, fontSize: 11 },
+  statusChipTextSelected: { color: colors.text, fontWeight: '800' },
   submitButton: { minHeight: 58, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, borderRadius: radius.md, backgroundColor: colors.gold, paddingHorizontal: spacing.lg },
   submitDisabled: { opacity: 0.42 },
   submitText: { color: colors.black, fontSize: 17, fontWeight: '900' },

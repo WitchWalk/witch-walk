@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import {
   Alert,
   Image,
@@ -15,7 +15,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { Attraction } from '@/data/attractions';
-import { getWaitTimeAttraction } from '@/data/waitTimes';
+import { crowdPresentation, getWaitTimeAttraction } from '@/data/waitTimes';
+import { getWaitTimeAggregate } from '@/services/waitAggregationService';
+import { getQuickStatusLabel, type WaitTimeAggregate } from '@/services/waitReportCore';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 const videoBackground = require('../../../assets/images/home/house-arauz-videos.png');
@@ -27,6 +29,23 @@ type AttractionDetailsViewProps = {
 export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps) {
   const [favorite, setFavorite] = useState(false);
   const supportsWaitReporting = Boolean(getWaitTimeAttraction(attraction.id));
+  const [waitAggregate, setWaitAggregate] = useState<WaitTimeAggregate | null>(null);
+
+  useFocusEffect(useCallback(() => {
+    if (!supportsWaitReporting) return;
+    let active = true;
+    const refresh = () => {
+      void getWaitTimeAggregate(attraction.id).then((result) => {
+        if (active) setWaitAggregate(result);
+      });
+    };
+    refresh();
+    const interval = setInterval(refresh, 60_000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [attraction.id, supportsWaitReporting]));
 
   const goBackToAttractions = () => {
     if (router.canGoBack()) router.back();
@@ -86,6 +105,25 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
             ))}
           </View>
         </View>
+
+        {supportsWaitReporting ? (
+          <View style={styles.waitInfoCard}>
+            <View style={styles.waitInfoMain}>
+              <Ionicons name="people" size={25} color={waitAggregate?.crowdLevel ? crowdPresentation[waitAggregate.crowdLevel].color : colors.textMuted} />
+              <View style={styles.waitInfoCopy}>
+                <Text style={styles.waitInfoLabel}>Current Wait</Text>
+                <Text style={styles.waitInfoValue}>{waitAggregate?.estimatedWaitLabel ?? 'No recent wait reports'}</Text>
+              </View>
+            </View>
+            <View style={styles.waitInfoMeta}>
+              <Text style={[styles.waitCrowd, { color: waitAggregate?.crowdLevel ? crowdPresentation[waitAggregate.crowdLevel].color : colors.textMuted }]}>
+                {waitAggregate?.crowdLevel ? crowdPresentation[waitAggregate.crowdLevel].label : 'Neutral'}
+              </Text>
+              <Text style={styles.waitFreshness}>{waitAggregate?.freshnessLabel ?? 'No recent wait reports'}</Text>
+              {waitAggregate?.quickStatusTag ? <Text numberOfLines={1} style={styles.waitQuickStatus}>{getQuickStatusLabel(waitAggregate.quickStatusTag)}</Text> : null}
+            </View>
+          </View>
+        ) : null}
 
         <View style={styles.actionsGrid}>
           <ActionButton icon="navigate" color={colors.purple} title="Directions" subtitle="Get there" onPress={openDirections} />
@@ -221,6 +259,15 @@ const styles = StyleSheet.create({
   tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   tag: { backgroundColor: '#241A2C', borderRadius: radius.pill, paddingHorizontal: spacing.md, paddingVertical: 5 },
   tagText: { color: colors.textMuted, fontSize: 11, fontWeight: '700' },
+  waitInfoCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginHorizontal: spacing.lg, borderWidth: 1, borderColor: '#4A6695', borderRadius: radius.md, backgroundColor: '#0D1625', padding: spacing.md },
+  waitInfoMain: { minWidth: 0, flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  waitInfoCopy: { minWidth: 0, flex: 1 },
+  waitInfoLabel: { ...typography.eyebrow, color: colors.textMuted, fontSize: 9, letterSpacing: 1.2 },
+  waitInfoValue: { color: colors.text, fontSize: 16, lineHeight: 21, fontWeight: '900' },
+  waitInfoMeta: { minWidth: 102, maxWidth: '45%', alignItems: 'flex-end' },
+  waitCrowd: { fontSize: 12, fontWeight: '900' },
+  waitFreshness: { color: colors.textMuted, fontSize: 9.5, lineHeight: 13, textAlign: 'right' },
+  waitQuickStatus: { maxWidth: '100%', color: colors.gold, fontSize: 9.5, lineHeight: 13, marginTop: 2 },
   actionsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginHorizontal: spacing.lg },
   actionButton: { ...shadows.card, width: '48.8%', minHeight: 106, alignItems: 'center', justifyContent: 'center', backgroundColor: '#10101A', borderWidth: 1, borderColor: '#51415F', borderRadius: radius.md, padding: spacing.sm },
   pressed: { opacity: 0.76, transform: [{ scale: 0.98 }] },

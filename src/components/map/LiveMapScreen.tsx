@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   Image,
@@ -31,6 +31,8 @@ import {
   requestCurrentForegroundLocation,
   type LocationFix,
 } from '@/services/location';
+import { getWaitTimeAggregates } from '@/services/waitAggregationService';
+import type { WaitTimeAggregate } from '@/services/waitReportCore';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 const heroArtwork = require('../../../assets/images/home/live-map.png');
@@ -42,8 +44,24 @@ export function LiveMapScreen() {
   const [userLocation, setUserLocation] = useState<LocationFix | null>(null);
   const [focusRequestKey, setFocusRequestKey] = useState(0);
   const [locating, setLocating] = useState(false);
+  const [waitAggregates, setWaitAggregates] = useState<Record<string, WaitTimeAggregate>>({});
 
-  const allLocations = useMemo(() => getMapLocations(), []);
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    const refresh = () => {
+      void getWaitTimeAggregates().then((next) => {
+        if (active) setWaitAggregates(next);
+      });
+    };
+    refresh();
+    const interval = setInterval(refresh, 60_000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []));
+
+  const allLocations = useMemo(() => getMapLocations(waitAggregates), [waitAggregates]);
   const visibleLocations = useMemo(
     () => filterMapLocations(allLocations, filter),
     [allLocations, filter],
@@ -255,7 +273,16 @@ function LocationPreview({
             {distanceLabel(userLocation, location)}
           </Text>
         </View>
-        {location.crowdLevel ? <CrowdLabel level={location.crowdLevel} /> : null}
+        {location.crowdLevel ? (
+          <CrowdLabel level={location.crowdLevel} waitLabel={location.waitEstimateLabel} freshness={location.waitFreshnessLabel} />
+        ) : location.waitReportingSupported ? (
+          <View>
+            <View style={styles.crowdRow}>
+              <Ionicons color={colors.textMuted} name="people" size={16} />
+              <Text style={[styles.crowdText, { color: colors.textMuted }]}>No recent wait reports</Text>
+            </View>
+          </View>
+        ) : null}
         <View style={styles.previewActions}>
           <Pressable accessibilityRole="button" onPress={onViewDetails} style={styles.detailsButton}>
             <Text style={styles.detailsButtonText}>View Details</Text>
@@ -270,12 +297,15 @@ function LocationPreview({
   );
 }
 
-function CrowdLabel({ level }: { level: CrowdLevel }) {
+function CrowdLabel({ level, waitLabel, freshness }: { level: CrowdLevel; waitLabel?: string; freshness?: string }) {
   const label = level === 'light' ? 'Light crowd' : level === 'moderate' ? 'Moderate crowd' : 'Busy crowd';
   return (
-    <View style={styles.crowdRow}>
-      <Ionicons color={crowdColor(level)} name="people" size={16} />
-      <Text style={[styles.crowdText, { color: crowdColor(level) }]}>{label}</Text>
+    <View>
+      <View style={styles.crowdRow}>
+        <Ionicons color={crowdColor(level)} name="people" size={16} />
+        <Text style={[styles.crowdText, { color: crowdColor(level) }]}>{label}{waitLabel ? ` • ${waitLabel}` : ''}</Text>
+      </View>
+      {freshness ? <Text style={styles.crowdFreshness}>{freshness}</Text> : null}
     </View>
   );
 }
@@ -426,6 +456,7 @@ const styles = StyleSheet.create({
   distanceText: { color: colors.textMuted, fontSize: 10.5, fontWeight: '700' },
   crowdRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 },
   crowdText: { fontSize: 11, fontWeight: '900' },
+  crowdFreshness: { color: colors.textMuted, fontSize: 9, lineHeight: 12, marginLeft: 21 },
   previewActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
   detailsButton: {
     flex: 1,

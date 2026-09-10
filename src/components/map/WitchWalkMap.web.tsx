@@ -38,7 +38,7 @@ export function WitchWalkMap({ locations, userLocation, onSelectLocation, style 
             style={[
               styles.pin,
               position,
-              { backgroundColor: categoryColor(location.category) },
+              { backgroundColor: pinColor(location) },
             ]}
           >
             <MaterialCommunityIcons color="#09070D" name={categoryIcon(location.category)} size={16} />
@@ -76,6 +76,11 @@ function categoryColor(category: MapCategory) {
   if (category === 'restaurants') return '#FF9D4D';
   if (category === 'parking') return '#65B7FF';
   return '#F4D46C';
+}
+
+function pinColor(location: MapLocation) {
+  if (location.category === 'attractions' && location.crowdLevel) return crowdColor(location.crowdLevel);
+  return categoryColor(location.category);
 }
 
 function crowdColor(level: 'light' | 'moderate' | 'busy') {
