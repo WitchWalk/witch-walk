@@ -1,11 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { WaitTimesHeader } from '@/components/wait-times/WaitTimesHeader';
 import { crowdPresentation, getWaitTimeAttraction, type CrowdLevel } from '@/data/waitTimes';
+import { waitReportProximityRules } from '@/services/proximity';
+import {
+  verifyWaitReportLocation,
+  type WaitReportVerificationResult,
+} from '@/services/waitReportVerification';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 const waits = [0, 10, 20, 30, 45, 60] as const;
@@ -17,6 +22,21 @@ export default function ReportWaitScreen() {
   const [wait, setWait] = useState<number | null>(item?.estimatedMinutes ?? null);
   const [crowd, setCrowd] = useState<CrowdLevel | null>(item?.crowdLevel ?? null);
   const [note, setNote] = useState('');
+  const [verification, setVerification] = useState<WaitReportVerificationResult | null>(null);
+  const [verifying, setVerifying] = useState(false);
+
+  useEffect(() => {
+    if (!verification?.verified || !verification.locationTimestamp) return;
+
+    const remaining = waitReportProximityRules.maximumAgeMilliseconds - (Date.now() - verification.locationTimestamp);
+    const timeout = setTimeout(() => {
+      setVerification((current) => current?.verified
+        ? { ...current, verified: false, reason: 'stale' }
+        : current);
+    }, Math.max(remaining, 0));
+
+    return () => clearTimeout(timeout);
+  }, [verification]);
 
   if (!item) {
     return (
@@ -32,16 +52,43 @@ export default function ReportWaitScreen() {
     );
   }
 
-  const submit = () => {
+  const checkLocation = async () => {
+    if (!item) return null;
+    setVerifying(true);
+    const result = await verifyWaitReportLocation({ latitude: item.latitude, longitude: item.longitude });
+    setVerification(result);
+    setVerifying(false);
+    return result;
+  };
+
+  const submit = async () => {
     if (wait === null || crowd === null) {
       Alert.alert('Choose wait and crowd', 'Select both items before previewing your report.');
       return;
     }
 
-    Alert.alert('Sample report ready', 'Phase 7A keeps this report on-screen only. It has not been submitted or saved.', [
+    const currentVerification = await checkLocation();
+    if (!currentVerification?.verified) return;
+
+    Alert.alert('Location Verified', 'Your sample report passed GPS verification. It has not been transmitted or saved because backend reporting is not part of this phase.', [
       { text: 'OK', onPress: () => router.back() },
     ]);
   };
+
+  const verificationDetail = (() => {
+    switch (verification?.reason) {
+      case 'permission-denied': return 'Foreground location permission was not granted. You can continue browsing and viewing wait times.';
+      case 'precise-location-required': return 'Precise Location is required. Enable it for Witch Walk in your phone settings.';
+      case 'stale': return 'The location reading expired. Check your location again before reporting.';
+      case 'inaccurate': return 'GPS accuracy is currently too low. Move to an open area and try again.';
+      case 'mocked': return 'This location reading could not be verified.';
+      case 'outside-radius': return 'Your verified position is outside the approximately 400-foot reporting area.';
+      case 'location-unavailable': return 'A current location reading is unavailable. Please try again outdoors.';
+      default: return 'Verify your precise location when you are ready to report.';
+    }
+  })();
+
+  const permissionBlocked = verification?.reason === 'permission-denied' || verification?.reason === 'precise-location-required';
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -61,9 +108,27 @@ export default function ReportWaitScreen() {
           </View>
         </View>
 
-        <View style={styles.phaseNotice}>
-          <Ionicons name="information-circle" size={22} color={colors.lavender} />
-          <Text style={styles.phaseNoticeText}>Phase 7A preview: location verification will be added in Phase 7B.</Text>
+        <View style={[styles.verificationCard, verification?.verified && styles.verificationCardSuccess, verification && !verification.verified && styles.verificationCardFailed]}>
+          <Ionicons
+            name={verification?.verified ? 'checkmark-circle' : verification ? 'location' : 'location-outline'}
+            size={25}
+            color={verification?.verified ? colors.success : verification ? '#FF8B73' : colors.lavender}
+          />
+          <View style={styles.verificationCopy}>
+            <Text style={[styles.verificationTitle, verification?.verified && styles.verificationTitleSuccess]}>
+              {verification?.verified ? 'Location Verified' : verification ? 'You need to be near this attraction to report its wait time.' : 'Verify Location to Report'}
+            </Text>
+            <Text style={styles.verificationText}>{verification?.verified ? 'You are close enough to submit a wait report.' : verificationDetail}</Text>
+          </View>
+          {permissionBlocked ? (
+            <Pressable accessibilityRole="button" onPress={() => void Linking.openSettings()} style={styles.verifyButton}>
+              <Text style={styles.verifyButtonText}>Settings</Text>
+            </Pressable>
+          ) : (
+            <Pressable accessibilityRole="button" disabled={verifying} onPress={() => void checkLocation()} style={[styles.verifyButton, verifying && styles.buttonDisabled]}>
+              <Text style={styles.verifyButtonText}>{verifying ? 'Checking…' : verification ? 'Check Again' : 'Verify'}</Text>
+            </Pressable>
+          )}
         </View>
 
         <View style={styles.section}>
@@ -122,11 +187,17 @@ export default function ReportWaitScreen() {
           </View>
         </View>
 
-        <Pressable accessibilityRole="button" onPress={submit} style={({ pressed }) => [styles.submitButton, pressed && styles.pressed]}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !verification?.verified || verifying }}
+          disabled={!verification?.verified || verifying}
+          onPress={() => void submit()}
+          style={({ pressed }) => [styles.submitButton, (!verification?.verified || verifying) && styles.submitDisabled, pressed && styles.pressed]}
+        >
           <Ionicons name="paper-plane" size={22} color={colors.black} />
-          <Text style={styles.submitText}>Preview Report</Text>
+          <Text style={styles.submitText}>{verifying ? 'Verifying Location…' : 'Submit Report'}</Text>
         </Pressable>
-        <Text style={styles.disclaimer}>No report is transmitted or saved during Phase 7A.</Text>
+        <Text style={styles.disclaimer}>Foreground location is checked only for this report. No location history or report is stored.</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -143,8 +214,16 @@ const styles = StyleSheet.create({
   currentRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: spacing.sm },
   currentCrowd: { fontSize: 11.5, fontWeight: '900' },
   currentWait: { marginLeft: 'auto', color: colors.textMuted, fontSize: 10.5 },
-  phaseNotice: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, borderWidth: 1, borderColor: '#8050B5', borderRadius: radius.md, backgroundColor: '#28133D', padding: spacing.md },
-  phaseNoticeText: { minWidth: 0, flex: 1, color: colors.text, fontSize: 12.5, lineHeight: 17 },
+  verificationCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, borderWidth: 1, borderColor: '#8050B5', borderRadius: radius.md, backgroundColor: '#28133D', padding: spacing.md },
+  verificationCardSuccess: { borderColor: colors.success, backgroundColor: '#0D2A23' },
+  verificationCardFailed: { borderColor: '#A04E52', backgroundColor: '#281419' },
+  verificationCopy: { minWidth: 0, flex: 1 },
+  verificationTitle: { color: colors.text, fontSize: 12.5, lineHeight: 16, fontWeight: '900' },
+  verificationTitleSuccess: { color: colors.success, fontSize: 15 },
+  verificationText: { color: colors.textMuted, fontSize: 10.5, lineHeight: 14, marginTop: 2 },
+  verifyButton: { minHeight: 36, justifyContent: 'center', borderWidth: 1, borderColor: colors.lavender, borderRadius: radius.sm, paddingHorizontal: 9 },
+  verifyButtonText: { color: colors.text, fontSize: 10.5, fontWeight: '900' },
+  buttonDisabled: { opacity: 0.55 },
   section: { gap: spacing.sm },
   sectionTitle: { ...typography.title, fontSize: 20, lineHeight: 25 },
   optional: { color: colors.textMuted, fontFamily: undefined, fontSize: 13, fontWeight: '500' },
@@ -164,6 +243,7 @@ const styles = StyleSheet.create({
   noteInput: { minWidth: 0, flex: 1, minHeight: 56, color: colors.text, fontSize: 14, lineHeight: 19, padding: 0, textAlignVertical: 'top' },
   characterCount: { alignSelf: 'flex-end', color: colors.textMuted, fontSize: 10 },
   submitButton: { minHeight: 58, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, borderRadius: radius.md, backgroundColor: colors.gold, paddingHorizontal: spacing.lg },
+  submitDisabled: { opacity: 0.42 },
   submitText: { color: colors.black, fontSize: 17, fontWeight: '900' },
   disclaimer: { ...typography.caption, textAlign: 'center', fontSize: 10.5 },
   pressed: { opacity: 0.78, transform: [{ scale: 0.99 }] },

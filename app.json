@@ -30,7 +30,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Allow Witch Walk to use your location when you tap Locate Me so we can show nearby Salem places."
+          "locationWhenInUsePermission": "Allow Witch Walk to use your precise location when you choose Locate Me or report a wait time near a Salem attraction."
         }
       ]
     ],

@@ -70,6 +70,11 @@ export function LiveMapScreen() {
       return;
     }
 
+    if (result.kind === 'imprecise') {
+      Alert.alert('Precise location unavailable', 'Turn on Precise Location in your phone settings and try again.');
+      return;
+    }
+
     Alert.alert('Location unavailable', result.message);
   };
 

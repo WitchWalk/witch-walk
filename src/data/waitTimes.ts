@@ -14,6 +14,8 @@ export type WaitTimeRecord = {
 export type WaitTimeAttraction = WaitTimeRecord & {
   name: string;
   address: string;
+  latitude: number;
+  longitude: number;
   distance: string;
   image: ImageSourcePropType;
 };
@@ -35,6 +37,8 @@ export const waitTimeAttractions: WaitTimeAttraction[] = waitTimeRecords.flatMap
     ...record,
     name: attraction.name,
     address: attraction.address,
+    latitude: attraction.latitude,
+    longitude: attraction.longitude,
     distance: attraction.distance,
     image: attraction.image,
   }];

@@ -15,7 +15,8 @@ export type ProximityRules = {
   maximumAgeMilliseconds: number;
 };
 
-export const futureWaitReportProximityRules: ProximityRules = {
+// About 400 feet. Keep all wait-report proximity thresholds centralized here.
+export const waitReportProximityRules: ProximityRules = {
   allowedRadiusMeters: 122,
   maximumAccuracyMeters: 50,
   maximumAgeMilliseconds: 30_000,
@@ -24,7 +25,32 @@ export const futureWaitReportProximityRules: ProximityRules = {
 export type ProximityResult = {
   verified: boolean;
   distanceMeters: number;
-  reason: 'verified' | 'stale' | 'inaccurate' | 'outside-radius';
+  reason: 'verified' | 'stale' | 'inaccurate' | 'mocked' | 'outside-radius';
+};
+
+export type WaitReportLocationInput =
+  | { kind: 'granted'; location: LocationFix }
+  | { kind: 'denied'; canAskAgain: boolean }
+  | { kind: 'imprecise' }
+  | { kind: 'unavailable'; message: string };
+
+export type WaitReportVerificationReason =
+  | 'verified'
+  | 'permission-denied'
+  | 'precise-location-required'
+  | 'location-unavailable'
+  | 'stale'
+  | 'inaccurate'
+  | 'mocked'
+  | 'outside-radius';
+
+export type WaitReportVerificationResult = {
+  verified: boolean;
+  reason: WaitReportVerificationReason;
+  distanceMeters?: number;
+  accuracyMeters?: number | null;
+  locationTimestamp?: number;
+  canAskAgain?: boolean;
 };
 
 const earthRadiusMeters = 6_371_000;
@@ -48,7 +74,7 @@ export function distanceBetweenCoordinates(origin: Coordinates, destination: Coo
 export function verifyProximity(
   fix: LocationFix | null,
   destination: Coordinates,
-  rules: ProximityRules = futureWaitReportProximityRules,
+  rules: ProximityRules = waitReportProximityRules,
   now = Date.now(),
 ): ProximityResult {
   if (!fix || now - fix.timestamp > rules.maximumAgeMilliseconds) {
@@ -59,12 +85,43 @@ export function verifyProximity(
     return { verified: false, distanceMeters: Number.POSITIVE_INFINITY, reason: 'inaccurate' };
   }
 
+  if (fix.mocked) {
+    return { verified: false, distanceMeters: Number.POSITIVE_INFINITY, reason: 'mocked' };
+  }
+
   const distanceMeters = distanceBetweenCoordinates(fix, destination);
   if (distanceMeters > rules.allowedRadiusMeters) {
     return { verified: false, distanceMeters, reason: 'outside-radius' };
   }
 
   return { verified: true, distanceMeters, reason: 'verified' };
+}
+
+export function evaluateWaitReportLocation(
+  result: WaitReportLocationInput,
+  destination: Coordinates,
+  now = Date.now(),
+): WaitReportVerificationResult {
+  if (result.kind === 'denied') {
+    return { verified: false, reason: 'permission-denied', canAskAgain: result.canAskAgain };
+  }
+
+  if (result.kind === 'imprecise') {
+    return { verified: false, reason: 'precise-location-required' };
+  }
+
+  if (result.kind === 'unavailable') {
+    return { verified: false, reason: 'location-unavailable' };
+  }
+
+  const proximity = verifyProximity(result.location, destination, undefined, now);
+  return {
+    verified: proximity.verified,
+    reason: proximity.reason,
+    distanceMeters: proximity.distanceMeters,
+    accuracyMeters: result.location.accuracyMeters,
+    locationTimestamp: result.location.timestamp,
+  };
 }
 
 export function distanceLabel(userLocation: LocationFix | null, destination: Coordinates) {
