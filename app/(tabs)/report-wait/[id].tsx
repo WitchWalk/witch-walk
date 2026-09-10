@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -11,9 +11,15 @@ import {
   verifyWaitReportLocation,
   type WaitReportVerificationResult,
 } from '@/services/waitReportVerification';
+import {
+  APPROVED_WAIT_MINUTES,
+  cooldownMinutesRemaining,
+  createSubmissionKey,
+  WAIT_REPORT_NOTE_MAX_LENGTH,
+  waitReportService,
+} from '@/services/waitReportService';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
-const waits = [0, 10, 20, 30, 45, 60] as const;
 const quickNotes = ['Line moving quickly', 'Ticket line only', 'Line wraps outside'];
 
 export default function ReportWaitScreen() {
@@ -24,6 +30,8 @@ export default function ReportWaitScreen() {
   const [note, setNote] = useState('');
   const [verification, setVerification] = useState<WaitReportVerificationResult | null>(null);
   const [verifying, setVerifying] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const submissionKey = useRef(createSubmissionKey());
 
   useEffect(() => {
     if (!verification?.verified || !verification.locationTimestamp) return;
@@ -67,12 +75,54 @@ export default function ReportWaitScreen() {
       return;
     }
 
-    const currentVerification = await checkLocation();
-    if (!currentVerification?.verified) return;
+    if (submitting) return;
+    setSubmitting(true);
 
-    Alert.alert('Location Verified', 'Your sample report passed GPS verification. It has not been transmitted or saved because backend reporting is not part of this phase.', [
-      { text: 'OK', onPress: () => router.back() },
-    ]);
+    try {
+      const currentVerification = await checkLocation();
+      if (!currentVerification?.verified) return;
+
+      const result = await waitReportService.submit({
+        attractionId: item.attractionId,
+        waitMinutes: wait,
+        crowdLevel: crowd,
+        note,
+        submissionKey: submissionKey.current,
+        verification: currentVerification,
+      });
+
+      if (result.kind === 'cooldown') {
+        const minutes = cooldownMinutesRemaining(result.remainingMilliseconds);
+        Alert.alert('Thanks for helping', `You recently reported this attraction. Try again in ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}.`);
+        return;
+      }
+
+      if (result.kind === 'duplicate') {
+        Alert.alert('Report already received', 'Your report was only saved once.');
+        return;
+      }
+
+      if (result.kind === 'invalid') {
+        Alert.alert('Check your report', `Please choose a valid ${result.field} value.`);
+        return;
+      }
+
+      if (result.kind === 'location-failed') {
+        const expired = result.reason === 'expired';
+        if (expired) setVerification({ verified: false, reason: 'stale' });
+        Alert.alert(
+          expired ? 'Location verification expired' : 'Location not verified',
+          expired ? 'Please verify your location again.' : 'You need to be near this attraction to report its wait time.',
+        );
+        return;
+      }
+
+      Alert.alert('Report submitted', 'Location Verified. Your update was saved locally for cooldown protection.', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const verificationDetail = (() => {
@@ -134,7 +184,7 @@ export default function ReportWaitScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>What is the current wait time?</Text>
           <View style={styles.waitGrid}>
-            {waits.map((minutes) => {
+            {APPROVED_WAIT_MINUTES.map((minutes) => {
               const selected = wait === minutes;
               return (
                 <Pressable key={minutes} accessibilityRole="button" accessibilityState={{ selected }} onPress={() => setWait(minutes)} style={[styles.waitOption, selected && styles.waitSelected]}>
@@ -175,7 +225,7 @@ export default function ReportWaitScreen() {
             <Ionicons name="chatbubble-outline" size={21} color={colors.textMuted} />
             <TextInput
               accessibilityLabel="Optional report note"
-              maxLength={160}
+              maxLength={WAIT_REPORT_NOTE_MAX_LENGTH}
               multiline
               onChangeText={setNote}
               placeholder="Add a quick note"
@@ -183,21 +233,21 @@ export default function ReportWaitScreen() {
               style={styles.noteInput}
               value={note}
             />
-            <Text style={styles.characterCount}>{note.length}/160</Text>
+            <Text style={styles.characterCount}>{note.length}/{WAIT_REPORT_NOTE_MAX_LENGTH}</Text>
           </View>
         </View>
 
         <Pressable
           accessibilityRole="button"
-          accessibilityState={{ disabled: !verification?.verified || verifying }}
-          disabled={!verification?.verified || verifying}
+          accessibilityState={{ disabled: !verification?.verified || verifying || submitting }}
+          disabled={!verification?.verified || verifying || submitting}
           onPress={() => void submit()}
-          style={({ pressed }) => [styles.submitButton, (!verification?.verified || verifying) && styles.submitDisabled, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.submitButton, (!verification?.verified || verifying || submitting) && styles.submitDisabled, pressed && styles.pressed]}
         >
           <Ionicons name="paper-plane" size={22} color={colors.black} />
-          <Text style={styles.submitText}>{verifying ? 'Verifying Location…' : 'Submit Report'}</Text>
+          <Text style={styles.submitText}>{submitting ? 'Submitting…' : verifying ? 'Verifying Location…' : 'Submit Report'}</Text>
         </Pressable>
-        <Text style={styles.disclaimer}>Foreground location is checked only for this report. No location history or report is stored.</Text>
+        <Text style={styles.disclaimer}>Precise coordinates are not stored. Only the report, its timestamp, and a private local identifier remain on this device.</Text>
       </ScrollView>
     </SafeAreaView>
   );
