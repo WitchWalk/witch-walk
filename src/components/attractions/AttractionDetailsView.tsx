@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { Attraction } from '@/data/attractions';
+import { getWaitTimeAttraction } from '@/data/waitTimes';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 const videoBackground = require('../../../assets/images/home/house-arauz-videos.png');
@@ -25,6 +26,7 @@ type AttractionDetailsViewProps = {
 
 export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps) {
   const [favorite, setFavorite] = useState(false);
+  const supportsWaitReporting = Boolean(getWaitTimeAttraction(attraction.id));
 
   const goBackToAttractions = () => {
     if (router.canGoBack()) router.back();
@@ -93,11 +95,13 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
             <ActionButton icon="information-circle" color="#F17B67" title="Visitor Info" subtitle="Local details" onPress={() => Alert.alert('Visitor information', attraction.hours)} />
           )}
           <ActionButton
-            icon="notifications-outline"
+            icon={supportsWaitReporting ? 'create-outline' : 'notifications-outline'}
             color={colors.gold}
-            title="Witch Watch"
-            subtitle="Coming later"
-            onPress={() => Alert.alert('Witch Watch', 'This is a visual placeholder. Notifications will be added in a future phase.')}
+            title={supportsWaitReporting ? 'Report Wait' : 'Witch Watch'}
+            subtitle={supportsWaitReporting ? 'Share now' : 'Coming later'}
+            onPress={() => supportsWaitReporting
+              ? router.push({ pathname: '/report-wait/[id]', params: { id: attraction.id } })
+              : Alert.alert('Witch Watch', 'This is a visual placeholder. Notifications will be added in a future phase.')}
           />
           <ActionButton
             icon={favorite ? 'heart' : 'heart-outline'}

@@ -44,6 +44,7 @@ export default function TabLayout() {
       <Tabs.Screen name="index" options={{ title: 'Home' }} />
       <Tabs.Screen name="map" options={{ title: 'Map' }} />
       <Tabs.Screen name="wait-times" options={{ title: 'Wait Times' }} />
+      <Tabs.Screen name="report-wait/[id]" options={{ href: null }} />
       <Tabs.Screen name="favorites" options={{ title: 'Favorites' }} />
       <Tabs.Screen name="more" options={{ title: 'More' }} />
     </Tabs>
