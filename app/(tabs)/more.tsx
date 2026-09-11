@@ -107,6 +107,7 @@ export default function MoreScreen() {
         </SettingsSection>
 
         <SettingsSection icon="document-text" title="Legal & Support">
+          <SettingsRow icon="heart" iconColor="#E779C6" label="❤️ Support Witch Walk" hint="Help keep Witch Walk free and running." onPress={() => router.push('/settings/support-witch-walk')} />
           <SettingsRow icon="shield-checkmark-outline" label="Privacy Policy" onPress={() => router.push('/settings/privacy')} />
           <SettingsRow icon="document-text-outline" label="Terms of Service" onPress={() => router.push('/settings/terms')} />
           <SettingsRow icon="mail" label="Contact / Support" onPress={() => router.push('/settings/support')} />
