@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { Alert, ImageBackground, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import { ParkingCard } from '@/components/parking/ParkingCard';
 import {
   getParkingMapDestination,
@@ -28,6 +29,7 @@ const filterIcons: Record<ParkingFilter, FilterIcon> = {
 
 export default function ParkingScreen() {
   const [filter, setFilter] = useState<ParkingFilter>('All');
+  const { isFavorite, toggleFavorite } = useFavorites();
   const featuredParking = parkingLocations.find((location) => location.featured);
 
   const visibleLocations = useMemo(
@@ -134,8 +136,10 @@ export default function ParkingScreen() {
             <SectionHeading title="Featured Parking" />
             <ParkingCard
               featured
+              favorite={isFavorite('parking', featuredParking.id)}
               location={featuredParking}
               onDirections={() => void openMap(getParkingMapDestination(featuredParking))}
+              onFavoritePress={() => toggleFavorite('parking', featuredParking.id)}
               onPress={() => openDetails(featuredParking.id)}
               onViewMap={() => void openMap(getParkingMapDestination(featuredParking))}
             />
@@ -160,9 +164,11 @@ export default function ParkingScreen() {
             <View style={styles.parkingList}>
               {visibleLocations.map((location) => (
                 <ParkingCard
+                  favorite={isFavorite('parking', location.id)}
                   key={location.id}
                   location={location}
                   onDirections={() => void openMap(getParkingMapDestination(location))}
+                  onFavoritePress={() => toggleFavorite('parking', location.id)}
                   onPress={() => openDetails(location.id)}
                   onViewMap={() => void openMap(getParkingMapDestination(location))}
                 />

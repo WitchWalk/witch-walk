@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import { RestaurantCard } from '@/components/restaurants/RestaurantCard';
 import {
   restaurantCategories,
@@ -39,7 +40,7 @@ const categoryIcons: Record<'All' | RestaurantCategory, CategoryIcon> = {
 export default function RestaurantsScreen() {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<'All' | RestaurantCategory>('All');
-  const [favorites, setFavorites] = useState<Set<string>>(() => new Set());
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const visibleRestaurants = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -62,15 +63,6 @@ export default function RestaurantsScreen() {
       return matchesCategory && (!normalizedQuery || searchableText.includes(normalizedQuery));
     });
   }, [category, query]);
-
-  const toggleFavorite = (id: string) => {
-    setFavorites((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
 
   const openDetails = (id: string) => {
     router.push({ pathname: '/restaurants/[id]', params: { id } });
@@ -189,9 +181,9 @@ export default function RestaurantsScreen() {
           <View style={styles.restaurantList}>
             {visibleRestaurants.map((restaurant) => (
               <RestaurantCard
-                favorite={favorites.has(restaurant.id)}
+                favorite={isFavorite('restaurants', restaurant.id)}
                 key={restaurant.id}
-                onFavoritePress={() => toggleFavorite(restaurant.id)}
+                onFavoritePress={() => toggleFavorite('restaurants', restaurant.id)}
                 onPress={() => openDetails(restaurant.id)}
                 restaurant={restaurant}
               />

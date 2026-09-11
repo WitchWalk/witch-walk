@@ -10,16 +10,20 @@ import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 type ParkingCardProps = {
   location: ParkingLocation;
   featured?: boolean;
+  favorite: boolean;
   onPress: () => void;
   onDirections: () => void;
+  onFavoritePress: () => void;
   onViewMap: () => void;
 };
 
 export function ParkingCard({
   location,
   featured = false,
+  favorite,
   onPress,
   onDirections,
+  onFavoritePress,
   onViewMap,
 }: ParkingCardProps) {
   const { width } = useWindowDimensions();
@@ -43,6 +47,18 @@ export function ParkingCard({
               <Text style={styles.featuredBadgeText}>Featured Parking</Text>
             </View>
           ) : null}
+          <Pressable
+            accessibilityLabel={favorite ? `Remove ${location.name} from favorites` : `Add ${location.name} to favorites`}
+            accessibilityRole="button"
+            hitSlop={6}
+            onPress={(event) => {
+              event.stopPropagation();
+              onFavoritePress();
+            }}
+            style={styles.favoriteButton}
+          >
+            <Ionicons color={favorite ? '#F18BA3' : colors.text} name={favorite ? 'heart' : 'heart-outline'} size={23} />
+          </Pressable>
         </View>
 
         <View style={styles.info}>
@@ -148,6 +164,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   featuredBadgeText: { color: colors.text, fontSize: 8.5, fontWeight: '900', textTransform: 'uppercase' },
+  favoriteButton: { position: 'absolute', right: spacing.sm, bottom: spacing.sm, width: 36, height: 36, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill, backgroundColor: 'rgba(7,5,11,0.82)' },
   info: { flex: 1, minWidth: 0, padding: spacing.md, paddingLeft: 10 },
   titleRow: { height: 60, overflow: 'hidden', flexDirection: 'row', alignItems: 'flex-start', gap: 2 },
   name: { ...typography.title, flex: 1, fontSize: 19, lineHeight: 23 },

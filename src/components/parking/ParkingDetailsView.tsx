@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import {
   getParkingMapDestination,
   getParkingOperatingStatus,
@@ -15,6 +16,8 @@ type ParkingDetailsViewProps = {
 };
 
 export function ParkingDetailsView({ location }: ParkingDetailsViewProps) {
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const favorite = isFavorite('parking', location.id);
   const operatingStatus = getParkingOperatingStatus(location);
 
   const goBackToParking = () => {
@@ -55,9 +58,14 @@ export function ParkingDetailsView({ location }: ParkingDetailsViewProps) {
             <Text style={styles.brand}>
               Witch <Text style={styles.brandStar}>✦</Text> Walk
             </Text>
-            <View style={styles.iconButton}>
-              <Ionicons color="#70AEFF" name="car-sport" size={21} />
-            </View>
+            <Pressable
+              accessibilityLabel={favorite ? `Remove ${location.name} from favorites` : `Add ${location.name} to favorites`}
+              accessibilityRole="button"
+              onPress={() => toggleFavorite('parking', location.id)}
+              style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
+            >
+              <Ionicons color={favorite ? '#F18BA3' : colors.text} name={favorite ? 'heart' : 'heart-outline'} size={23} />
+            </Pressable>
           </View>
         </View>
 

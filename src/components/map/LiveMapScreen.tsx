@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import { WitchWalkMap } from '@/components/map/WitchWalkMap';
 import {
   filterMapLocations,
@@ -45,6 +46,7 @@ export function LiveMapScreen() {
   const [focusRequestKey, setFocusRequestKey] = useState(0);
   const [locating, setLocating] = useState(false);
   const [waitAggregates, setWaitAggregates] = useState<Record<string, WaitTimeAggregate>>({});
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   useFocusEffect(useCallback(() => {
     let active = true;
@@ -214,9 +216,11 @@ export function LiveMapScreen() {
 
           {selected ? (
             <LocationPreview
+              favorite={isFavorite(selected.category, selected.sourceId)}
               location={selected}
               onClose={() => setSelected(null)}
               onDirections={() => void openDirections(selected)}
+              onFavorite={() => toggleFavorite(selected.category, selected.sourceId)}
               onViewDetails={() => openDetails(selected)}
               userLocation={userLocation}
             />
@@ -245,16 +249,20 @@ function MapCategoryIcon({ category, active }: { category: MapFilter; active: bo
 }
 
 function LocationPreview({
+  favorite,
   location,
   userLocation,
   onClose,
   onDirections,
+  onFavorite,
   onViewDetails,
 }: {
+  favorite: boolean;
   location: MapLocation;
   userLocation: LocationFix | null;
   onClose: () => void;
   onDirections: () => void;
+  onFavorite: () => void;
   onViewDetails: () => void;
 }) {
   return (
@@ -272,6 +280,15 @@ function LocationPreview({
           <Text style={styles.distanceText}>
             {distanceLabel(userLocation, location)}
           </Text>
+          <Pressable
+            accessibilityLabel={favorite ? `Remove ${location.name} from favorites` : `Add ${location.name} to favorites`}
+            accessibilityRole="button"
+            hitSlop={6}
+            onPress={onFavorite}
+            style={styles.previewFavorite}
+          >
+            <Ionicons color={favorite ? '#F18BA3' : colors.textMuted} name={favorite ? 'heart' : 'heart-outline'} size={18} />
+          </Pressable>
         </View>
         {location.crowdLevel ? (
           <CrowdLabel level={location.crowdLevel} waitLabel={location.waitEstimateLabel} freshness={location.waitFreshnessLabel} />
@@ -454,6 +471,7 @@ const styles = StyleSheet.create({
   previewMetaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: 3 },
   categoryText: { flexShrink: 1, fontSize: 10.5, fontWeight: '900', textTransform: 'uppercase' },
   distanceText: { color: colors.textMuted, fontSize: 10.5, fontWeight: '700' },
+  previewFavorite: { width: 26, height: 24, alignItems: 'center', justifyContent: 'center', marginLeft: 'auto' },
   crowdRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 },
   crowdText: { fontSize: 11, fontWeight: '900' },
   crowdFreshness: { color: colors.textMuted, fontSize: 9, lineHeight: 12, marginLeft: 21 },

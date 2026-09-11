@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AttractionCard } from '@/components/attractions/AttractionCard';
 import { FeaturedAttractionCard } from '@/components/attractions/FeaturedAttractionCard';
+import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import { attractionCategories, attractions, type AttractionCategory } from '@/data/attractions';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
@@ -37,7 +38,7 @@ export default function AttractionsScreen() {
   const { width } = useWindowDimensions();
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<'All' | AttractionCategory>('All');
-  const [favorites, setFavorites] = useState<Set<string>>(() => new Set());
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const featured = attractions.find((attraction) => attraction.featured) ?? attractions[0];
   const gridCardWidth = Math.floor((width - spacing.lg * 2 - spacing.sm) / 2);
@@ -55,15 +56,6 @@ export default function AttractionsScreen() {
       return matchesCategory && matchesQuery;
     });
   }, [category, query]);
-
-  const toggleFavorite = (id: string) => {
-    setFavorites((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
 
   const openDetails = (id: string) => {
     router.push({ pathname: '/attractions/[id]', params: { id } });
@@ -138,8 +130,8 @@ export default function AttractionsScreen() {
             </View>
             <FeaturedAttractionCard
               attraction={featured}
-              favorite={favorites.has(featured.id)}
-              onFavoritePress={() => toggleFavorite(featured.id)}
+              favorite={isFavorite('attractions', featured.id)}
+              onFavoritePress={() => toggleFavorite('attractions', featured.id)}
               onPress={() => openDetails(featured.id)}
             />
           </View>
@@ -158,8 +150,8 @@ export default function AttractionsScreen() {
                 <View key={attraction.id} style={[styles.gridItem, { width: gridCardWidth }]}>
                   <AttractionCard
                     attraction={attraction}
-                    favorite={favorites.has(attraction.id)}
-                    onFavoritePress={() => toggleFavorite(attraction.id)}
+                    favorite={isFavorite('attractions', attraction.id)}
+                    onFavoritePress={() => toggleFavorite('attractions', attraction.id)}
                     onPress={() => openDetails(attraction.id)}
                   />
                 </View>

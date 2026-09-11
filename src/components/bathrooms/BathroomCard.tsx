@@ -9,12 +9,14 @@ import {
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 type BathroomCardProps = {
+  favorite: boolean;
   location: BathroomLocation;
   onDirections: () => void;
+  onFavoritePress: () => void;
   onPress: () => void;
 };
 
-export function BathroomCard({ location, onDirections, onPress }: BathroomCardProps) {
+export function BathroomCard({ favorite, location, onDirections, onFavoritePress, onPress }: BathroomCardProps) {
   const { width } = useWindowDimensions();
   const narrow = width < 375;
   const operatingStatus = getBathroomOperatingStatus(location);
@@ -34,6 +36,18 @@ export function BathroomCard({ location, onDirections, onPress }: BathroomCardPr
           <View style={styles.restroomBadge}>
             <MaterialCommunityIcons color="#F4D46C" name="toilet" size={24} />
           </View>
+          <Pressable
+            accessibilityLabel={favorite ? `Remove ${location.name} from favorites` : `Add ${location.name} to favorites`}
+            accessibilityRole="button"
+            hitSlop={6}
+            onPress={(event) => {
+              event.stopPropagation();
+              onFavoritePress();
+            }}
+            style={styles.favoriteButton}
+          >
+            <Ionicons color={favorite ? '#F18BA3' : colors.text} name={favorite ? 'heart' : 'heart-outline'} size={23} />
+          </Pressable>
         </View>
 
         <View style={styles.info}>
@@ -159,6 +173,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     backgroundColor: 'rgba(9, 7, 13, 0.84)',
   },
+  favoriteButton: { position: 'absolute', right: spacing.sm, bottom: spacing.sm, width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill, backgroundColor: 'rgba(9,7,13,0.84)' },
   info: { flex: 1, minWidth: 0, padding: spacing.md, paddingLeft: 10 },
   titleArea: { height: 82, justifyContent: 'flex-start', overflow: 'hidden' },
   name: { ...typography.title, fontSize: 18, lineHeight: 21 },

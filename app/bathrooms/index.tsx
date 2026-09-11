@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BathroomCard } from '@/components/bathrooms/BathroomCard';
 import { RestroomMap } from '@/components/bathrooms/RestroomMap';
+import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import {
   bathroomFilters,
   getBathroomMapDestination,
@@ -33,6 +34,7 @@ const filterIcons: Record<BathroomFilter, IoniconName> = {
 export default function BathroomsScreen() {
   const [filter, setFilter] = useState<BathroomFilter>('All');
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const visibleBathrooms = useMemo(() => {
     const filtered = getVisibleBathroomLocations().filter((location) => {
@@ -175,9 +177,11 @@ export default function BathroomsScreen() {
             <View style={styles.bathroomList}>
               {visibleBathrooms.map((location) => (
                 <BathroomCard
+                  favorite={isFavorite('bathrooms', location.id)}
                   key={location.id}
                   location={location}
                   onDirections={() => void openDirections(location)}
+                  onFavoritePress={() => toggleFavorite('bathrooms', location.id)}
                   onPress={() => openDetails(location.id)}
                 />
               ))}

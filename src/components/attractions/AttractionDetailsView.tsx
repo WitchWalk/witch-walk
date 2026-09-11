@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import type { Attraction } from '@/data/attractions';
 import { crowdPresentation, getWaitTimeAttraction } from '@/data/waitTimes';
 import { getWaitTimeAggregate } from '@/services/waitAggregationService';
@@ -27,7 +28,8 @@ type AttractionDetailsViewProps = {
 };
 
 export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps) {
-  const [favorite, setFavorite] = useState(false);
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const favorite = isFavorite('attractions', attraction.id);
   const supportsWaitReporting = Boolean(getWaitTimeAttraction(attraction.id));
   const [waitAggregate, setWaitAggregate] = useState<WaitTimeAggregate | null>(null);
 
@@ -146,7 +148,7 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
             color="#F18BA3"
             title={favorite ? 'Saved' : 'Favorite'}
             subtitle={favorite ? 'Added to favorites' : 'Save this place'}
-            onPress={() => setFavorite((current) => !current)}
+            onPress={() => toggleFavorite('attractions', attraction.id)}
           />
         </View>
 

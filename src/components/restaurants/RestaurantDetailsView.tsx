@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useState } from 'react';
 import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import type { Restaurant } from '@/data/restaurants';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
@@ -12,7 +12,8 @@ type RestaurantDetailsViewProps = {
 };
 
 export function RestaurantDetailsView({ restaurant }: RestaurantDetailsViewProps) {
-  const [favorite, setFavorite] = useState(false);
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const favorite = isFavorite('restaurants', restaurant.id);
 
   const goBackToRestaurants = () => {
     if (router.canGoBack()) router.back();
@@ -118,7 +119,7 @@ export function RestaurantDetailsView({ restaurant }: RestaurantDetailsViewProps
           <ActionButton
             color="#F18BA3"
             icon={favorite ? 'heart' : 'heart-outline'}
-            onPress={() => setFavorite((current) => !current)}
+            onPress={() => toggleFavorite('restaurants', restaurant.id)}
             subtitle={favorite ? 'Added to favorites' : 'Save this place'}
             title={favorite ? 'Saved' : 'Favorite'}
           />
