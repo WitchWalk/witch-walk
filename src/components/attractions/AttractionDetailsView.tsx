@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
+import { useWitchWatch } from '@/components/WitchWatchProvider';
 import type { Attraction } from '@/data/attractions';
 import { crowdPresentation, getWaitTimeAttraction } from '@/data/waitTimes';
 import { getWaitTimeAggregate } from '@/services/waitAggregationService';
@@ -28,6 +29,8 @@ type AttractionDetailsViewProps = {
 };
 
 export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps) {
+  const { watches } = useWitchWatch();
+  const watching = watches.some(w => w.attractionId === attraction.id && w.enabled);
   const { isFavorite, toggleFavorite } = useFavorites();
   const favorite = isFavorite('attractions', attraction.id);
   const supportsWaitReporting = Boolean(getWaitTimeAttraction(attraction.id));
@@ -138,10 +141,10 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
             icon={supportsWaitReporting ? 'create-outline' : 'notifications-outline'}
             color={colors.gold}
             title={supportsWaitReporting ? 'Report Wait' : 'Witch Watch'}
-            subtitle={supportsWaitReporting ? 'Share now' : 'Coming later'}
+            subtitle={supportsWaitReporting ? 'Share now' : watching ? 'Watching' : 'Set an alert'}
             onPress={() => supportsWaitReporting
               ? router.push({ pathname: '/report-wait/[id]', params: { id: attraction.id } })
-              : Alert.alert('Witch Watch', 'This is a visual placeholder. Notifications will be added in a future phase.')}
+              : router.push({ pathname: '/witch-watch', params: { id: attraction.id } })}
           />
           <ActionButton
             icon={favorite ? 'heart' : 'heart-outline'}
@@ -152,6 +155,7 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
           />
         </View>
 
+        {supportsWaitReporting ? <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/witch-watch', params: { id: attraction.id } })} style={{ padding: 14, borderRadius: 14, borderWidth: 1, borderColor: colors.gold, flexDirection: 'row', gap: 10 }}><Ionicons name="notifications-outline" size={20} color={colors.gold} /><Text style={{ color: colors.gold }}>{watching ? 'Watching' : 'Witch Watch'}</Text></Pressable> : null}
         <View style={styles.infoCards}>
           <View style={styles.contentCard}>
             <View style={styles.cardHeading}>
