@@ -55,6 +55,8 @@ After creating or changing `.env`, restart the Expo development server so Expo c
 
 ## Quality checks
 
+Phase 11B-1 backend migration, security boundaries, test instructions, and deployment limitations are documented in [supabase/README.md](supabase/README.md). The app continues to use local wait reporting; the migration is not deployed or connected to the screens.
+
 ```bash
 pnpm typecheck
 pnpm lint
