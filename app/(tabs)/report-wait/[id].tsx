@@ -161,11 +161,23 @@ export default function ReportWaitScreen() {
             <Text style={styles.attractionName}>{item.name}</Text>
             <Text numberOfLines={2} style={styles.address}>{item.address}</Text>
             <View style={styles.currentRow}>
-              <Ionicons name="people" size={20} color={aggregate?.crowdLevel ? crowdPresentation[aggregate.crowdLevel].color : colors.textMuted} />
-              <Text style={[styles.currentCrowd, { color: aggregate?.crowdLevel ? crowdPresentation[aggregate.crowdLevel].color : colors.textMuted }]}>
-                {aggregate?.crowdLevel ? crowdPresentation[aggregate.crowdLevel].label : 'No recent reports'}
-              </Text>
-              <Text style={styles.currentWait}>{aggregate?.estimatedWaitLabel ?? 'No recent wait reports'}</Text>
+              <View style={styles.currentMetric}>
+                <Ionicons name="people" size={18} color={aggregate?.crowdLevel ? crowdPresentation[aggregate.crowdLevel].color : colors.textMuted} />
+                <View style={styles.currentMetricCopy}>
+                  <Text style={[styles.currentCrowd, { color: aggregate?.crowdLevel ? crowdPresentation[aggregate.crowdLevel].color : colors.textMuted }]}>
+                    {aggregate?.crowdLevel ? crowdPresentation[aggregate.crowdLevel].label : 'No reports'}
+                  </Text>
+                  <Text style={styles.currentLabel}>Current crowd</Text>
+                </View>
+              </View>
+              <View style={styles.currentDivider} />
+              <View style={styles.currentMetric}>
+                <Ionicons name="time-outline" size={18} color={colors.text} />
+                <View style={styles.currentMetricCopy}>
+                  <Text style={styles.currentWait}>{aggregate?.crowdLevel ? aggregate.estimatedWaitLabel : '—'}</Text>
+                  <Text style={styles.currentLabel}>Current wait</Text>
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -264,14 +276,18 @@ export default function ReportWaitScreen() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
   content: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxxl, gap: spacing.md },
-  attractionCard: { ...shadows.card, minHeight: 132, flexDirection: 'row', overflow: 'hidden', borderWidth: 1, borderColor: '#4D5F85', borderRadius: radius.md, backgroundColor: '#0D111A' },
-  attractionImage: { width: '40%', minHeight: 132 },
-  attractionCopy: { minWidth: 0, flex: 1, justifyContent: 'center', padding: spacing.md },
-  attractionName: { ...typography.title, fontSize: 19, lineHeight: 23 },
-  address: { ...typography.caption, marginTop: 3, fontSize: 11.5 },
-  currentRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: spacing.sm },
-  currentCrowd: { fontSize: 11.5, fontWeight: '900' },
-  currentWait: { marginLeft: 'auto', color: colors.textMuted, fontSize: 10.5 },
+  attractionCard: { ...shadows.card, height: 138, flexDirection: 'row', overflow: 'hidden', borderWidth: 1, borderColor: '#4D5F85', borderRadius: radius.md, backgroundColor: '#0D111A' },
+  attractionImage: { width: '38%', height: 138, flexShrink: 0 },
+  attractionCopy: { minWidth: 0, flex: 1, justifyContent: 'center', paddingHorizontal: 11, paddingVertical: 9 },
+  attractionName: { ...typography.title, flexShrink: 1, fontSize: 18, lineHeight: 21 },
+  address: { ...typography.caption, flexShrink: 1, marginTop: 2, fontSize: 10.5, lineHeight: 13 },
+  currentRow: { minWidth: 0, flexDirection: 'row', alignItems: 'center', marginTop: 8 },
+  currentMetric: { minWidth: 0, flex: 1, flexDirection: 'row', alignItems: 'center', gap: 5 },
+  currentMetricCopy: { minWidth: 0, flex: 1 },
+  currentDivider: { width: StyleSheet.hairlineWidth, height: 31, marginHorizontal: 6, backgroundColor: '#63708E' },
+  currentCrowd: { fontSize: 11, lineHeight: 13, fontWeight: '900' },
+  currentWait: { color: colors.text, fontSize: 12, lineHeight: 14, fontWeight: '900' },
+  currentLabel: { color: colors.textMuted, fontSize: 8.5, lineHeight: 11 },
   verificationCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, borderWidth: 1, borderColor: '#8050B5', borderRadius: radius.md, backgroundColor: '#28133D', padding: spacing.md },
   verificationCardSuccess: { borderColor: colors.success, backgroundColor: '#0D2A23' },
   verificationCardFailed: { borderColor: '#A04E52', backgroundColor: '#281419' },
@@ -291,7 +307,7 @@ const styles = StyleSheet.create({
   waitOptionText: { color: colors.text, fontSize: 13, fontWeight: '700' },
   waitSelectedText: { color: colors.black, fontWeight: '900' },
   crowdGrid: { flexDirection: 'row', gap: spacing.sm },
-  crowdOption: { minWidth: 0, flex: 1, minHeight: 120, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#4A4055', borderRadius: radius.md, backgroundColor: '#0D0D14', padding: 6 },
+  crowdOption: { minWidth: 0, flex: 1, minHeight: 104, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#4A4055', borderRadius: radius.md, backgroundColor: '#0D0D14', padding: 6 },
   crowdTitle: { marginTop: 3, fontSize: 13, fontWeight: '900' },
   crowdHint: { color: colors.textMuted, fontSize: 9.5, lineHeight: 13, textAlign: 'center' },
   quickStatuses: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
