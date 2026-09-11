@@ -1,0 +1,2 @@
+[functions.witch-watch-dispatch]
+verify_jwt = false

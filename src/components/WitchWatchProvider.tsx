@@ -7,6 +7,9 @@ import { subscribeWaitAggregates } from '@/services/waitAggregateEvents';
 import { evaluateWatch, type Watch } from '@/services/witchWatchCore';
 import { witchWatchRepository } from '@/services/witchWatchRepository';
 import { notifyWatch } from '@/services/witchWatchNotifications';
+import { syncRemoteWitchWatchState } from '@/services/witchWatchRemoteRepository';
+import { waitBackend } from '@/config/waitBackend';
+import { remoteWitchWatchEnabled } from '@/config/witchWatchBackend';
 
 let watches: Watch[] = [];
 let queue = Promise.resolve();
@@ -50,7 +53,9 @@ export function WitchWatchProvider({ children }: PropsWithChildren) {
         return result.watch;
       }), async () => {
         if (!settingsRef.current.ready || !settingsRef.current.settings.witchWatchEnabled) return;
-        for (const id of triggered) await notifyWatch(getAttraction(id)?.name ?? 'Your attraction', id).catch(() => undefined);
+        if (!remoteWitchWatchEnabled || waitBackend === 'local') {
+          for (const id of triggered) await notifyWatch(getAttraction(id)?.name ?? 'Your attraction', id).catch(() => undefined);
+        }
       }).catch(() => undefined);
     });
     const refresh = () => { if (AppState.currentState === 'active') void getWaitTimeAggregates().catch(() => undefined); };
@@ -58,6 +63,18 @@ export function WitchWatchProvider({ children }: PropsWithChildren) {
     const appState = AppState.addEventListener('change', state => { if (state === 'active') refresh(); });
     return () => { active = false; listeners.delete(changed); unsubscribe(); clearInterval(timer); appState.remove(); };
   }, []);
-  return <Context.Provider value={{ watches: items, ready, save: watch => mutate(current => [...current.filter(w => w.attractionId !== watch.attractionId), watch]), remove: id => mutate(current => current.filter(w => w.attractionId !== id)) }}>{children}</Context.Provider>;
+  useEffect(() => {
+    if (!remoteWitchWatchEnabled || !ready || !settingsReady || !watches.length) return;
+    void syncRemoteWitchWatchState(watches, settings);
+  }, [items, ready, settings, settingsReady]);
+  const syncAfterMutation = () => remoteWitchWatchEnabled
+    ? syncRemoteWitchWatchState(watches, settingsRef.current.settings).then(() => undefined)
+    : Promise.resolve();
+  return <Context.Provider value={{
+    watches: items,
+    ready,
+    save: watch => mutate(current => [...current.filter(w => w.attractionId !== watch.attractionId), watch], syncAfterMutation),
+    remove: id => mutate(current => current.filter(w => w.attractionId !== id), syncAfterMutation),
+  }}>{children}</Context.Provider>;
 }
 export const useWitchWatch = () => useContext(Context);

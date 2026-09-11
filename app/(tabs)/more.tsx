@@ -14,6 +14,9 @@ import {
   type PermissionSummary,
 } from '@/services/permissionStatus';
 import { WATCH_THRESHOLDS } from '@/services/witchWatchCore';
+import { disableRemotePushTokens } from '@/services/witchWatchRemoteRepository';
+import { enableRemoteWatchNotifications, enableWatchNotifications } from '@/services/witchWatchNotifications';
+import { remoteWitchWatchEnabled } from '@/config/witchWatchBackend';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 const heroArtwork = require('../../Screen Designs/Style design.png');
@@ -59,6 +62,22 @@ export default function MoreScreen() {
     router.push('/house-arauz');
   };
 
+  const setWitchWatchEnabled = async (value: boolean) => {
+    update({ witchWatchEnabled: value });
+    if (!value && remoteWitchWatchEnabled) {
+      await disableRemotePushTokens();
+      return;
+    }
+    if (!value) return;
+    if (!remoteWitchWatchEnabled) {
+      if (!(await enableWatchNotifications())) setMessage('Witch Watch is saved. Enable notifications in device settings to receive alerts.');
+      return;
+    }
+    const result = await enableRemoteWatchNotifications();
+    if (result === 'denied') setMessage('Witch Watch is saved. Enable notifications in device settings to receive alerts.');
+    else if (result === 'unavailable') setMessage('Witch Watch is saved, but remote alerts are not available on this build yet.');
+  };
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -84,7 +103,7 @@ export default function MoreScreen() {
               <Text style={styles.watchSubtitle}>Get notified when wait times improve.</Text>
             </View>
           </View>
-          <SettingsSwitchRow icon="notifications-outline" label="Enable Witch Watch" value={settings.witchWatchEnabled} disabled={!ready} onValueChange={(value) => update({ witchWatchEnabled: value })} />
+          <SettingsSwitchRow icon="notifications-outline" label="Enable Witch Watch" value={settings.witchWatchEnabled} disabled={!ready} onValueChange={(value) => void setWitchWatchEnabled(value)} />
           <SettingsSwitchRow icon="people-outline" label="Busy → Moderate alerts" value={settings.busyToModerateAlertsEnabled} disabled={!ready || !settings.witchWatchEnabled} onValueChange={(value) => update({ busyToModerateAlertsEnabled: value })} />
           <SettingsSwitchRow icon="people-outline" iconColor={colors.success} label="Moderate → Light alerts" value={settings.moderateToLightAlertsEnabled} disabled={!ready || !settings.witchWatchEnabled} onValueChange={(value) => update({ moderateToLightAlertsEnabled: value })} />
           <SettingsRow icon="time-outline" iconColor={colors.gold} label="Default wait-time threshold" value={`${settings.defaultWaitThresholdMinutes} min`} onPress={cycleThreshold} hint="Tap to choose 10, 20, 30, or 45 minutes" />

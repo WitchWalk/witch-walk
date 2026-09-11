@@ -8,7 +8,8 @@ import { getAttraction } from '@/data/attractions';
 import { getWaitTimeAggregates } from '@/services/waitAggregationService';
 import type { WaitTimeAggregate } from '@/services/waitReportCore';
 import { WATCH_THRESHOLDS, watchRuleLabel, type Watch, type WatchRule } from '@/services/witchWatchCore';
-import { enableWatchNotifications } from '@/services/witchWatchNotifications';
+import { enableRemoteWatchNotifications, enableWatchNotifications } from '@/services/witchWatchNotifications';
+import { remoteWitchWatchEnabled } from '@/config/witchWatchBackend';
 import { colors, typography } from '@/theme/tokens';
 
 export default function WitchWatchScreen() {
@@ -40,16 +41,26 @@ function WitchWatchContent() {
     try { await action(); } catch { setMessage('Could not save your changes. Please try again.'); } finally { setBusy(false); }
   };
   const enable = async (watch: Watch) => {
-    const permitted = await enableWatchNotifications().catch(() => false);
+    const registration = remoteWitchWatchEnabled
+      ? await enableRemoteWatchNotifications().catch(() => 'unavailable' as const)
+      : (await enableWatchNotifications().catch(() => false) ? 'local' as const : 'denied' as const);
     const latest = (await getWaitTimeAggregates())[watch.attractionId];
     await save({ ...watch, enabled: true, lastKnownCrowdStatus: latest?.crowdLevel ?? null, lastKnownEstimatedWait: latest?.estimatedWaitMinutes ?? null });
-    setMessage(permitted ? 'Watch saved. Alerts can arrive while Witch Walk is active.' : 'Watch saved. Enable notifications in device settings to receive alerts. Local notifications require a supported native app.');
+    setMessage(registration === 'registered'
+      ? 'Watch saved. Witch Watch can alert you when conditions improve.'
+      : registration === 'local'
+        ? 'Watch saved. Alerts can arrive while Witch Walk is active.'
+      : registration === 'denied'
+        ? 'Watch saved. Enable notifications in device settings to receive alerts.'
+        : 'Watch saved. Remote alerts will be available after notification setup is completed.');
   };
   return <SafeAreaView style={styles.safe}><ScrollView contentContainerStyle={styles.page}>
     <Pressable accessibilityRole="button" onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/more')}><Text style={styles.link}>‹ Back</Text></Pressable>
     <Text style={styles.title}>Witch Watch</Text>
     <Text style={styles.body}>Watch your favorite Salem attractions for improving conditions.</Text>
-    <Text style={styles.note}>Alerts use updates available while Witch Walk is open. Alerts from other visitors while the app is closed are not available yet.</Text>
+    <Text style={styles.note}>{remoteWitchWatchEnabled
+      ? 'Witch Watch can alert you when shared wait conditions improve, even while the app is closed.'
+      : 'Alerts use updates available while Witch Walk is open. Remote alerts are prepared but not deployed yet.'}</Text>
     {message ? <Text accessibilityRole="alert" style={styles.note}>{message}</Text> : null}
     <Pressable accessibilityRole="button" onPress={() => void Linking.openSettings().catch(() => setMessage('Open your device settings to enable notifications.'))}><Text style={styles.link}>Notification settings</Text></Pressable>
     {editing && getAttraction(editing) ? <View style={styles.card}>

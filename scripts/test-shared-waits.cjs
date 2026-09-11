@@ -1,3 +1,4 @@
+/* global __dirname */
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -25,7 +26,7 @@ Module._extensions['.ts'] = (module, filename) => module._compile(ts.transpileMo
   const client = {
     auth: {
       getSession: async () => ({ data: { session }, error: null }),
-      signInAnonymously: async () => { signins++; session = { expires_at: Date.now()/1000+3600 }; return { data: { session }, error: null }; },
+      signInAnonymously: async () => { signins++; session = { expires_at: Date.now()/1000+3600, user: { id: 'anonymous-user' } }; return { data: { session }, error: null }; },
       refreshSession: async () => ({ data: { session }, error: null }),
     },
     rpc: async (name, params) => { calls++; assert.equal(name,'submit_wait_report'); assert.equal(params.p_latitude,42.5215539); assert.equal(params.p_mocked,false); return response; },

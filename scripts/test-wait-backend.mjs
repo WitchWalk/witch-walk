@@ -92,7 +92,56 @@ try {
   const snapshot=(await db.query('select public.get_wait_snapshot() as value')).rows[0].value;
   assert.ok(snapshot.every(row=>row.summary.reportCount===0));
   assert.ok(snapshot.every(row=>Object.keys(row).sort().join(',')==='evaluated_at,revision,summary'));
-  console.log('PASS: migration, permissions, identities, validation, GPS, cooldown, idempotency, no extra rows');
+
+  // Remote Witch Watch tables remain private; authenticated users use only scoped RPCs.
+  await db.exec('reset role');
+  await db.exec(await readFile(new URL('../supabase/migrations/202609110004_remote_witch_watch.sql', import.meta.url), 'utf8'));
+  await db.exec('reset role; set role authenticated');
+  await identity();
+  await assert.rejects(db.query('select * from wait_private.witch_watch_push_tokens'));
+  await assert.rejects(db.query('select * from wait_private.witch_watches'));
+  const register = async (token, platform='ios') => (await db.query(
+    'select public.register_witch_watch_push_token($1,$2,true) as result',[token,platform])).rows[0].result;
+  assert.equal((await register('not-a-token')).kind,'invalid');
+  const tokenOne='ExpoPushToken[abcdefghijklmnopQRSTUV_123]';
+  assert.equal((await register(tokenOne)).kind,'success');
+  assert.equal((await register(tokenOne)).kind,'success','Duplicate registration is idempotent');
+  const replace = async (list, preferences={alerts:true,busy:true,light:true}) => (await db.query(
+    'select public.replace_my_witch_watches($1::jsonb,$2,$3,$4) as result',
+    [JSON.stringify(list),preferences.alerts,preferences.busy,preferences.light])).rows[0].result;
+  const watch=(id='witch-house',rule='busy-to-moderate',wait=20)=>({attractionId:id,enabled:true,crowdAlertType:rule,
+    waitThresholdMinutes:wait,lastKnownCrowdStatus:'busy',lastKnownEstimatedWait:45});
+  assert.equal((await replace([watch()])).kind,'success');
+  assert.equal((await replace([{...watch(),waitThresholdMinutes:15}])).kind,'invalid');
+
+  await db.exec('reset role');
+  const summary = (crowd,wait,count=1)=>JSON.stringify({attractionId:'witch-house',crowdLevel:crowd,
+    estimatedWaitMinutes:wait,reportCount:count,newestReportTimestamp:new Date().toISOString(),quickStatusTag:null,waitSpreadMinutes:0});
+  await db.query("update public.wait_summary_updates set summary=$1::jsonb,revision=default where attraction_id='witch-house'",[summary('moderate',20)]);
+  assert.equal((await db.query('select count(*)::int count from wait_private.witch_watch_deliveries')).rows[0].count,1,'Red to yellow creates one delivery even if wait also crossed');
+  await db.query("update public.wait_summary_updates set summary=$1::jsonb,revision=default where attraction_id='witch-house'",[summary('moderate',15)]);
+  assert.equal((await db.query('select count(*)::int count from wait_private.witch_watch_deliveries')).rows[0].count,1,'Remaining below threshold does not repeat');
+  await db.query("update public.wait_summary_updates set summary=$1::jsonb,revision=default where attraction_id='witch-house'",[summary('busy',45)]);
+  await db.query("update public.wait_summary_updates set summary=$1::jsonb,revision=default where attraction_id='witch-house'",[summary('moderate',20)]);
+  assert.equal((await db.query('select count(*)::int count from wait_private.witch_watch_deliveries')).rows[0].count,2,'Re-armed transition notifies again');
+
+  // A second user receives an independent queued delivery; disabled preferences do not queue.
+  await db.exec('set role authenticated'); await identity('00000000-0000-0000-0000-000000000002');
+  assert.equal((await register('ExpoPushToken[second_user_token_123456]')).kind,'success');
+  const lightWatch={...watch('witch-house','moderate-to-light',null),lastKnownCrowdStatus:'moderate',lastKnownEstimatedWait:20};
+  assert.equal((await replace([lightWatch])).kind,'success');
+  await db.exec('reset role');
+  await db.query("update public.wait_summary_updates set summary=$1::jsonb,revision=default where attraction_id='witch-house'",[summary('light',10)]);
+  assert.equal((await db.query('select count(*)::int count from wait_private.witch_watch_deliveries')).rows[0].count,3,'Second user moderate to light delivery');
+  await db.exec('set role authenticated');
+  assert.equal((await replace([lightWatch],{alerts:false,busy:true,light:true})).kind,'success');
+  await db.exec('reset role');
+  await db.query("update public.wait_summary_updates set summary=$1::jsonb,revision=default where attraction_id='witch-house'",[summary('moderate',20)]);
+  await db.query("update public.wait_summary_updates set summary=$1::jsonb,revision=default where attraction_id='witch-house'",[summary('light',10)]);
+  assert.equal((await db.query('select count(*)::int count from wait_private.witch_watch_deliveries')).rows[0].count,3,'Disabled notifications remain silent');
+  await db.exec('set role authenticated'); await db.query('select public.disable_my_witch_watch_push_tokens()'); await db.exec('reset role');
+  assert.equal((await db.query("select count(*)::int count from wait_private.witch_watch_push_tokens where enabled")).rows[0].count,1);
+  console.log('PASS: wait backend plus private watches, token dedupe, transitions, re-arm, disabled alerts, and multi-user queues');
 } finally {
   await db.close();
 }

@@ -7,7 +7,6 @@
     "icon": "./App Icon/APP LOGO.png",
     "scheme": "witchwalk",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.housearauz.witchwalk"
@@ -17,8 +16,7 @@
         "foregroundImage": "./App Icon/APP LOGO.png",
         "backgroundColor": "#170E24"
       },
-      "package": "com.housearauz.witchwalk",
-      "edgeToEdgeEnabled": true
+      "package": "com.housearauz.witchwalk"
     },
     "web": {
       "bundler": "metro",

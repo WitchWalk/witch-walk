@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getWaitTimeAttraction } from '@/data/waitTimes';
 import { verifyProximity } from '@/services/proximity';
+import { ensureSupabaseSession } from '@/services/supabaseSession';
 import { isApprovedCrowd, isApprovedQuickStatus, isApprovedWait, type WaitReportSubmission, type WaitReportResult } from '@/services/waitReportCore';
 
 export type SharedSubmissionResult =
@@ -14,26 +15,7 @@ export async function getWaitClient() {
 }
 
 export function createSharedWaitRepository(getClient: () => Promise<SupabaseClient> = getWaitClient) {
-  let authentication: Promise<void> | undefined;
   const pending = new Map<string, Promise<SharedSubmissionResult>>();
-  const ensureSession = (client: SupabaseClient) => {
-    if (!authentication) {
-      authentication = (async () => {
-        const current = await client.auth.getSession();
-        if (current.error) throw new Error('session-unavailable');
-        if (current.data.session) {
-          if ((current.data.session.expires_at ?? 0) * 1000 <= Date.now() + 30_000) {
-            const refreshed = await client.auth.refreshSession();
-            if (refreshed.error || !refreshed.data.session) throw new Error('session-unavailable');
-          }
-          return;
-        }
-        const signedIn = await client.auth.signInAnonymously();
-        if (signedIn.error || !signedIn.data.session) throw new Error('session-unavailable');
-      })().finally(() => { authentication = undefined; });
-    }
-    return authentication;
-  };
 
   const process = async (input: WaitReportSubmission): Promise<SharedSubmissionResult> => {
     const attraction = getWaitTimeAttraction(input.attractionId);
@@ -54,7 +36,7 @@ export function createSharedWaitRepository(getClient: () => Promise<SupabaseClie
     if (failed) return failed;
     try {
       const client = await getClient();
-      try { await ensureSession(client); } catch { return { kind: 'authentication-failed' }; }
+      try { await ensureSupabaseSession(client); } catch { return { kind: 'authentication-failed' }; }
       const expired = checkLocation();
       if (expired) return expired;
       const { data, error } = await client.rpc('submit_wait_report', {

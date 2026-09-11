@@ -1,4 +1,5 @@
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
+import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -8,8 +9,14 @@ import { AppSettingsProvider } from '@/components/settings/AppSettingsProvider';
 import { WitchWatchProvider } from '@/components/WitchWatchProvider';
 import { WaitRealtimeProvider } from '@/components/WaitRealtimeProvider';
 import { colors } from '@/theme/tokens';
+import { subscribeRemoteWatchNotifications } from '@/services/witchWatchNotifications';
 
 export default function RootLayout() {
+  useEffect(() => {
+    let unsubscribe: () => void = () => undefined;
+    void subscribeRemoteWatchNotifications((id) => router.push(`/attractions/${id}`)).then((value) => { unsubscribe = value; });
+    return () => unsubscribe();
+  }, []);
   return (
     <SafeAreaProvider>
       <AppSettingsProvider>
