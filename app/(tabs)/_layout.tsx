@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs } from 'expo-router';
+import { Tabs, useSegments } from 'expo-router';
 import type { ComponentProps } from 'react';
+import { Text } from 'react-native';
 
 import { colors } from '@/theme/tokens';
 
@@ -15,6 +16,11 @@ const icons: Record<string, { active: IconName; inactive: IconName }> = {
 };
 
 export default function TabLayout() {
+  const segments = useSegments();
+  const homeFlowActive = segments.some((segment) =>
+    ['attractions', 'restaurants', 'parking', 'bathrooms'].includes(segment),
+  );
+
   return (
     <Tabs
       screenOptions={({ route }) => ({
@@ -41,7 +47,28 @@ export default function TabLayout() {
         },
       })}
     >
-      <Tabs.Screen name="index" options={{ title: 'Home' }} />
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Home',
+          tabBarIcon: ({ color, focused, size }) => (
+            <Ionicons
+              color={homeFlowActive ? colors.gold : color}
+              name={focused || homeFlowActive ? 'home' : 'home-outline'}
+              size={size}
+            />
+          ),
+          tabBarLabel: ({ color }) => (
+            <Text style={{ color: homeFlowActive ? colors.gold : color, fontSize: 11, fontWeight: '700' }}>
+              Home
+            </Text>
+          ),
+        }}
+      />
+      <Tabs.Screen name="attractions" options={{ href: null }} />
+      <Tabs.Screen name="restaurants" options={{ href: null }} />
+      <Tabs.Screen name="parking" options={{ href: null }} />
+      <Tabs.Screen name="bathrooms" options={{ href: null }} />
       <Tabs.Screen name="map" options={{ title: 'Map' }} />
       <Tabs.Screen name="wait-times" options={{ title: 'Wait Times' }} />
       <Tabs.Screen name="report-wait/[id]" options={{ href: null }} />
