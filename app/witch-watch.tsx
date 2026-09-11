@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWitchWatch } from '@/components/WitchWatchProvider';
+import { useAppSettings } from '@/components/settings/AppSettingsProvider';
 import { getAttraction } from '@/data/attractions';
 import { getWaitTimeAggregates } from '@/services/waitAggregationService';
 import type { WaitTimeAggregate } from '@/services/waitReportCore';
@@ -12,15 +13,17 @@ import { colors, typography } from '@/theme/tokens';
 
 export default function WitchWatchScreen() {
   const { ready } = useWitchWatch();
-  return ready ? <WitchWatchContent /> : <SafeAreaView style={styles.safe}><Text style={styles.body}>Loading Witch Watch…</Text></SafeAreaView>;
+  const { ready: settingsReady } = useAppSettings();
+  return ready && settingsReady ? <WitchWatchContent /> : <SafeAreaView style={styles.safe}><Text style={styles.body}>Loading Witch Watch…</Text></SafeAreaView>;
 }
 function WitchWatchContent() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { watches, ready, save, remove } = useWitchWatch();
+  const { settings } = useAppSettings();
   const existing = watches.find(w => w.attractionId === id);
   const [editing, setEditing] = useState<string | null>(id ?? null);
   const [rule, setRule] = useState<WatchRule>(existing?.crowdAlertType ?? 'busy-to-moderate');
-  const [threshold, setThreshold] = useState<number | null>(existing?.waitThresholdMinutes ?? null);
+  const [threshold, setThreshold] = useState<number | null>(existing ? existing.waitThresholdMinutes : settings.defaultWaitThresholdMinutes);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [aggregates, setAggregates] = useState<Record<string, WaitTimeAggregate>>({});

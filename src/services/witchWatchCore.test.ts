@@ -18,5 +18,7 @@ step(null, null, false); step('light', 10, false);
 watch = { ...base, enabled: false }; step('moderate', 10, false);
 assert.equal(evaluateWatch(base, { hasRecentReports: true, crowdLevel: 'busy', estimatedWaitMinutes: 20 }).triggered, true);
 assert.equal(evaluateWatch({ ...base, lastKnownCrowdStatus: null, lastKnownEstimatedWait: null }, { hasRecentReports: true, crowdLevel: 'light', estimatedWaitMinutes: 10 }).triggered, false);
+assert.equal(evaluateWatch({ ...base, waitThresholdMinutes: null }, { hasRecentReports: true, crowdLevel: 'moderate', estimatedWaitMinutes: 20 }, 1234, { busyToModerate: false, moderateToLight: true }).triggered, false);
+assert.equal(evaluateWatch({ ...base, crowdAlertType: 'moderate-to-light', waitThresholdMinutes: null, lastKnownCrowdStatus: 'moderate' }, { hasRecentReports: true, crowdLevel: 'light', estimatedWaitMinutes: 10 }, 1234, { busyToModerate: true, moderateToLight: false }).triggered, false);
 assert.equal(base.lastKnownCrowdStatus, 'busy');
-console.log('Witch Watch crossing, re-arm, disabled, missing-data, and independent-state checks passed.');
+console.log('Witch Watch crossing, re-arm, master/rule preferences, disabled, missing-data, and independent-state checks passed.');

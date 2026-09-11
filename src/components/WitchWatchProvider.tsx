@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useState, type PropsWithChildren } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, type PropsWithChildren } from 'react';
 import { AppState } from 'react-native';
+import { useAppSettings } from '@/components/settings/AppSettingsProvider';
 import { getAttraction } from '@/data/attractions';
 import { getWaitTimeAggregates } from '@/services/waitAggregationService';
 import { subscribeWaitAggregates } from '@/services/waitAggregateEvents';
@@ -24,22 +25,31 @@ function mutate(update: (current: Watch[]) => Watch[], after?: () => Promise<voi
 }
 const Context = createContext({ watches, ready: false, save: async (_watch: Watch) => {}, remove: async (_id: string) => {} });
 export function WitchWatchProvider({ children }: PropsWithChildren) {
+  const { settings, ready: settingsReady } = useAppSettings();
+  const settingsRef = useRef({ settings, ready: settingsReady });
   const [items, setItems] = useState<Watch[]>([]);
   const [ready, setReady] = useState(false);
+  useEffect(() => { settingsRef.current = { settings, ready: settingsReady }; }, [settings, settingsReady]);
   useEffect(() => {
     let active = true;
     const changed = () => { if (active) setItems([...watches]); };
     listeners.add(changed);
     queue = queue.then(async () => { watches = await witchWatchRepository.load(); changed(); if (active) setReady(true); });
     const unsubscribe = subscribeWaitAggregates(values => {
+      const currentSettings = settingsRef.current;
+      if (!currentSettings.ready || !currentSettings.settings.witchWatchEnabled) return;
       const triggered: string[] = [];
       void mutate(current => current.map(watch => {
         const snapshot = values.find(value => value.attractionId === watch.attractionId);
         if (!snapshot) return watch;
-        const result = evaluateWatch(watch, snapshot);
+        const result = evaluateWatch(watch, snapshot, Date.now(), {
+          busyToModerate: currentSettings.settings.busyToModerateAlertsEnabled,
+          moderateToLight: currentSettings.settings.moderateToLightAlertsEnabled,
+        });
         if (result.triggered) triggered.push(watch.attractionId);
         return result.watch;
       }), async () => {
+        if (!settingsRef.current.ready || !settingsRef.current.settings.witchWatchEnabled) return;
         for (const id of triggered) await notifyWatch(getAttraction(id)?.name ?? 'Your attraction', id).catch(() => undefined);
       }).catch(() => undefined);
     });

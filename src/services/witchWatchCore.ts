@@ -12,13 +12,18 @@ export type Watch = {
   lastAlertTimestamp: number | null;
 };
 export type WatchSnapshot = { hasRecentReports: boolean; crowdLevel: Crowd | null; estimatedWaitMinutes: number | null };
-export function evaluateWatch(watch: Watch, snapshot: WatchSnapshot, now = Date.now()) {
+export type WatchAlertPreferences = {
+  busyToModerate: boolean;
+  moderateToLight: boolean;
+};
+const defaultAlertPreferences: WatchAlertPreferences = { busyToModerate: true, moderateToLight: true };
+export function evaluateWatch(watch: Watch, snapshot: WatchSnapshot, now = Date.now(), preferences = defaultAlertPreferences) {
   if (!watch.enabled) return { watch, triggered: false };
   const crowd = snapshot.hasRecentReports ? snapshot.crowdLevel : null;
   const wait = snapshot.hasRecentReports ? snapshot.estimatedWaitMinutes : null;
   const crowdCrossed = watch.crowdAlertType === 'busy-to-moderate'
-    ? watch.lastKnownCrowdStatus === 'busy' && (crowd === 'moderate' || crowd === 'light')
-    : watch.lastKnownCrowdStatus === 'moderate' && crowd === 'light';
+    ? preferences.busyToModerate && watch.lastKnownCrowdStatus === 'busy' && (crowd === 'moderate' || crowd === 'light')
+    : preferences.moderateToLight && watch.lastKnownCrowdStatus === 'moderate' && crowd === 'light';
   const waitCrossed = watch.waitThresholdMinutes !== null && watch.lastKnownEstimatedWait !== null && wait !== null
     && watch.lastKnownEstimatedWait > watch.waitThresholdMinutes && wait <= watch.waitThresholdMinutes;
   const triggered = crowdCrossed || waitCrossed;
