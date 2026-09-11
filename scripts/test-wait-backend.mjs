@@ -14,6 +14,7 @@ try {
     insert into auth.users values ('00000000-0000-0000-0000-000000000001'), ('00000000-0000-0000-0000-000000000002');
   `);
   await db.exec(await readFile(new URL('../supabase/migrations/202609110001_wait_report_foundation.sql', import.meta.url), 'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/202609110002_shared_wait_read.sql', import.meta.url), 'utf8'));
   const identity = async (id = '00000000-0000-0000-0000-000000000001') => {
     await db.query("select set_config('request.jwt.claim.sub', $1, false)", [id]);
   };
@@ -25,6 +26,8 @@ try {
   };
   await identity();
   await db.exec('set role anon');
+  const read = async () => (await db.query('select public.get_wait_summaries() as summaries')).rows[0].summaries;
+  assert.ok((await read()).every(row => row.reportCount === 0 && row.estimatedWaitMinutes === null));
   await assert.rejects(submit());
   await assert.rejects(db.query('select * from wait_private.wait_reports'));
   await db.exec('reset role; set role authenticated');
@@ -65,6 +68,19 @@ try {
   assert.equal(firstRapid[0].reportId, firstRapid[1].reportId);
   await db.exec('reset role');
   assert.equal((await db.query('select count(*)::int as count from wait_private.wait_reports')).rows[0].count, 4);
+  await db.exec('set role anon');
+  const summaries = await read();
+  const house = summaries.find(row => row.attractionId === 'witch-house');
+  assert.equal(house.reportCount, 2, 'Only latest contribution per identity');
+  assert.equal(house.estimatedWaitMinutes, 20);
+  assert.equal(house.crowdLevel, 'moderate');
+  assert.deepEqual(Object.keys(house).sort(), ['attractionId','crowdLevel','estimatedWaitMinutes','newestReportTimestamp','quickStatusTag','reportCount','waitSpreadMinutes'].sort());
+  await db.exec("reset role; update wait_private.wait_reports set wait_minutes=60, crowd_level='busy' where reporter_id='00000000-0000-0000-0000-000000000002'; set role anon");
+  const mixed = (await read()).find(row => row.attractionId === 'witch-house');
+  assert.equal(mixed.estimatedWaitMinutes,40,'Median of latest contributions, rounded to five');
+  assert.equal(mixed.crowdLevel,'busy','Existing median crowd tie-break');
+  await db.exec("reset role; update wait_private.wait_reports set submitted_at=clock_timestamp()-interval '31 minutes'; set role anon");
+  assert.ok((await read()).every(row => row.reportCount === 0));
   console.log('PASS: migration, permissions, identities, validation, GPS, cooldown, idempotency, no extra rows');
 } finally {
   await db.close();

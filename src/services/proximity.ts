@@ -45,6 +45,8 @@ export type WaitReportVerificationReason =
   | 'outside-radius';
 
 export type WaitReportVerificationResult = {
+  coordinates?: Coordinates;
+  mocked?: boolean;
   verified: boolean;
   reason: WaitReportVerificationReason;
   distanceMeters?: number;
@@ -117,6 +119,8 @@ export function evaluateWaitReportLocation(
   const proximity = verifyProximity(result.location, destination, undefined, now);
   return {
     verified: proximity.verified,
+    coordinates: { latitude: result.location.latitude, longitude: result.location.longitude },
+    mocked: result.location.mocked ?? false,
     reason: proximity.reason,
     distanceMeters: proximity.distanceMeters,
     accuracyMeters: result.location.accuracyMeters,

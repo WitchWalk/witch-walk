@@ -1,5 +1,7 @@
 # Phase 11B-1 — shared wait-report foundation
 
+**Historical phase record:** the foundation and subsequent summary migration have now been deployed. For the active shared app integration and current validation status, see [PHASE-11B-2.md](PHASE-11B-2.md). The following describes the original 11B-1 boundary before integration.
+
 This is a **not-yet-deployed** migration and isolated SQL test. The mobile app still uses its approved local reporting repository. No screen, session creation, remote aggregation, realtime subscription, or shared report integration is included. Do not enable Phase 11B-2 implicitly.
 
 ## Security boundary

@@ -122,14 +122,26 @@ export default function ReportWaitScreen() {
         if (expired) setVerification({ verified: false, reason: 'stale' });
         Alert.alert(
           expired ? 'Location verification expired' : 'Location not verified',
-          expired ? 'Please verify your location again.' : 'You need to be near this attraction to report its wait time.',
+          expired ? 'Please verify your location again.' : result.reason === 'inaccurate' ? 'GPS accuracy is too low. Please try verifying your location again.' : 'You need to be near this attraction to report its wait time.',
         );
         return;
       }
 
-      Alert.alert('Report submitted', 'Location Verified. Your update was saved on this device.', [
+      if (result.kind === 'unavailable' || result.kind === 'authentication-failed') {
+        Alert.alert('Reporting unavailable', 'Live reporting is temporarily unavailable. Please try again shortly.');
+        return;
+      }
+      if (result.kind === 'idempotency-conflict') {
+        submissionKey.current = createSubmissionKey();
+        Alert.alert('Please try again', 'Your previous request was already received. Check your selections before submitting another update.');
+        return;
+      }
+      void getWaitTimeAggregate(item.attractionId);
+      Alert.alert('Report submitted', 'Location Verified. Thank you for sharing your update.', [
         { text: 'OK', onPress: () => router.back() },
       ]);
+    } catch {
+      Alert.alert('Reporting unavailable', 'Live reporting is temporarily unavailable. Please try again shortly.');
     } finally {
       setSubmitting(false);
     }

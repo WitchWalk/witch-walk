@@ -15,6 +15,8 @@ export type ApprovedCrowdLevel = (typeof APPROVED_CROWD_LEVELS)[number];
 export type WaitQuickStatusTag = (typeof WAIT_QUICK_STATUS_OPTIONS)[number]['id'];
 
 export type ReportVerificationProof = {
+  coordinates?: { latitude: number; longitude: number };
+  mocked?: boolean;
   verified: boolean;
   reason: string;
   distanceMeters?: number;
@@ -64,15 +66,15 @@ export type WaitReportRules = {
   allowedRadiusMeters: number;
 };
 
-function isApprovedWait(value: unknown): value is ApprovedWaitMinutes {
+export function isApprovedWait(value: unknown): value is ApprovedWaitMinutes {
   return typeof value === 'number' && APPROVED_WAIT_MINUTES.some((approved) => approved === value);
 }
 
-function isApprovedCrowd(value: unknown): value is ApprovedCrowdLevel {
+export function isApprovedCrowd(value: unknown): value is ApprovedCrowdLevel {
   return typeof value === 'string' && APPROVED_CROWD_LEVELS.some((approved) => approved === value);
 }
 
-function isApprovedQuickStatus(value: unknown): value is WaitQuickStatusTag {
+export function isApprovedQuickStatus(value: unknown): value is WaitQuickStatusTag {
   return typeof value === 'string' && WAIT_QUICK_STATUS_OPTIONS.some((option) => option.id === value);
 }
 

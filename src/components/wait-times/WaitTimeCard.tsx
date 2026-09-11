@@ -29,7 +29,7 @@ export function WaitTimeCard({ item, aggregate, onDetails, onReport }: WaitTimeC
         <Text style={[styles.name, narrow && styles.nameNarrow]}>{item.name}</Text>
         <View style={styles.statusRow}>
           <Ionicons name="people" size={15} color={crowd?.color ?? colors.textMuted} />
-          <Text style={[styles.crowd, { color: crowd?.color ?? colors.textMuted }]}>{crowd?.label ?? 'No recent reports'}</Text>
+          <Text style={[styles.crowd, { color: crowd?.color ?? colors.textMuted }]}>{crowd?.label ?? (aggregate.freshnessLabel === 'Live updates unavailable' ? 'Updates unavailable' : 'No recent reports')}</Text>
           <Text style={styles.wait}>{aggregate.hasRecentReports ? aggregate.estimatedWaitLabel : '—'}</Text>
         </View>
         <View style={styles.metaRow}>
