@@ -33,6 +33,7 @@ import {
   type LocationFix,
 } from '@/services/location';
 import { getWaitTimeAggregates } from '@/services/waitAggregationService';
+import { subscribeWaitAggregates } from '@/services/waitAggregateEvents';
 import type { WaitTimeAggregate } from '@/services/waitReportCore';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
@@ -41,7 +42,7 @@ const heroArtwork = require('../../../assets/images/home/live-map.png');
 export function LiveMapScreen() {
   const { height, width } = useWindowDimensions();
   const [filter, setFilter] = useState<MapFilter>('all');
-  const [selected, setSelected] = useState<MapLocation | null>(null);
+  const [selectedItem, setSelected] = useState<MapLocation | null>(null);
   const [userLocation, setUserLocation] = useState<LocationFix | null>(null);
   const [focusRequestKey, setFocusRequestKey] = useState(0);
   const [locating, setLocating] = useState(false);
@@ -50,6 +51,9 @@ export function LiveMapScreen() {
 
   useFocusEffect(useCallback(() => {
     let active = true;
+    const unsubscribe = subscribeWaitAggregates(values => {
+      if (active) setWaitAggregates(current => ({ ...current, ...Object.fromEntries(values.map(value => [value.attractionId, value])) }));
+    });
     const refresh = () => {
       void getWaitTimeAggregates().then((next) => {
         if (active) setWaitAggregates(next);
@@ -59,11 +63,13 @@ export function LiveMapScreen() {
     const interval = setInterval(refresh, 60_000);
     return () => {
       active = false;
+      unsubscribe();
       clearInterval(interval);
     };
   }, []));
 
   const allLocations = useMemo(() => getMapLocations(waitAggregates), [waitAggregates]);
+  const selected = allLocations.find(location => location.mapId === selectedItem?.mapId) ?? null;
   const visibleLocations = useMemo(
     () => filterMapLocations(allLocations, filter),
     [allLocations, filter],

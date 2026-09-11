@@ -88,7 +88,9 @@ export function createSharedWaitRepository(getClient: () => Promise<SupabaseClie
     },
     async read(): Promise<unknown> {
       const client = await getClient();
-      const { data, error } = await client.rpc('get_wait_summaries');
+      let { data, error } = await client.rpc('get_wait_snapshot');
+      // Rolling deployment: ordinary authoritative reads work without Realtime migration.
+      if (error?.code === 'PGRST202' || error?.code === '42883') ({ data, error } = await client.rpc('get_wait_summaries'));
       if (error) throw new Error('shared-waits-unavailable');
       return data;
     },

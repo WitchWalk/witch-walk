@@ -19,6 +19,7 @@ import { useWitchWatch } from '@/components/WitchWatchProvider';
 import type { Attraction } from '@/data/attractions';
 import { crowdPresentation, getWaitTimeAttraction } from '@/data/waitTimes';
 import { getWaitTimeAggregate } from '@/services/waitAggregationService';
+import { subscribeWaitAggregates } from '@/services/waitAggregateEvents';
 import { getQuickStatusLabel, type WaitTimeAggregate } from '@/services/waitReportCore';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
@@ -39,6 +40,10 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
   useFocusEffect(useCallback(() => {
     if (!supportsWaitReporting) return;
     let active = true;
+    const unsubscribe = subscribeWaitAggregates(values => {
+      const value = values.find(item => item.attractionId === attraction.id);
+      if (active && value) setWaitAggregate(value);
+    });
     const refresh = () => {
       void getWaitTimeAggregate(attraction.id).then((result) => {
         if (active) setWaitAggregate(result);
@@ -48,6 +53,7 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
     const interval = setInterval(refresh, 60_000);
     return () => {
       active = false;
+      unsubscribe();
       clearInterval(interval);
     };
   }, [attraction.id, supportsWaitReporting]));

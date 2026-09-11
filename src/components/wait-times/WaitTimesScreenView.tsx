@@ -8,6 +8,7 @@ import { WaitTimeCard } from '@/components/wait-times/WaitTimeCard';
 import { WaitTimesHeader } from '@/components/wait-times/WaitTimesHeader';
 import { crowdPresentation, waitTimeAttractions } from '@/data/waitTimes';
 import { getWaitTimeAggregates } from '@/services/waitAggregationService';
+import { subscribeWaitAggregates } from '@/services/waitAggregateEvents';
 import { aggregateWaitReports, type WaitTimeAggregate } from '@/services/waitReportCore';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
@@ -20,6 +21,9 @@ export function WaitTimesScreenView() {
 
   useFocusEffect(useCallback(() => {
     let active = true;
+    const unsubscribe = subscribeWaitAggregates(values => {
+      if (active) setAggregates(current => ({ ...current, ...Object.fromEntries(values.map(value => [value.attractionId, value])) }));
+    });
     const refresh = () => {
       void getWaitTimeAggregates().then((next) => {
         if (active) setAggregates(next);
@@ -29,6 +33,7 @@ export function WaitTimesScreenView() {
     const interval = setInterval(refresh, 60_000);
     return () => {
       active = false;
+      unsubscribe();
       clearInterval(interval);
     };
   }, []));

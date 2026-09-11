@@ -8,6 +8,7 @@ import { WaitTimesHeader } from '@/components/wait-times/WaitTimesHeader';
 import { crowdPresentation, getWaitTimeAttraction, type CrowdLevel } from '@/data/waitTimes';
 import { waitReportProximityRules } from '@/services/proximity';
 import { getWaitTimeAggregate } from '@/services/waitAggregationService';
+import { subscribeWaitAggregates } from '@/services/waitAggregateEvents';
 import {
   verifyWaitReportLocation,
   type WaitReportVerificationResult,
@@ -37,10 +38,14 @@ export default function ReportWaitScreen() {
   useEffect(() => {
     if (!item) return;
     let active = true;
+    const unsubscribe = subscribeWaitAggregates(values => {
+      const value = values.find(value => value.attractionId === item.attractionId);
+      if (active && value) setAggregate(value);
+    });
     void getWaitTimeAggregate(item.attractionId).then((result) => {
       if (active) setAggregate(result);
     });
-    return () => { active = false; };
+    return () => { active = false; unsubscribe(); };
   }, [item]);
 
   useEffect(() => {

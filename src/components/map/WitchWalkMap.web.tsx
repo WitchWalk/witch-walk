@@ -79,7 +79,7 @@ function categoryColor(category: MapCategory) {
 }
 
 function pinColor(location: MapLocation) {
-  if (location.category === 'attractions' && location.crowdLevel) return crowdColor(location.crowdLevel);
+  if (location.category === 'attractions') return location.crowdLevel ? crowdColor(location.crowdLevel) : '#938CA3';
   return categoryColor(location.category);
 }
 

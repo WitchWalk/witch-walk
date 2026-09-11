@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useEffect, useRef } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
@@ -66,28 +66,23 @@ export function WitchWalkMap({
       showsUserLocation={Boolean(userLocation)}
       style={style}
     >
-      {locations.map((location) => (
-        <Marker
-          accessibilityLabel={`${location.name} ${location.categoryLabel} map pin`}
-          coordinate={{ latitude: location.latitude, longitude: location.longitude }}
-          key={location.mapId}
-          onPress={() => onSelectLocation(location)}
-        >
-          <View style={[styles.pin, { backgroundColor: pinColor(location) }]}>
-            <MaterialCommunityIcons
-              color="#09070D"
-              name={categoryIcon(location.category)}
-              size={19}
-            />
-            {location.crowdLevel ? (
-              <View style={[styles.crowdDot, { backgroundColor: crowdColor(location.crowdLevel) }]} />
-            ) : null}
-          </View>
-        </Marker>
-      ))}
+      {locations.map(location => <LocationPin key={location.mapId} location={location} onSelect={onSelectLocation} />)}
     </MapView>
   );
 }
+
+const LocationPin = memo(function LocationPin({ location, onSelect }: { location: MapLocation; onSelect: (value: MapLocation) => void }) {
+  return <Marker accessibilityLabel={`${location.name} ${location.categoryLabel} map pin`}
+    coordinate={{ latitude: location.latitude, longitude: location.longitude }} onPress={() => onSelect(location)}>
+    <View style={[styles.pin, { backgroundColor: pinColor(location) }]}>
+      <MaterialCommunityIcons color="#09070D" name={categoryIcon(location.category)} size={19} />
+      {location.crowdLevel ? <View style={[styles.crowdDot, { backgroundColor: crowdColor(location.crowdLevel) }]} /> : null}
+    </View>
+  </Marker>;
+}, (a,b) => a.onSelect === b.onSelect && a.location.mapId === b.location.mapId
+  && a.location.name === b.location.name && a.location.category === b.location.category
+  && a.location.latitude === b.location.latitude && a.location.longitude === b.location.longitude
+  && a.location.crowdLevel === b.location.crowdLevel);
 
 function categoryIcon(category: MapCategory) {
   if (category === 'attractions') return 'map-marker-star' as const;
@@ -104,7 +99,7 @@ function categoryColor(category: MapCategory) {
 }
 
 function pinColor(location: MapLocation) {
-  if (location.category === 'attractions' && location.crowdLevel) return crowdColor(location.crowdLevel);
+  if (location.category === 'attractions') return location.crowdLevel ? crowdColor(location.crowdLevel) : '#938CA3';
   return categoryColor(location.category);
 }
 
