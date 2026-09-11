@@ -40,6 +40,19 @@ pnpm ios
 pnpm android
 ```
 
+## Supabase configuration
+
+Create a `.env` file in the project root, beside `package.json`. You can copy `.env.example` as a starting point, then fill in these two values from the Supabase project's Connect panel:
+
+```dotenv
+EXPO_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+```
+
+Only the Supabase **publishable key** belongs in this Expo mobile app. Never add or ship a Supabase secret key, service-role key, or any other server-only credential. The real `.env` file is ignored by Git and must not be committed.
+
+After creating or changing `.env`, restart the Expo development server so Expo can load the updated variables.
+
 ## Quality checks
 
 ```bash

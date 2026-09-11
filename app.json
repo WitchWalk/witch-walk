@@ -33,7 +33,8 @@
         {
           "locationWhenInUsePermission": "Allow Witch Walk to use your precise location when you choose Locate Me or report a wait time near a Salem attraction."
         }
-      ]
+      ],
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true
