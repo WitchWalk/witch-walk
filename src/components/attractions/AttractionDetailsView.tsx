@@ -17,7 +17,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import { useWitchWatch } from '@/components/WitchWatchProvider';
 import type { Attraction } from '@/data/attractions';
-import { crowdPresentation, getWaitTimeAttraction } from '@/data/waitTimes';
+import { crowdPresentation } from '@/data/waitTimes';
+import { getTrustedWaitReportingAttraction } from '@/data/trustedWaitReporting';
 import { getWaitTimeAggregate } from '@/services/waitAggregationService';
 import { subscribeWaitAggregates } from '@/services/waitAggregateEvents';
 import { getQuickStatusLabel, type WaitTimeAggregate } from '@/services/waitReportCore';
@@ -34,7 +35,8 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
   const watching = watches.some(w => w.attractionId === attraction.id && w.enabled);
   const { isFavorite, toggleFavorite } = useFavorites();
   const favorite = isFavorite('attractions', attraction.id);
-  const supportsWaitReporting = Boolean(getWaitTimeAttraction(attraction.id));
+  const supportsWaitReporting = attraction.waitReportingEnabled === true
+    && Boolean(getTrustedWaitReportingAttraction(attraction.id));
   const [waitAggregate, setWaitAggregate] = useState<WaitTimeAggregate | null>(null);
 
   useFocusEffect(useCallback(() => {
@@ -138,8 +140,8 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
 
         <View style={styles.actionsGrid}>
           <ActionButton icon="navigate" color={colors.purple} title="Directions" subtitle="Get there" onPress={openDirections} />
-          {attraction.websiteUrl ? (
-            <ActionButton icon="ticket" color="#F17B67" title="Tickets / Site" subtitle="View options" onPress={() => void openUrl(attraction.websiteUrl!)} />
+          {attraction.ticketUrl || attraction.websiteUrl ? (
+            <ActionButton icon="ticket" color="#F17B67" title="Tickets / Site" subtitle="View options" onPress={() => void openUrl((attraction.ticketUrl ?? attraction.websiteUrl)!)} />
           ) : (
             <ActionButton icon="information-circle" color="#F17B67" title="Visitor Info" subtitle="Local details" onPress={() => Alert.alert('Visitor information', attraction.hours)} />
           )}
@@ -163,14 +165,14 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
 
         {supportsWaitReporting ? <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/witch-watch', params: { id: attraction.id } })} style={{ padding: 14, borderRadius: 14, borderWidth: 1, borderColor: colors.gold, flexDirection: 'row', gap: 10 }}><Ionicons name="notifications-outline" size={20} color={colors.gold} /><Text style={{ color: colors.gold }}>{watching ? 'Watching' : 'Witch Watch'}</Text></Pressable> : null}
         <View style={styles.infoCards}>
-          <View style={styles.contentCard}>
+          {attraction.visitorTips.length ? <View style={styles.contentCard}>
             <View style={styles.cardHeading}>
               <Ionicons name="document-text" size={21} color={colors.gold} />
               <Text style={styles.cardTitle}>About</Text>
             </View>
             <View style={styles.rule} />
             <Text style={styles.bodyText}>{attraction.longDescription}</Text>
-          </View>
+          </View> : null}
 
           <View style={styles.contentCard}>
             <View style={styles.cardHeading}>
@@ -233,6 +235,8 @@ function DynamicFeature({ attraction }: AttractionDetailsViewProps) {
       </Pressable>
     );
   }
+
+  if (!attraction.historicalFact) return null;
 
   return (
     <View style={styles.factCard}>

@@ -37,8 +37,8 @@ export function FeaturedAttractionCard({ attraction, favorite, onFavoritePress, 
           </View>
           <Text numberOfLines={2} style={styles.description}>{attraction.description}</Text>
           <View style={styles.hoursRow}>
-            <View style={styles.statusDot} />
-            <Text style={styles.status}>{attraction.statusLabel}</Text>
+            <View style={[styles.statusDot, attraction.status === 'open' ? styles.openDot : styles.neutralDot]} />
+            <Text style={[styles.status, attraction.status === 'open' && styles.openStatus]}>{attraction.statusLabel}</Text>
             <Text style={styles.hours}>• {attraction.hours}</Text>
           </View>
           <View style={styles.footer}>
@@ -103,8 +103,11 @@ const styles = StyleSheet.create({
   meta: { ...typography.caption, flex: 1, fontSize: 11, lineHeight: 15 },
   description: { ...typography.caption, marginTop: spacing.sm, fontSize: 11, lineHeight: 16 },
   hoursRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 4, marginTop: spacing.sm },
-  statusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#75E55E' },
-  status: { color: '#8CEB72', fontSize: 11, fontWeight: '800' },
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  openDot: { backgroundColor: '#75E55E' },
+  neutralDot: { backgroundColor: colors.gold },
+  status: { color: colors.gold, fontSize: 11, fontWeight: '800' },
+  openStatus: { color: '#8CEB72' },
   hours: { color: colors.textMuted, fontSize: 10.5 },
   footer: { gap: spacing.xs, marginTop: spacing.sm },
   tagsRow: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 4 },

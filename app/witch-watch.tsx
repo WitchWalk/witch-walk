@@ -4,7 +4,7 @@ import { Alert, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, View }
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWitchWatch } from '@/components/WitchWatchProvider';
 import { useAppSettings } from '@/components/settings/AppSettingsProvider';
-import { getAttraction } from '@/data/attractions';
+import { useAttractions } from '@/components/attractions/AttractionsProvider';
 import { getWaitTimeAggregates } from '@/services/waitAggregationService';
 import type { WaitTimeAggregate } from '@/services/waitReportCore';
 import { WATCH_THRESHOLDS, watchRuleLabel, type Watch, type WatchRule } from '@/services/witchWatchCore';
@@ -13,11 +13,13 @@ import { remoteWitchWatchEnabled } from '@/config/witchWatchBackend';
 import { colors, typography } from '@/theme/tokens';
 
 export default function WitchWatchScreen() {
+  const { ready: attractionsReady } = useAttractions();
   const { ready } = useWitchWatch();
   const { ready: settingsReady } = useAppSettings();
-  return ready && settingsReady ? <WitchWatchContent /> : <SafeAreaView style={styles.safe}><Text style={styles.body}>Loading Witch Watch…</Text></SafeAreaView>;
+  return ready && settingsReady && attractionsReady ? <WitchWatchContent /> : <SafeAreaView style={styles.safe}><Text style={styles.body}>Loading Witch Watch…</Text></SafeAreaView>;
 }
 function WitchWatchContent() {
+  const { getAttraction } = useAttractions();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { watches, ready, save, remove } = useWitchWatch();
   const { settings } = useAppSettings();

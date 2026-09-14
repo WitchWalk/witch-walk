@@ -1,6 +1,7 @@
 import type { ImageSourcePropType } from 'react-native';
 
-import { attractions } from '@/data/attractions';
+import { bundledAttractions, type Attraction } from '@/data/attractions';
+import { getTrustedWaitReportingAttraction } from '@/data/trustedWaitReporting';
 import { bathroomLocations, getBathroomMapDestination, getVisibleBathroomLocations } from '@/data/bathrooms';
 import { getParkingMapDestination, parkingLocations } from '@/data/parking';
 import { restaurants } from '@/data/restaurants';
@@ -39,8 +40,12 @@ function hasCoordinates(location: { latitude: number | null; longitude: number |
   return Number.isFinite(location.latitude) && Number.isFinite(location.longitude);
 }
 
-export function getMapLocations(waitAggregates: Record<string, WaitTimeAggregate> = {}, now = new Date()): MapLocation[] {
-  const attractionPins: MapLocation[] = attractions
+export function getMapLocations(
+  waitAggregates: Record<string, WaitTimeAggregate> = {},
+  now = new Date(),
+  attractionContent: Attraction[] = bundledAttractions,
+): MapLocation[] {
+  const attractionPins: MapLocation[] = attractionContent
     .filter(hasCoordinates)
     .map((location) => {
       const aggregate = waitAggregates[location.id];
@@ -50,13 +55,14 @@ export function getMapLocations(waitAggregates: Record<string, WaitTimeAggregate
         name: location.name,
         category: 'attractions',
         categoryLabel: 'Attraction',
-        latitude: location.latitude,
-        longitude: location.longitude,
+        latitude: location.latitude as number,
+        longitude: location.longitude as number,
         address: location.address,
         image: location.image,
         directionsDestination: `${location.name}, ${location.address}`,
         crowdLevel: aggregate?.crowdLevel ?? undefined,
-        waitReportingSupported: Boolean(aggregate),
+        waitReportingSupported: location.waitReportingEnabled === true
+          && Boolean(getTrustedWaitReportingAttraction(location.id)),
         waitEstimateLabel: aggregate?.estimatedWaitLabel,
         waitFreshnessLabel: aggregate?.freshnessLabel,
       };

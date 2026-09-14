@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import type { ComponentProps } from 'react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ImageBackground,
   Pressable,
@@ -15,16 +15,17 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AttractionCard } from '@/components/attractions/AttractionCard';
+import { useAttractions } from '@/components/attractions/AttractionsProvider';
 import { FeaturedAttractionCard } from '@/components/attractions/FeaturedAttractionCard';
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
-import { attractionCategories, attractions, type AttractionCategory } from '@/data/attractions';
+import { attractionCategories } from '@/data/attractions';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 const headerImage = require('../../assets/images/home/attractions.png');
 
 type CategoryIcon = ComponentProps<typeof Ionicons>['name'];
 
-const categoryIcons: Record<'All' | AttractionCategory, CategoryIcon> = {
+const categoryIcons: Record<(typeof attractionCategories)[number], CategoryIcon> = {
   All: 'sparkles',
   Historic: 'business',
   Museums: 'book',
@@ -37,16 +38,19 @@ const categoryIcons: Record<'All' | AttractionCategory, CategoryIcon> = {
 export default function AttractionsScreen() {
   const { width } = useWindowDimensions();
   const [query, setQuery] = useState('');
-  const [category, setCategory] = useState<'All' | AttractionCategory>('All');
+  const [category, setCategory] = useState<(typeof attractionCategories)[number]>('All');
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { attractions, ready, refresh } = useAttractions();
 
-  const featured = attractions.find((attraction) => attraction.featured) ?? attractions[0];
+  useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
+
+  const featured = attractions.find((attraction) => attraction.featured);
   const gridCardWidth = Math.floor((width - spacing.lg * 2 - spacing.sm) / 2);
   const visibleAttractions = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
     return attractions.filter((attraction) => {
-      if (attraction.featured) return false;
+      if (featured && attraction.id === featured.id) return false;
       const matchesCategory = category === 'All' || attraction.category === category || attraction.tags.includes(category);
       const matchesQuery =
         normalizedQuery.length === 0 ||
@@ -55,7 +59,7 @@ export default function AttractionsScreen() {
         attraction.category.toLowerCase().includes(normalizedQuery);
       return matchesCategory && matchesQuery;
     });
-  }, [category, query]);
+  }, [attractions, category, featured, query]);
 
   const openDetails = (id: string) => {
     router.push({ pathname: '/attractions/[id]', params: { id } });
@@ -144,7 +148,12 @@ export default function AttractionsScreen() {
             <View style={styles.headingLine} />
           </View>
 
-          {visibleAttractions.length ? (
+          {!ready ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="hourglass-outline" size={32} color={colors.gold} />
+              <Text style={styles.emptyTitle}>Loading attractions…</Text>
+            </View>
+          ) : visibleAttractions.length ? (
             <View style={styles.grid}>
               {visibleAttractions.map((attraction) => (
                 <View key={attraction.id} style={[styles.gridItem, { width: gridCardWidth }]}>

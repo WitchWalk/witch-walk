@@ -5,7 +5,8 @@ import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { WaitTimesHeader } from '@/components/wait-times/WaitTimesHeader';
-import { crowdPresentation, getWaitTimeAttraction, type CrowdLevel } from '@/data/waitTimes';
+import { useAttractions } from '@/components/attractions/AttractionsProvider';
+import { crowdPresentation, getWaitTimeAttractionForContent, type CrowdLevel } from '@/data/waitTimes';
 import { waitReportProximityRules } from '@/services/proximity';
 import { getWaitTimeAggregate } from '@/services/waitAggregationService';
 import { subscribeWaitAggregates } from '@/services/waitAggregateEvents';
@@ -25,7 +26,8 @@ import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 export default function ReportWaitScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const item = getWaitTimeAttraction(id);
+  const { attractions, ready } = useAttractions();
+  const item = getWaitTimeAttractionForContent(id, attractions);
   const [wait, setWait] = useState<number | null>(null);
   const [crowd, setCrowd] = useState<CrowdLevel | null>(null);
   const [quickStatusTag, setQuickStatusTag] = useState<WaitQuickStatusTag | null>(null);
@@ -66,7 +68,7 @@ export default function ReportWaitScreen() {
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <View style={styles.notFound}>
           <Ionicons name="alert-circle-outline" size={42} color={colors.gold} />
-          <Text style={styles.notFoundTitle}>Attraction not found</Text>
+          <Text style={styles.notFoundTitle}>{ready ? 'Wait reporting unavailable' : 'Loading attraction…'}</Text>
           <Pressable accessibilityRole="button" onPress={() => router.replace('/wait-times')} style={styles.submitButton}>
             <Text style={styles.submitText}>Back to Wait Times</Text>
           </Pressable>

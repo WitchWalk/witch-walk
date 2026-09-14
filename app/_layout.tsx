@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { FavoritesProvider } from '@/components/favorites/FavoritesProvider';
+import { AttractionsProvider } from '@/components/attractions/AttractionsProvider';
 import { AppSettingsProvider } from '@/components/settings/AppSettingsProvider';
 import { WitchWatchProvider } from '@/components/WitchWatchProvider';
 import { WaitRealtimeProvider } from '@/components/WaitRealtimeProvider';
@@ -20,9 +21,10 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AppSettingsProvider>
-        <FavoritesProvider>
-          <WitchWatchProvider>
-            <WaitRealtimeProvider>
+        <AttractionsProvider>
+          <FavoritesProvider>
+            <WitchWatchProvider>
+              <WaitRealtimeProvider>
             <View style={styles.container}>
               <StatusBar style="light" />
               <Stack screenOptions={{ headerShown: false, contentStyle: styles.content }}>
@@ -38,9 +40,10 @@ export default function RootLayout() {
                 <Stack.Screen name="wait-times-overview" options={{ animation: 'slide_from_right' }} />
               </Stack>
             </View>
-            </WaitRealtimeProvider>
-          </WitchWatchProvider>
-        </FavoritesProvider>
+              </WaitRealtimeProvider>
+            </WitchWatchProvider>
+          </FavoritesProvider>
+        </AttractionsProvider>
       </AppSettingsProvider>
     </SafeAreaProvider>
   );

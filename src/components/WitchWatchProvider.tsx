@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type PropsWithChildren } from 'react';
 import { AppState } from 'react-native';
 import { useAppSettings } from '@/components/settings/AppSettingsProvider';
-import { getAttraction } from '@/data/attractions';
+import { getActiveAttraction } from '@/services/attractionContentState';
 import { getWaitTimeAggregates } from '@/services/waitAggregationService';
 import { subscribeWaitAggregates } from '@/services/waitAggregateEvents';
 import { evaluateWatch, type Watch } from '@/services/witchWatchCore';
@@ -54,7 +54,7 @@ export function WitchWatchProvider({ children }: PropsWithChildren) {
       }), async () => {
         if (!settingsRef.current.ready || !settingsRef.current.settings.witchWatchEnabled) return;
         if (!remoteWitchWatchEnabled || waitBackend === 'local') {
-          for (const id of triggered) await notifyWatch(getAttraction(id)?.name ?? 'Your attraction', id).catch(() => undefined);
+          for (const id of triggered) await notifyWatch(getActiveAttraction(id)?.name ?? 'Your attraction', id).catch(() => undefined);
         }
       }).catch(() => undefined);
     });

@@ -2,7 +2,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { registerRemotePushToken } from '@/services/witchWatchRemoteRepository';
-import { getAttraction } from '@/data/attractions';
 import { remoteWitchWatchEnabled } from '@/config/witchWatchBackend';
 
 const askedKey = '@witch-walk/watch-permission-asked-v1';
@@ -57,7 +56,7 @@ export async function subscribeRemoteWatchNotifications(openAttraction: (id: str
   }) });
   const open = (response: Awaited<ReturnType<typeof notifications.getLastNotificationResponseAsync>>) => {
     const id = response?.notification.request.content.data?.attractionId;
-    if (typeof id === 'string' && getAttraction(id)) openAttraction(id);
+    if (typeof id === 'string') openAttraction(id);
   };
   const responseSubscription = notifications.addNotificationResponseReceivedListener(open);
   const tokenSubscription = remoteWitchWatchEnabled

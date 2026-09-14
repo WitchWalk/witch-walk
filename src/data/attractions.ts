@@ -1,6 +1,6 @@
 import type { ImageSourcePropType } from 'react-native';
 
-export type AttractionCategory = 'Historic' | 'Museums' | 'Family' | 'Waterfront' | 'Landmarks' | 'Tours';
+export type AttractionCategory = string;
 
 export type Attraction = {
   id: string;
@@ -9,8 +9,8 @@ export type Attraction = {
   category: AttractionCategory;
   tags: string[];
   address: string;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
   description: string;
   longDescription: string;
   hours: string;
@@ -21,7 +21,11 @@ export type Attraction = {
   featured?: boolean;
   crowdStatus?: 'light' | 'moderate' | 'busy';
   websiteUrl?: string;
-  historicalFact: string;
+  ticketUrl?: string;
+  waitReportingEnabled?: boolean;
+  contentUpdatedAt?: string;
+  sortOrder?: number;
+  historicalFact?: string;
   visitorTips: string[];
   houseArauzVideo?: {
     title: string;
@@ -45,7 +49,7 @@ const essexStreetPedestrianImage = require('../../Photos/Essex Street Pedestrian
 const historicPlaceholder = require('../../assets/images/home/attractions.png');
 const waterfrontPlaceholder = require('../../assets/images/home/events.png');
 
-export const attractionCategories: ('All' | AttractionCategory)[] = [
+export const attractionCategories = [
   'All',
   'Historic',
   'Museums',
@@ -53,7 +57,7 @@ export const attractionCategories: ('All' | AttractionCategory)[] = [
   'Waterfront',
   'Landmarks',
   'Tours',
-];
+] as const;
 
 export const attractions: Attraction[] = [
   {
@@ -75,6 +79,7 @@ export const attractions: Attraction[] = [
     featured: true,
     crowdStatus: 'moderate',
     websiteUrl: 'https://www.salemma.gov/witch-house',
+    waitReportingEnabled: true,
     historicalFact: 'Judge Jonathan Corwin purchased the house in 1675 and lived here for more than forty years.',
     visitorTips: ['Self-guided experience', 'Popular in October', 'Allow 30–45 minutes', 'Historic site'],
     houseArauzVideo: {
@@ -99,6 +104,7 @@ export const attractions: Attraction[] = [
     image: sevenGablesImage,
     crowdStatus: 'light',
     websiteUrl: 'https://7gables.org',
+    waitReportingEnabled: true,
     historicalFact: 'The Turner-Ingersoll Mansion was built in 1668 and later inspired Nathaniel Hawthorne’s famous novel.',
     visitorTips: ['Guided tours available', 'Waterfront grounds', 'Allow about 1 hour'],
   },
@@ -119,6 +125,7 @@ export const attractions: Attraction[] = [
     image: peabodyEssexMuseumImage,
     crowdStatus: 'light',
     websiteUrl: 'https://www.pem.org',
+    waitReportingEnabled: true,
     historicalFact: 'The museum traces its origins to the East India Marine Society, founded in Salem in 1799.',
     visitorTips: ['Indoor attraction', 'Allow 2–3 hours', 'Check current exhibitions'],
   },
@@ -228,6 +235,7 @@ export const attractions: Attraction[] = [
     statusLabel: 'Open Today',
     distance: '0.5 mi',
     image: witchDungeonMuseumImage,
+    waitReportingEnabled: true,
     historicalFact: 'The museum occupies a historic former church built long after the events of 1692.',
     visitorTips: ['Guided format', 'Indoor attraction', 'Contains dark subject matter'],
   },
@@ -266,6 +274,7 @@ export const attractions: Attraction[] = [
     image: witchMuseumImage,
     crowdStatus: 'busy',
     websiteUrl: 'https://salemwitchmuseum.com',
+    waitReportingEnabled: true,
     historicalFact: 'The museum is housed in a former church built in the mid-19th century.',
     visitorTips: ['Timed entry', 'Indoor attraction', 'Reserve early in October'],
   },
@@ -322,6 +331,7 @@ export const attractions: Attraction[] = [
     statusLabel: 'Open Today',
     distance: '0.8 mi',
     image: waterfrontPlaceholder,
+    waitReportingEnabled: true,
     historicalFact: 'Established in 1938, it was the first National Historic Site in the United States.',
     visitorTips: ['Outdoor areas are free', 'Visitor-center hours vary', 'Wear comfortable shoes'],
   },
@@ -345,6 +355,11 @@ export const attractions: Attraction[] = [
   },
 ];
 
-export function getAttraction(id: string | undefined) {
+export const bundledAttractions = attractions;
+
+export function getBundledAttraction(id: string | undefined) {
   return attractions.find((attraction) => attraction.id === id);
 }
+
+// Technical compatibility for code that explicitly needs the bundled fallback.
+export const getAttraction = getBundledAttraction;

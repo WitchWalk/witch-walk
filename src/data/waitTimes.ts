@@ -1,6 +1,7 @@
 import type { ImageSourcePropType } from 'react-native';
 
-import { attractions } from '@/data/attractions';
+import { bundledAttractions, type Attraction } from '@/data/attractions';
+import { trustedWaitReportingAttractions } from '@/data/trustedWaitReporting';
 
 export type CrowdLevel = 'light' | 'moderate' | 'busy';
 
@@ -14,29 +15,30 @@ export type WaitTimeAttraction = {
   image: ImageSourcePropType;
 };
 
-export const waitReportingAttractionIds = [
-  'salem-witch-museum',
-  'witch-house',
-  'house-seven-gables',
-  'peabody-essex-museum',
-  'witch-dungeon-museum',
-  'salem-maritime',
-];
+export const waitReportingAttractionIds = trustedWaitReportingAttractions.map((item) => item.id);
 
-export const waitTimeAttractions: WaitTimeAttraction[] = waitReportingAttractionIds.flatMap((attractionId) => {
-  const attraction = attractions.find((item) => item.id === attractionId);
-  if (!attraction) return [];
+export function getWaitTimeAttractionsForContent(attractions: Attraction[]): WaitTimeAttraction[] {
+  return trustedWaitReportingAttractions.flatMap((trusted) => {
+    const attraction = attractions.find((item) => item.id === trusted.id && item.waitReportingEnabled === true);
+    if (!attraction) return [];
 
-  return [{
-    attractionId,
-    name: attraction.name,
-    address: attraction.address,
-    latitude: attraction.latitude,
-    longitude: attraction.longitude,
-    distance: attraction.distance,
-    image: attraction.image,
-  }];
-});
+    return [{
+      attractionId: trusted.id,
+      name: attraction.name,
+      address: attraction.address,
+      latitude: trusted.latitude,
+      longitude: trusted.longitude,
+      distance: attraction.distance,
+      image: attraction.image,
+    }];
+  });
+}
+
+export const waitTimeAttractions: WaitTimeAttraction[] = getWaitTimeAttractionsForContent(bundledAttractions);
+
+export function getWaitTimeAttractionForContent(id: string | undefined, attractions: Attraction[]) {
+  return getWaitTimeAttractionsForContent(attractions).find((item) => item.attractionId === id);
+}
 
 export const getWaitTimeAttraction = (id?: string) =>
   waitTimeAttractions.find((item) => item.attractionId === id);
