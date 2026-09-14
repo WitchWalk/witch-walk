@@ -43,7 +43,7 @@ export default function FavoritesScreen() {
         <ImageBackground imageStyle={styles.heroImage} resizeMode="cover" source={heroImage} style={styles.hero}>
           <View style={styles.heroShade} />
           <View style={styles.brandRow}>
-            <Text style={styles.brand}>Witch <Text style={styles.brandStar}>✦</Text> Walk</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78} style={styles.brand}>BROOMSTICK</Text>
             <Ionicons color={colors.gold} name="heart" size={24} />
           </View>
           <View>

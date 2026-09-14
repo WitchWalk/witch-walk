@@ -87,7 +87,7 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
               <Ionicons name="chevron-back" size={27} color={colors.text} />
               <Text style={styles.backText}>Back</Text>
             </Pressable>
-            <Text style={styles.brand}>Witch <Text style={styles.brandStar}>✦</Text> Walk</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78} style={styles.brand}>BROOMSTICK</Text>
             <Pressable accessibilityRole="button" accessibilityLabel="Open settings" hitSlop={10} onPress={() => router.push('/more')} style={styles.iconButton}>
               <Ionicons name="settings-outline" size={20} color={colors.text} />
             </Pressable>

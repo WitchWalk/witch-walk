@@ -19,7 +19,7 @@ import { enableRemoteWatchNotifications, enableWatchNotifications } from '@/serv
 import { remoteWitchWatchEnabled } from '@/config/witchWatchBackend';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
-const heroArtwork = require('../../Screen Designs/Style design.png');
+const heroArtwork = require('../../Photos/Broomstick Header.png');
 const unavailable: PermissionSummary = { label: 'Unavailable', canOpenSettings: false };
 
 export default function MoreScreen() {
@@ -83,9 +83,14 @@ export default function MoreScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
           <View style={styles.artworkWindow}>
-            <Image source={heroArtwork} resizeMode="cover" style={styles.heroImage} accessibilityIgnoresInvertColors />
+            <Image
+              source={heroArtwork}
+              resizeMode="cover"
+              style={styles.heroImage}
+              accessibilityLabel="BROOMSTICK — The Salem Guidebook"
+              accessibilityIgnoresInvertColors
+            />
             <View style={styles.heroShade} />
-            <Text style={styles.wordmark}>Witch <Text style={styles.star}>✦</Text> Walk</Text>
           </View>
           <View style={styles.heroCopy}>
             <Text style={styles.title}>More</Text>
@@ -126,7 +131,7 @@ export default function MoreScreen() {
         </SettingsSection>
 
         <SettingsSection icon="document-text" title="Legal & Support">
-          <SettingsRow icon="heart" iconColor="#E779C6" label="❤️ Support Witch Walk" hint="Help keep Witch Walk free and running." onPress={() => router.push('/settings/support-witch-walk')} />
+          <SettingsRow icon="heart" iconColor="#E779C6" label="❤️ Support BROOMSTICK" hint="Help keep BROOMSTICK free and running." onPress={() => router.push('/settings/support-witch-walk')} />
           <SettingsRow icon="shield-checkmark-outline" label="Privacy Policy" onPress={() => router.push('/settings/privacy')} />
           <SettingsRow icon="document-text-outline" label="Terms of Service" onPress={() => router.push('/settings/terms')} />
           <SettingsRow icon="mail" label="Contact / Support" onPress={() => router.push('/settings/support')} />
@@ -134,8 +139,8 @@ export default function MoreScreen() {
         </SettingsSection>
 
         <SettingsSection icon="information-circle" title="About">
-          <SettingsRow icon="moon" iconColor={colors.purple} label="About Witch Walk" onPress={() => router.push('/settings/about')} />
-          <SettingsRow icon="sparkles" iconColor={colors.gold} label="App Version" value={`Witch Walk v${Constants.expoConfig?.version ?? 'Unavailable'}`} />
+          <SettingsRow icon="moon" iconColor={colors.purple} label="About BROOMSTICK" onPress={() => router.push('/settings/about')} />
+          <SettingsRow icon="sparkles" iconColor={colors.gold} label="App Version" value={`BROOMSTICK v${Constants.expoConfig?.version ?? 'Unavailable'}`} />
         </SettingsSection>
       </ScrollView>
     </SafeAreaView>
@@ -147,10 +152,8 @@ const styles = StyleSheet.create({
   content: { gap: spacing.md, paddingHorizontal: spacing.md, paddingBottom: spacing.xl },
   hero: { overflow: 'hidden', borderWidth: 1, borderColor: colors.borderSoft, borderRadius: radius.md, backgroundColor: colors.backgroundRaised },
   artworkWindow: { height: 102, overflow: 'hidden', backgroundColor: '#160D25' },
-  heroImage: { position: 'absolute', top: -70, right: -60, width: 480, height: 480 },
+  heroImage: { width: '100%', height: '100%' },
   heroShade: { position: 'absolute', inset: 0, backgroundColor: 'rgba(8, 5, 14, 0.25)' },
-  wordmark: { ...typography.display, position: 'absolute', top: 11, left: spacing.md, overflow: 'hidden', borderRadius: radius.sm, backgroundColor: 'rgba(5, 3, 9, 0.68)', paddingHorizontal: 9, paddingVertical: 2, fontSize: 19, lineHeight: 24, textTransform: 'uppercase', textShadowColor: colors.black, textShadowRadius: 4 },
-  star: { color: colors.gold, fontSize: 14 },
   heroCopy: { minHeight: 66, justifyContent: 'center', paddingHorizontal: spacing.md, paddingVertical: 8 },
   title: { ...typography.display, fontSize: 30, lineHeight: 34 },
   subtitle: { color: colors.textMuted, fontSize: 13, lineHeight: 18 },

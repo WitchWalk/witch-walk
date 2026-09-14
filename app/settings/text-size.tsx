@@ -6,14 +6,14 @@ import type { TextSizePreference } from '@/services/appSettingsRepository';
 import { colors, radius, spacing } from '@/theme/tokens';
 
 const options: { value: TextSizePreference; title: string; detail: string }[] = [
-  { value: 'default', title: 'Default', detail: 'Use the current approved Witch Walk typography.' },
+  { value: 'default', title: 'Default', detail: 'Use the current approved BROOMSTICK typography.' },
   { value: 'larger', title: 'Larger', detail: 'Save a preference for the planned app-wide larger-text layout pass.' },
 ];
 
 export default function TextSizeScreen() {
   const { settings, updateSettings } = useAppSettings();
   return (
-    <SettingsInfoScreen title="Text Size" icon="text-outline" body="Choose and save your preferred Witch Walk text size.">
+    <SettingsInfoScreen title="Text Size" icon="text-outline" body="Choose and save your preferred BROOMSTICK text size.">
       <View style={styles.options}>
         {options.map((option) => {
           const selected = settings.textSizePreference === option.value;

@@ -6,7 +6,7 @@ import { colors, radius, spacing } from '@/theme/tokens';
 
 export default function SupportScreen() {
   const body = appLinks.supportEmail
-    ? 'Contact the Witch Walk team for help with the app.'
+    ? 'Contact the BROOMSTICK team for help with the app.'
     : 'Final support contact information will be added before release.';
 
   return (

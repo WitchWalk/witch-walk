@@ -19,7 +19,7 @@ export function WaitTimesHeader({ report = false }: WaitTimesHeaderProps) {
           <Ionicons name="chevron-back" size={25} color={colors.text} />
           <Text style={styles.backText}>Back</Text>
         </Pressable>
-        <Text numberOfLines={1} adjustsFontSizeToFit style={styles.brand}>Witch <Text style={styles.star}>✦</Text> Walk</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78} style={styles.brand}>BROOMSTICK</Text>
         <Pressable accessibilityRole="button" accessibilityLabel="Open settings" hitSlop={10} onPress={() => router.push('/more')} style={styles.iconButton}>
           <Ionicons name="settings-outline" size={20} color={colors.text} />
         </Pressable>

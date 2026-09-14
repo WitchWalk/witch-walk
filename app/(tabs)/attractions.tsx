@@ -70,7 +70,7 @@ export default function AttractionsScreen() {
             <Pressable accessibilityRole="button" accessibilityLabel="Back to Home" hitSlop={10} onPress={() => router.back()} style={styles.circleButton}>
               <Ionicons name="chevron-back" size={26} color={colors.text} />
             </Pressable>
-            <Text style={styles.brand}>Witch <Text style={styles.brandStar}>✦</Text> Walk</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78} style={styles.brand}>BROOMSTICK</Text>
             <Pressable accessibilityRole="button" accessibilityLabel="Open live map" hitSlop={10} onPress={() => router.push('/map')} style={styles.circleButton}>
               <Ionicons name="map-outline" size={22} color={colors.gold} />
             </Pressable>

@@ -152,7 +152,7 @@ export function LiveMapScreen() {
               {compact ? null : <Text style={styles.backButtonText}>Back</Text>}
             </Pressable>
             <Text adjustsFontSizeToFit minimumFontScale={0.82} numberOfLines={1} style={styles.brand}>
-              Witch <Text style={styles.brandStar}>✦</Text> Walk
+              BROOMSTICK
             </Text>
             <Pressable
               accessibilityLabel="Open settings"

@@ -49,7 +49,7 @@ function WitchWatchContent() {
     setMessage(registration === 'registered'
       ? 'Watch saved. Witch Watch can alert you when conditions improve.'
       : registration === 'local'
-        ? 'Watch saved. Alerts can arrive while Witch Walk is active.'
+        ? 'Watch saved. Alerts can arrive while BROOMSTICK is active.'
       : registration === 'denied'
         ? 'Watch saved. Enable notifications in device settings to receive alerts.'
         : 'Watch saved. Remote alerts will be available after notification setup is completed.');
@@ -60,7 +60,7 @@ function WitchWatchContent() {
     <Text style={styles.body}>Watch your favorite Salem attractions for improving conditions.</Text>
     <Text style={styles.note}>{remoteWitchWatchEnabled
       ? 'Witch Watch can alert you when shared wait conditions improve, even while the app is closed.'
-      : 'Alerts use updates available while Witch Walk is open. Remote alerts are prepared but not deployed yet.'}</Text>
+      : 'Alerts use updates available while BROOMSTICK is open. Remote alerts are prepared but not deployed yet.'}</Text>
     {message ? <Text accessibilityRole="alert" style={styles.note}>{message}</Text> : null}
     <Pressable accessibilityRole="button" onPress={() => void Linking.openSettings().catch(() => setMessage('Open your device settings to enable notifications.'))}><Text style={styles.link}>Notification settings</Text></Pressable>
     {editing && getAttraction(editing) ? <View style={styles.card}>

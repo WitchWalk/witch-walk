@@ -28,7 +28,7 @@ export function PlaceholderScreen({ title, description, icon }: PlaceholderScree
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </Pressable>
         ) : null}
-        <Text style={styles.eyebrow}>Witch Walk</Text>
+        <Text style={styles.eyebrow}>BROOMSTICK</Text>
       </View>
 
       <View style={styles.content}>

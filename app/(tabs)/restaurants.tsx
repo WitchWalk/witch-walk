@@ -97,8 +97,8 @@ export default function RestaurantsScreen() {
             >
               <Ionicons name="chevron-back" size={26} color={colors.text} />
             </Pressable>
-            <Text style={styles.brand}>
-              Witch <Text style={styles.brandStar}>✦</Text> Walk
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78} style={styles.brand}>
+              BROOMSTICK
             </Text>
             <Pressable
               accessibilityLabel="Open live map"

@@ -83,8 +83,8 @@ export default function ParkingScreen() {
             >
               <Ionicons color={colors.text} name="chevron-back" size={26} />
             </Pressable>
-            <Text style={styles.brand}>
-              Witch <Text style={styles.brandStar}>✦</Text> Walk
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78} style={styles.brand}>
+              BROOMSTICK
             </Text>
             <Pressable
               accessibilityLabel="Open settings"

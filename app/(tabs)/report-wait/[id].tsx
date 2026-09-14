@@ -155,7 +155,7 @@ export default function ReportWaitScreen() {
   const verificationDetail = (() => {
     switch (verification?.reason) {
       case 'permission-denied': return 'Foreground location permission was not granted. You can continue browsing and viewing wait times.';
-      case 'precise-location-required': return 'Precise Location is required. Enable it for Witch Walk in your phone settings.';
+      case 'precise-location-required': return 'Precise Location is required. Enable it for BROOMSTICK in your phone settings.';
       case 'stale': return 'The location reading expired. Check your location again before reporting.';
       case 'inaccurate': return 'GPS accuracy is currently too low. Move to an open area and try again.';
       case 'mocked': return 'This location reading could not be verified.';

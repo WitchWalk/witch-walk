@@ -55,8 +55,8 @@ export function ParkingDetailsView({ location }: ParkingDetailsViewProps) {
               <Ionicons color={colors.text} name="chevron-back" size={27} />
               <Text style={styles.backText}>Back</Text>
             </Pressable>
-            <Text style={styles.brand}>
-              Witch <Text style={styles.brandStar}>✦</Text> Walk
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78} style={styles.brand}>
+              BROOMSTICK
             </Text>
             <Pressable
               accessibilityLabel={favorite ? `Remove ${location.name} from favorites` : `Add ${location.name} to favorites`}

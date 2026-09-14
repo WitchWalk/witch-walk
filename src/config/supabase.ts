@@ -12,7 +12,7 @@ export function getSupabaseConfig(environment: Environment) {
 
   if (missingVariables.length) {
     throw new Error(
-      `[Supabase configuration] Missing ${missingVariables.join(', ')}. Add the missing value${missingVariables.length === 1 ? '' : 's'} to the .env file in the Witch Walk project root and restart Expo.`,
+      `[Supabase configuration] Missing ${missingVariables.join(', ')}. Add the missing value${missingVariables.length === 1 ? '' : 's'} to the .env file in the BROOMSTICK project root and restart Expo.`,
     );
   }
 

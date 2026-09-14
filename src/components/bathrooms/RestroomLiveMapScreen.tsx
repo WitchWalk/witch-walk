@@ -49,7 +49,7 @@ export function RestroomLiveMapScreen({ showBackButton = false }: RestroomLiveMa
             <View style={styles.circleSpacer} />
           )}
           <View style={styles.headerCopy}>
-            <Text style={styles.eyebrow}>Witch Walk Salem</Text>
+            <Text style={styles.eyebrow}>BROOMSTICK Salem</Text>
             <Text style={styles.title}>Live Map</Text>
           </View>
           <View style={styles.circleButton}>

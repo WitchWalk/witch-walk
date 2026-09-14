@@ -52,8 +52,8 @@ export function RestaurantDetailsView({ restaurant }: RestaurantDetailsViewProps
               <Ionicons name="chevron-back" size={27} color={colors.text} />
               <Text style={styles.backText}>Back</Text>
             </Pressable>
-            <Text style={styles.brand}>
-              Witch <Text style={styles.brandStar}>✦</Text> Walk
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78} style={styles.brand}>
+              BROOMSTICK
             </Text>
             <Pressable
               accessibilityLabel="Open live map"

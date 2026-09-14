@@ -20,9 +20,9 @@ export default function SupportWitchWalkScreen() {
 
   return (
     <SettingsInfoScreen
-      title="Enjoying Witch Walk?"
+      title="Enjoying BROOMSTICK?"
       icon="heart"
-      body="Witch Walk is free to use. If it helped make your Salem visit easier and you'd like to help with the costs of keeping it running, you can leave an optional tip."
+      body="BROOMSTICK is free to use. If it helped make your Salem visit easier and you'd like to help with the costs of keeping it running, you can leave an optional tip."
     >
       <Pressable
         accessibilityRole="link"
@@ -31,9 +31,9 @@ export default function SupportWitchWalkScreen() {
         onPress={() => void openSupport()}
         style={({ pressed }) => [styles.button, opening && styles.disabled, pressed && styles.pressed]}
       >
-        <Text style={styles.buttonText}>{opening ? 'Opening Support Page…' : '❤️ Support Witch Walk'}</Text>
+        <Text style={styles.buttonText}>{opening ? 'Opening Support Page…' : '❤️ Support BROOMSTICK'}</Text>
       </Pressable>
-      <Text style={styles.thanks}>Thank you for helping keep Witch Walk free for everyone.</Text>
+      <Text style={styles.thanks}>Thank you for helping keep BROOMSTICK free for everyone.</Text>
       {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
     </SettingsInfoScreen>
   );
