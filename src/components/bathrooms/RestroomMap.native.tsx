@@ -5,8 +5,10 @@ import MapView, { Marker } from 'react-native-maps';
 
 import {
   getBathroomOperatingStatus,
+  getBathroomHours,
   type BathroomLocation,
 } from '@/data/bathrooms';
+import { getMappableBathrooms } from '@/services/bathroomContentCore';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 export type RestroomMapProps = {
@@ -35,7 +37,8 @@ const darkMapStyle = [
 
 export function RestroomMap({ locations, height = 500, onDirections, onViewDetails }: RestroomMapProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = locations.find((location) => location.id === selectedId);
+  const mappable = getMappableBathrooms(locations);
+  const selected = mappable.find((location) => location.id === selectedId);
 
   return (
     <View style={[styles.container, { height }]}>
@@ -46,7 +49,7 @@ export function RestroomMap({ locations, height = 500, onDirections, onViewDetai
         rotateEnabled={false}
         style={StyleSheet.absoluteFill}
       >
-        {locations.map((location) => (
+        {mappable.map((location) => (
           <Marker
             accessibilityLabel={`${location.mapLabel} restroom map pin`}
             coordinate={{ latitude: location.latitude, longitude: location.longitude }}
@@ -100,7 +103,7 @@ function MapPreview({ location, onClose, onDirections, onViewDetails }: MapPrevi
           {location.distanceMiles === undefined ? 'Distance unavailable' : `${location.distanceMiles.toFixed(1)} mi`}
         </Text>
       </View>
-      <Text numberOfLines={2} style={styles.previewHours}>{location.schedule.summary}</Text>
+      <Text numberOfLines={2} style={styles.previewHours}>{getBathroomHours(location)}</Text>
       <View style={styles.previewActions}>
         <Pressable accessibilityRole="button" onPress={onDirections} style={styles.primaryButton}>
           <Ionicons color={colors.black} name="navigate" size={15} />

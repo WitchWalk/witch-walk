@@ -1,7 +1,7 @@
 import type { ImageSourcePropType } from 'react-native';
 
 import { bundledAttractions, type Attraction } from '@/data/attractions';
-import { getBathroomLocation } from '@/data/bathrooms';
+import { bathroomLocations, type BathroomLocation } from '@/data/bathrooms';
 import { bundledParkingLocations, type ParkingLocation } from '@/data/parking';
 import { bundledRestaurants, type Restaurant } from '@/data/restaurants';
 import { findRestaurantByStableId } from '@/services/restaurantContentCore';
@@ -38,6 +38,7 @@ export function resolveFavoriteLocation(
   attractionContent: Attraction[] = bundledAttractions,
   restaurantContent: Restaurant[] = bundledRestaurants,
   parkingContent: ParkingLocation[] = bundledParkingLocations,
+  bathroomContent: BathroomLocation[] = bathroomLocations,
 ): FavoriteLocation | null {
   if (reference.category === 'attractions') {
     const location = attractionContent.find((item) => item.id === reference.id);
@@ -52,6 +53,6 @@ export function resolveFavoriteLocation(
     return location ? { ...reference, name: location.name, categoryLabel: location.type === 'Unknown' ? 'Parking' : location.type, address: location.address, description: location.description, image: location.image } : null;
   }
 
-  const location = getBathroomLocation(reference.id);
+  const location = bathroomContent.find(item => item.id === reference.id);
   return location ? { ...reference, name: location.name, categoryLabel: 'Bathroom', address: location.address, description: location.description, image: location.image } : null;
 }

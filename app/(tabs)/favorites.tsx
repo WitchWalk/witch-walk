@@ -8,6 +8,7 @@ import { FavoriteCard } from '@/components/favorites/FavoriteCard';
 import { useAttractions } from '@/components/attractions/AttractionsProvider';
 import { useRestaurants } from '@/components/restaurants/RestaurantsProvider';
 import { useParking } from '@/components/parking/ParkingProvider';
+import { useBathrooms } from '@/components/bathrooms/BathroomsProvider';
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import {
   favoriteFilters,
@@ -27,14 +28,15 @@ export default function FavoritesScreen() {
   const { attractions, ready: attractionsReady } = useAttractions();
   const { restaurants, ready: restaurantsReady } = useRestaurants();
   const { locations: parkingLocations, ready: parkingReady } = useParking();
+  const { locations: bathroomLocations, ready: bathroomsReady } = useBathrooms();
 
   const savedLocations = useMemo(() => filterFavoriteLocations(
     favoriteReferences
-      .map((reference) => resolveFavoriteLocation(reference, attractions, restaurants, parkingLocations))
+      .map((reference) => resolveFavoriteLocation(reference, attractions, restaurants, parkingLocations, bathroomLocations))
       .filter((location): location is FavoriteLocation => Boolean(location)),
     filter,
   ),
-  [attractions, favoriteReferences, filter, restaurants, parkingLocations]);
+  [attractions, favoriteReferences, filter, restaurants, parkingLocations, bathroomLocations]);
 
   const openDetails = (location: FavoriteLocation) => {
     if (location.category === 'attractions') router.push({ pathname: '/attractions/[id]', params: { id: location.id } });
@@ -76,7 +78,7 @@ export default function FavoritesScreen() {
           })}
         </ScrollView>
 
-        {!ready || !attractionsReady || !restaurantsReady || !parkingReady ? (
+        {!ready || !attractionsReady || !restaurantsReady || !parkingReady || !bathroomsReady ? (
           <View style={styles.emptyState}>
             <Ionicons color={colors.gold} name="heart-outline" size={42} />
             <Text style={styles.emptyTitle}>Loading favorites…</Text>

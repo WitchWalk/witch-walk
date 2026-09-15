@@ -4,8 +4,10 @@ import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native
 
 import {
   getBathroomOperatingStatus,
+  getBathroomHours,
   type BathroomLocation,
 } from '@/data/bathrooms';
+import { getMappableBathrooms } from '@/services/bathroomContentCore';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 export type RestroomMapProps = {
@@ -20,14 +22,15 @@ const bounds = { minLatitude: 42.5188, maxLatitude: 42.5255, minLongitude: -70.9
 
 export function RestroomMap({ locations, height = 500, onDirections, onViewDetails }: RestroomMapProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = locations.find((location) => location.id === selectedId);
+  const mappable = getMappableBathrooms(locations);
+  const selected = mappable.find((location) => location.id === selectedId);
 
   return (
     <ImageBackground resizeMode="cover" source={mapArtwork} style={[styles.container, { height }]}>
       <View style={styles.mapShade} />
       <View style={styles.streetLineOne} />
       <View style={styles.streetLineTwo} />
-      {locations.map((location) => {
+      {mappable.map((location) => {
         const point = mapPoint(location);
         return (
           <Pressable
@@ -59,7 +62,7 @@ export function RestroomMap({ locations, height = 500, onDirections, onViewDetai
   );
 }
 
-function mapPoint(location: BathroomLocation) {
+function mapPoint(location: BathroomLocation & { latitude: number; longitude: number }) {
   const x = 8 + ((location.longitude - bounds.minLongitude) / (bounds.maxLongitude - bounds.minLongitude)) * 80;
   const y = 8 + ((bounds.maxLatitude - location.latitude) / (bounds.maxLatitude - bounds.minLatitude)) * 70;
   return { x, y };
@@ -87,7 +90,7 @@ function MapPreview({ location, onClose, onDirections, onViewDetails }: MapPrevi
           {location.distanceMiles === undefined ? 'Distance unavailable' : `${location.distanceMiles.toFixed(1)} mi`}
         </Text>
       </View>
-      <Text numberOfLines={2} style={styles.previewHours}>{location.schedule.summary}</Text>
+      <Text numberOfLines={2} style={styles.previewHours}>{getBathroomHours(location)}</Text>
       <View style={styles.previewActions}>
         <Pressable accessibilityRole="button" onPress={onDirections} style={styles.primaryButton}>
           <Ionicons color={colors.black} name="navigate" size={15} />

@@ -8,6 +8,7 @@ import { FavoritesProvider } from '@/components/favorites/FavoritesProvider';
 import { AttractionsProvider } from '@/components/attractions/AttractionsProvider';
 import { RestaurantsProvider } from '@/components/restaurants/RestaurantsProvider';
 import { ParkingProvider } from '@/components/parking/ParkingProvider';
+import { BathroomsProvider } from '@/components/bathrooms/BathroomsProvider';
 import { AppSettingsProvider } from '@/components/settings/AppSettingsProvider';
 import { WitchWatchProvider } from '@/components/WitchWatchProvider';
 import { WaitRealtimeProvider } from '@/components/WaitRealtimeProvider';
@@ -26,6 +27,7 @@ export default function RootLayout() {
         <AttractionsProvider>
           <RestaurantsProvider>
             <ParkingProvider>
+            <BathroomsProvider>
             <FavoritesProvider>
               <WitchWatchProvider>
                 <WaitRealtimeProvider>
@@ -47,6 +49,7 @@ export default function RootLayout() {
                 </WaitRealtimeProvider>
               </WitchWatchProvider>
             </FavoritesProvider>
+            </BathroomsProvider>
             </ParkingProvider>
           </RestaurantsProvider>
         </AttractionsProvider>

@@ -2,7 +2,8 @@ import type { ImageSourcePropType } from 'react-native';
 
 import { bundledAttractions, type Attraction } from '@/data/attractions';
 import { getTrustedWaitReportingAttraction } from '@/data/trustedWaitReporting';
-import { bathroomLocations, getBathroomMapDestination, getVisibleBathroomLocations } from '@/data/bathrooms';
+import { bathroomLocations, getBathroomMapDestination, isBathroomVisible, type BathroomLocation } from '@/data/bathrooms';
+import { getBathroomExternalMapUrl, getMappableBathrooms } from '@/services/bathroomContentCore';
 import { bundledParkingLocations, getParkingMapDestination, type ParkingLocation } from '@/data/parking';
 import { bundledRestaurants, type Restaurant } from '@/data/restaurants';
 import { getMappableRestaurants } from '@/services/restaurantContentCore';
@@ -24,6 +25,7 @@ export type MapLocation = {
   address: string;
   image: ImageSourcePropType;
   directionsDestination: string;
+  directionsUrl?: string;
   crowdLevel?: CrowdLevel;
   waitReportingSupported?: boolean;
   waitEstimateLabel?: string;
@@ -48,6 +50,7 @@ export function getMapLocations(
   attractionContent: Attraction[] = bundledAttractions,
   restaurantContent: Restaurant[] = bundledRestaurants,
   parkingContent: ParkingLocation[] = bundledParkingLocations,
+  bathroomContent: BathroomLocation[] = bathroomLocations,
 ): MapLocation[] {
   const attractionPins: MapLocation[] = attractionContent
     .filter(hasCoordinates)
@@ -100,20 +103,20 @@ export function getMapLocations(
       directionsDestination: getParkingMapDestination(location),
     }));
 
-  const visibleBathroomIds = new Set(getVisibleBathroomLocations(now).map((location) => location.id));
-  const bathroomPins: MapLocation[] = bathroomLocations
-    .filter((location) => visibleBathroomIds.has(location.id) && hasCoordinates(location))
+  const bathroomPins: MapLocation[] = getMappableBathrooms(bathroomContent)
+    .filter((location) => isBathroomVisible(location, now))
     .map((location) => ({
       mapId: `bathrooms:${location.id}`,
       sourceId: location.id,
       name: location.name,
       category: 'bathrooms',
-      categoryLabel: 'Public restroom',
+      categoryLabel: 'Restroom',
       latitude: location.latitude,
       longitude: location.longitude,
       address: location.address,
       image: location.image,
       directionsDestination: getBathroomMapDestination(location),
+      directionsUrl: getBathroomExternalMapUrl(location) ?? undefined,
     }));
 
   return [...attractionPins, ...restaurantPins, ...parkingPins, ...bathroomPins];

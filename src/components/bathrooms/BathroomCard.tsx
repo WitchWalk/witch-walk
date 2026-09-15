@@ -3,9 +3,11 @@ import { Image, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'r
 
 import {
   getBathroomOperatingStatus,
+  getBathroomHours,
   type BathroomStatusKind,
   type BathroomLocation,
 } from '@/data/bathrooms';
+import { bathroomAccessLabel, bathroomNotice } from '@/services/bathroomContentCore';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 type BathroomCardProps = {
@@ -20,7 +22,8 @@ export function BathroomCard({ favorite, location, onDirections, onFavoritePress
   const { width } = useWindowDimensions();
   const narrow = width < 375;
   const operatingStatus = getBathroomOperatingStatus(location);
-  const seasonal = location.restroomCategory === 'seasonal_public';
+  const seasonal = location.seasonal;
+  const warning = location.advisoryLevel === 'Warning';
 
   return (
     <View style={[styles.card, narrow && styles.cardNarrow, seasonal && styles.seasonalCard]}>
@@ -66,7 +69,8 @@ export function BathroomCard({ favorite, location, onDirections, onFavoritePress
               {operatingStatus.label}
             </Text>
           </View>
-          <Text numberOfLines={2} style={styles.hours}>{location.schedule.summary}</Text>
+          <Text numberOfLines={2} style={styles.hours}>{getBathroomHours(location)}</Text>
+          <Text style={styles.accessText}>{bathroomAccessLabel(location)}{location.portableToilets === true || location.restroomType === 'Portable Toilets' ? ' • Portable toilets' : ''}</Text>
 
           <View style={styles.travelRow}>
             <View style={styles.travelItem}>
@@ -86,20 +90,20 @@ export function BathroomCard({ favorite, location, onDirections, onFavoritePress
           <View style={styles.accessRow}>
             <Ionicons color="#70AEFF" name="accessibility" size={15} />
             <Text style={styles.accessText}>
-              {location.accessible === true ? 'Accessible' : 'Accessibility unverified'}
+              {location.accessible === true ? 'Accessible' : location.accessible === false ? 'Not accessible' : 'Accessibility unverified'}
             </Text>
           </View>
         </View>
       </Pressable>
 
-      <View style={[styles.noteRow, seasonal && styles.seasonalRow]}>
+      <View style={[styles.noteRow, (seasonal || warning) && styles.seasonalRow]}>
         <Ionicons
-          color={seasonal ? colors.orange : colors.gold}
-          name={seasonal ? 'calendar' : 'information-circle'}
+          color={seasonal || warning ? colors.orange : colors.gold}
+          name={warning ? 'warning' : seasonal ? 'calendar' : 'information-circle'}
           size={16}
         />
-        <Text numberOfLines={2} style={[styles.noteText, seasonal && styles.seasonalText]}>
-          {seasonal ? 'SEASONAL RESTROOM • Approximately May–November' : location.notes}
+        <Text numberOfLines={2} style={[styles.noteText, (seasonal || warning) && styles.seasonalText]}>
+          {bathroomNotice(location) || 'Check posted hours and access on arrival.'}
         </Text>
       </View>
 
@@ -144,7 +148,7 @@ function statusTextStyle(kind: BathroomStatusKind) {
 const styles = StyleSheet.create({
   card: {
     ...shadows.card,
-    height: 326,
+    minHeight: 326,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#43516B',
@@ -152,13 +156,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#0C1018',
     paddingBottom: spacing.sm,
   },
-  cardNarrow: { height: 340 },
+  cardNarrow: { minHeight: 340 },
   seasonalCard: { borderColor: '#8B5A34' },
-  summary: { flex: 1, minHeight: 0, flexDirection: 'row' },
+  summary: { flexDirection: 'row' },
   pressed: { opacity: 0.78, transform: [{ scale: 0.99 }] },
-  imageFrame: { width: '35%', height: '100%', overflow: 'hidden' },
+  imageFrame: { width: '35%', alignSelf: 'stretch', overflow: 'hidden' },
   imageFrameNarrow: { width: '32%' },
-  image: { width: '100%', height: '100%' },
+  image: { position: 'absolute', inset: 0, width: '100%', height: '100%' },
   imageShade: { position: 'absolute', inset: 0, backgroundColor: 'rgba(5, 5, 10, 0.18)' },
   restroomBadge: {
     position: 'absolute',
@@ -175,7 +179,7 @@ const styles = StyleSheet.create({
   },
   favoriteButton: { position: 'absolute', right: spacing.sm, bottom: spacing.sm, width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill, backgroundColor: 'rgba(9,7,13,0.84)' },
   info: { flex: 1, minWidth: 0, padding: spacing.md, paddingLeft: 10 },
-  titleArea: { height: 82, justifyContent: 'flex-start', overflow: 'hidden' },
+  titleArea: { minHeight: 82, justifyContent: 'flex-start' },
   name: { ...typography.title, fontSize: 18, lineHeight: 21 },
   nameNarrow: { fontSize: 15.5, lineHeight: 18.5 },
   metaRow: { minWidth: 0, flexDirection: 'row', alignItems: 'flex-start', gap: 3 },

@@ -20,6 +20,7 @@ import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import { useAttractions } from '@/components/attractions/AttractionsProvider';
 import { useRestaurants } from '@/components/restaurants/RestaurantsProvider';
 import { useParking } from '@/components/parking/ParkingProvider';
+import { useBathrooms } from '@/components/bathrooms/BathroomsProvider';
 import { WitchWalkMap } from '@/components/map/WitchWalkMap';
 import {
   filterMapLocations,
@@ -54,6 +55,7 @@ export function LiveMapScreen() {
   const { attractions } = useAttractions();
   const { restaurants } = useRestaurants();
   const { locations: parkingLocations } = useParking();
+  const { locations: bathroomLocations } = useBathrooms();
 
   useFocusEffect(useCallback(() => {
     let active = true;
@@ -75,8 +77,8 @@ export function LiveMapScreen() {
   }, []));
 
   const allLocations = useMemo(
-    () => getMapLocations(waitAggregates, new Date(), attractions, restaurants, parkingLocations),
-    [attractions, restaurants, parkingLocations, waitAggregates],
+    () => getMapLocations(waitAggregates, new Date(), attractions, restaurants, parkingLocations, bathroomLocations),
+    [attractions, restaurants, parkingLocations, bathroomLocations, waitAggregates],
   );
   const selected = allLocations.find(location => location.mapId === selectedItem?.mapId) ?? null;
   const visibleLocations = useMemo(
@@ -121,7 +123,7 @@ export function LiveMapScreen() {
     });
 
     try {
-      await Linking.openURL(url);
+      await Linking.openURL(location.directionsUrl ?? url);
     } catch {
       Alert.alert('Unable to open maps', 'Please try again from your maps app.');
     }

@@ -5,11 +5,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import {
-  getBathroomMapDestination,
+  getBathroomHours,
   getBathroomOperatingStatus,
   type BathroomStatusKind,
   type BathroomLocation,
 } from '@/data/bathrooms';
+import { bathroomAmenityLabel, bathroomAccessLabel, getBathroomExternalMapUrl } from '@/services/bathroomContentCore';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 type BathroomDetailsViewProps = {
@@ -27,9 +28,10 @@ export function BathroomDetailsView({ location }: BathroomDetailsViewProps) {
   };
 
   const openDirections = async () => {
-    const query = encodeURIComponent(getBathroomMapDestination(location));
     try {
-      await Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${query}`);
+      const url = getBathroomExternalMapUrl(location);
+      if (!url) throw Error('No destination');
+      await Linking.openURL(url);
     } catch {
       Alert.alert('Unable to open map', 'Please try again from your maps app.');
     }
@@ -69,6 +71,7 @@ export function BathroomDetailsView({ location }: BathroomDetailsViewProps) {
         <View style={styles.heroCopy}>
           <Text style={styles.type}>{location.restroomType}</Text>
           <Text style={styles.name}>{location.name}</Text>
+          {location.facilityName && location.facilityName !== location.name ? <Text style={styles.description}>{location.facilityName}</Text> : null}
           <View style={styles.addressRow}>
             <Ionicons color={colors.orange} name="location" size={18} />
             <Text style={styles.address}>{location.address}</Text>
@@ -76,13 +79,23 @@ export function BathroomDetailsView({ location }: BathroomDetailsViewProps) {
           <Text style={styles.description}>{location.description}</Text>
         </View>
 
-        {location.restroomCategory === 'seasonal_public' ? (
+        {location.advisoryLevel && location.advisoryLevel !== 'None' ? (
+          <View style={styles.seasonalCard}>
+            <Ionicons color={colors.orange} name="warning" size={27} />
+            <View style={styles.warningCopy}>
+              <Text style={styles.seasonalLabel}>{location.advisoryLevel}</Text>
+              <Text style={styles.seasonalText}>{location.advisoryText || 'Check access before visiting.'}</Text>
+            </View>
+          </View>
+        ) : null}
+
+        {location.seasonal ? (
           <View style={styles.seasonalCard}>
             <Ionicons color={colors.orange} name="calendar" size={27} />
             <View style={styles.warningCopy}>
               <Text style={styles.seasonalLabel}>SEASONAL RESTROOM</Text>
               <Text style={styles.seasonalText}>
-                {location.schedule.kind === 'seasonal' ? location.schedule.seasonLabel : 'Seasonal access'}
+                {location.seasonalNotes || (location.schedule.kind === 'seasonal' ? location.schedule.seasonLabel : 'Seasonal access; confirm before visiting.')}
               </Text>
             </View>
           </View>
@@ -96,7 +109,7 @@ export function BathroomDetailsView({ location }: BathroomDetailsViewProps) {
             <Text style={[styles.statusLabel, { color: statusColor(operatingStatus.kind) }]}>
               {operatingStatus.label}
             </Text>
-            <Text style={styles.hours}>{location.schedule.summary}</Text>
+            <Text style={styles.hours}>{getBathroomHours(location)}</Text>
           </View>
         </View>
 
@@ -104,7 +117,7 @@ export function BathroomDetailsView({ location }: BathroomDetailsViewProps) {
           <FactCard
             icon="accessibility"
             label="Accessibility"
-            value={location.accessible === true ? 'Accessible restroom confirmed' : 'Accessibility not verified'}
+            value={`${bathroomAmenityLabel(location.accessible)}${location.accessibilityNotes ? ` • ${location.accessibilityNotes}` : ''}`}
           />
           <FactCard
             icon="walk"
@@ -118,10 +131,20 @@ export function BathroomDetailsView({ location }: BathroomDetailsViewProps) {
           <FactCard
             icon="business-outline"
             label="Public access"
-            value={location.restroomType}
+            value={bathroomAccessLabel(location)}
           />
-          <FactCard icon="information-circle-outline" label="Helpful note" value={location.notes} />
+          <FactCard icon="information-circle-outline" label="Access notes" value={location.accessNotes || location.notes || 'Check posted access information.'} />
+          <FactCard icon="calendar-outline" label="Seasonality" value={location.seasonalState ?? (location.seasonal ? 'Seasonal' : 'Unknown')} />
+          <FactCard icon="information-circle-outline" label="Portable toilets" value={bathroomAmenityLabel(location.portableToilets)} />
+          <FactCard icon="information-circle-outline" label="Changing table" value={bathroomAmenityLabel(location.changingTable)} />
+          <FactCard icon="information-circle-outline" label="Family / gender-neutral restroom" value={bathroomAmenityLabel(location.familyRestroom)} />
         </View>
+
+        {location.officialUrl ? <View style={styles.actionsRow}>
+          <ActionButton icon="open-outline" label="Official information" onPress={() => {
+            void Linking.openURL(location.officialUrl!).catch(() => Alert.alert('Unable to open website', 'Please try again later.'));
+          }} />
+        </View> : null}
 
         <View style={styles.actionsRow}>
           <ActionButton icon="navigate" label="Directions" onPress={openDirections} primary />
@@ -134,7 +157,7 @@ export function BathroomDetailsView({ location }: BathroomDetailsViewProps) {
             <Text style={styles.disclaimerText}>
               Restroom hours and access may change seasonally or during events. Check posted signs when you arrive.
             </Text>
-            <Text style={styles.verifiedText}>Last verified: {location.lastVerifiedDate}</Text>
+            {location.lastVerifiedDate ? <Text style={styles.verifiedText}>Last verified: {location.lastVerifiedDate}</Text> : null}
           </View>
         </View>
       </ScrollView>

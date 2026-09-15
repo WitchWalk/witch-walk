@@ -4,9 +4,10 @@ import { Alert, Linking, Pressable, StyleSheet, Text, useWindowDimensions, View 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { RestroomMap } from '@/components/bathrooms/RestroomMap';
+import { useBathrooms } from '@/components/bathrooms/BathroomsProvider';
+import { getBathroomExternalMapUrl, getMappableBathrooms } from '@/services/bathroomContentCore';
 import {
-  getBathroomMapDestination,
-  getVisibleBathroomLocations,
+  isBathroomVisible,
   type BathroomLocation,
 } from '@/data/bathrooms';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
@@ -17,16 +18,18 @@ type RestroomLiveMapScreenProps = {
 
 export function RestroomLiveMapScreen({ showBackButton = false }: RestroomLiveMapScreenProps) {
   const { height } = useWindowDimensions();
-  const locations = getVisibleBathroomLocations();
+  const { locations: content, ready } = useBathrooms();
+  const locations = getMappableBathrooms(content).filter(location => isBathroomVisible(location));
 
   const openDetails = (location: BathroomLocation) => {
     router.push({ pathname: '/bathrooms/[id]', params: { id: location.id } });
   };
 
   const openDirections = async (location: BathroomLocation) => {
-    const query = encodeURIComponent(getBathroomMapDestination(location));
     try {
-      await Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${query}`);
+      const url = getBathroomExternalMapUrl(location);
+      if (!url) throw Error('No destination');
+      await Linking.openURL(url);
     } catch {
       Alert.alert('Unable to open map', 'Please try again from your maps app.');
     }
@@ -62,8 +65,8 @@ export function RestroomLiveMapScreen({ showBackButton = false }: RestroomLiveMa
             <MaterialCommunityIcons color={colors.black} name="toilet" size={20} />
           </View>
           <View style={styles.layerCopy}>
-            <Text style={styles.layerTitle}>Public restrooms</Text>
-            <Text style={styles.layerText}>{locations.length} verified locations shown</Text>
+            <Text style={styles.layerTitle}>Restrooms</Text>
+            <Text style={styles.layerText}>{ready ? `${locations.length} locations shown` : 'Loading restrooms…'}</Text>
           </View>
           <Pressable accessibilityRole="button" onPress={() => router.push('/bathrooms')} style={styles.listButton}>
             <Ionicons color={colors.gold} name="list" size={17} />

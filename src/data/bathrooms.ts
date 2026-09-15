@@ -1,7 +1,8 @@
 import type { ImageSourcePropType } from 'react-native';
+import { getAttractionHoursPresentation, type AttractionHours } from '@/services/attractionContentCore';
 
 export type BathroomFilter = 'All' | 'Permanent' | 'Seasonal' | 'Accessible' | 'Open Now';
-export type RestroomCategory = 'permanent' | 'seasonal_public' | 'halloween_portable';
+export type RestroomCategory = 'permanent' | 'seasonal_public' | 'halloween_portable' | 'portable' | 'unknown';
 export type BathroomStatusKind = 'open' | 'closed' | 'seasonal' | 'unknown';
 
 export type DailyHours = {
@@ -10,6 +11,7 @@ export type DailyHours = {
 };
 
 export type BathroomSchedule =
+  | { kind: 'structured'; summary: string; hours: AttractionHours }
   | { kind: 'always'; summary: string }
   | { kind: 'daily'; summary: string; hours: DailyHours }
   | { kind: 'weekly'; summary: string; hoursByDay: Partial<Record<number, DailyHours>> }
@@ -28,9 +30,9 @@ export type BathroomLocation = {
   name: string;
   mapLabel: string;
   address: string;
-  latitude: number;
-  longitude: number;
-  restroomType: 'Public restroom';
+  latitude: number | null;
+  longitude: number | null;
+  restroomType: string;
   restroomCategory: RestroomCategory;
   schedule: BathroomSchedule;
   seasonal: boolean;
@@ -47,11 +49,26 @@ export type BathroomLocation = {
   distanceMiles?: number;
   walkingTimeMinutes?: number;
   downtownRelevance: number;
+  facilityName?: string;
+  publicAccess?: 'Public' | 'Limited / Conditional' | 'Unknown';
+  accessNotes?: string;
+  seasonalState?: 'Year-round' | 'Seasonal' | 'Unknown';
+  seasonalNotes?: string;
+  portableToilets?: boolean | null;
+  accessibilityNotes?: string;
+  changingTable?: boolean | null;
+  familyRestroom?: boolean | null;
+  advisoryLevel?: 'None' | 'Advisory' | 'Warning';
+  advisoryText?: string;
+  officialUrl?: string;
+  directionsUrl?: string;
+  featured?: boolean;
+  contentUpdatedAt?: string;
 };
 
 export type BathroomOperatingStatus = {
   kind: BathroomStatusKind;
-  label: 'Open' | 'Closed' | 'Seasonal' | 'Hours Unknown';
+  label: 'Open' | 'Closed' | 'Seasonal' | 'Hours Unknown' | 'Hours unavailable';
 };
 
 const bathroomPlaceholder = require('../../assets/images/home/bathrooms.png');
@@ -353,6 +370,12 @@ function isOpenDuring(hours: DailyHours, now: Date) {
 }
 
 export function getBathroomOperatingStatus(location: BathroomLocation, now = new Date()): BathroomOperatingStatus {
+  if (location.schedule.kind === 'structured') {
+    const status = getAttractionHoursPresentation(location.schedule.hours, now).status;
+    return status === 'unavailable'
+      ? { kind: location.seasonal ? 'seasonal' : 'unknown', label: location.seasonal ? 'Seasonal' : 'Hours unavailable' }
+      : { kind: status, label: status === 'open' ? 'Open' : 'Closed' };
+  }
   if (location.temporaryClosure?.active) return { kind: 'closed', label: 'Closed' };
   if (location.schedule.kind === 'always') return { kind: 'open', label: 'Open' };
   if (location.schedule.kind === 'unknown') return { kind: 'unknown', label: 'Hours Unknown' };
@@ -373,6 +396,12 @@ export function getBathroomOperatingStatus(location: BathroomLocation, now = new
   return hours && isOpenDuring(hours, now)
     ? { kind: 'open', label: 'Open' }
     : { kind: 'closed', label: 'Closed' };
+}
+
+export function getBathroomHours(location: BathroomLocation, now = new Date()) {
+  return location.schedule.kind === 'structured'
+    ? getAttractionHoursPresentation(location.schedule.hours, now).hours
+    : location.schedule.summary;
 }
 
 export function getBathroomStatusPriority(location: BathroomLocation) {

@@ -1,18 +1,19 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import type { ComponentProps } from 'react';
-import { useMemo, useState } from 'react';
-import { Alert, ImageBackground, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { Alert, ImageBackground, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BathroomCard } from '@/components/bathrooms/BathroomCard';
+import { useBathrooms } from '@/components/bathrooms/BathroomsProvider';
+import { getBathroomExternalMapUrl } from '@/services/bathroomContentCore';
 import { RestroomMap } from '@/components/bathrooms/RestroomMap';
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import {
   bathroomFilters,
-  getBathroomMapDestination,
   getBathroomOperatingStatus,
-  getVisibleBathroomLocations,
+  isBathroomVisible,
   sortBathroomsForDiscovery,
   type BathroomFilter,
   type BathroomLocation,
@@ -35,27 +36,31 @@ export default function BathroomsScreen() {
   const [filter, setFilter] = useState<BathroomFilter>('All');
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { locations, ready, refresh } = useBathrooms();
+  const [refreshing, setRefreshing] = useState(false);
+  useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
 
   const visibleBathrooms = useMemo(() => {
-    const filtered = getVisibleBathroomLocations().filter((location) => {
+    const filtered = locations.filter(location => isBathroomVisible(location)).filter((location) => {
       if (filter === 'All') return true;
       if (filter === 'Permanent') return location.restroomCategory === 'permanent';
-      if (filter === 'Seasonal') return location.restroomCategory === 'seasonal_public';
+      if (filter === 'Seasonal') return location.seasonal;
       if (filter === 'Accessible') return location.accessible === true;
       return getBathroomOperatingStatus(location).kind === 'open';
     });
 
     return sortBathroomsForDiscovery(filtered);
-  }, [filter]);
+  }, [filter, locations]);
 
   const openDetails = (id: string) => {
     router.push({ pathname: '/bathrooms/[id]', params: { id } });
   };
 
   const openDirections = async (location: BathroomLocation) => {
-    const query = encodeURIComponent(getBathroomMapDestination(location));
     try {
-      await Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${query}`);
+      const url = getBathroomExternalMapUrl(location);
+      if (!url) throw Error('No destination');
+      await Linking.openURL(url);
     } catch {
       Alert.alert('Unable to open map', 'Please try again from your maps app.');
     }
@@ -68,7 +73,11 @@ export default function BathroomsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} tintColor={colors.gold} onRefresh={() => {
+          setRefreshing(true);
+          void refresh().finally(() => setRefreshing(false));
+        }} />}>
         <ImageBackground
           imageStyle={styles.heroImage}
           resizeMode="cover"
@@ -195,14 +204,14 @@ export default function BathroomsScreen() {
           ) : (
             <View style={styles.emptyState}>
               <MaterialCommunityIcons color="#F4D46C" name="toilet" size={34} />
-              <Text style={styles.emptyTitle}>No matching bathrooms</Text>
-              <Text style={styles.emptyText}>Try another restroom filter.</Text>
+              <Text style={styles.emptyTitle}>{ready ? 'No matching bathrooms' : 'Loading restrooms…'}</Text>
+              <Text style={styles.emptyText}>{ready ? 'Try another restroom filter or check again later.' : 'Checking current restroom information.'}</Text>
             </View>
           )}
         </View>
 
         <Text style={styles.sampleNote}>
-          Hours may change. Verify posted information when you arrive. Last data review: September 10, 2026.
+          Hours and access may change. Verify posted information when you arrive.
         </Text>
       </ScrollView>
     </SafeAreaView>
