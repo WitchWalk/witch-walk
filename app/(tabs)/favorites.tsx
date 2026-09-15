@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FavoriteCard } from '@/components/favorites/FavoriteCard';
 import { useAttractions } from '@/components/attractions/AttractionsProvider';
+import { useRestaurants } from '@/components/restaurants/RestaurantsProvider';
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import {
   favoriteFilters,
@@ -23,14 +24,15 @@ export default function FavoritesScreen() {
   const [filter, setFilter] = useState<FavoriteFilter>('all');
   const { favoriteReferences, ready, toggleFavorite } = useFavorites();
   const { attractions, ready: attractionsReady } = useAttractions();
+  const { restaurants, ready: restaurantsReady } = useRestaurants();
 
   const savedLocations = useMemo(() => filterFavoriteLocations(
     favoriteReferences
-      .map((reference) => resolveFavoriteLocation(reference, attractions))
+      .map((reference) => resolveFavoriteLocation(reference, attractions, restaurants))
       .filter((location): location is FavoriteLocation => Boolean(location)),
     filter,
   ),
-  [attractions, favoriteReferences, filter]);
+  [attractions, favoriteReferences, filter, restaurants]);
 
   const openDetails = (location: FavoriteLocation) => {
     if (location.category === 'attractions') router.push({ pathname: '/attractions/[id]', params: { id: location.id } });
@@ -72,7 +74,7 @@ export default function FavoritesScreen() {
           })}
         </ScrollView>
 
-        {!ready || !attractionsReady ? (
+        {!ready || !attractionsReady || !restaurantsReady ? (
           <View style={styles.emptyState}>
             <Ionicons color={colors.gold} name="heart-outline" size={42} />
             <Text style={styles.emptyTitle}>Loading favorites…</Text>

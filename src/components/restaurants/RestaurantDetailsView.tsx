@@ -93,7 +93,7 @@ export function RestaurantDetailsView({ restaurant }: RestaurantDetailsViewProps
           </View>
           <View style={styles.quickFacts}>
             <QuickFact icon="restaurant" label="Cuisine" value={restaurant.cuisine} />
-            <QuickFact icon="cash" label="Price" value={restaurant.priceRange} />
+            {restaurant.priceRange ? <QuickFact icon="cash" label="Price" value={restaurant.priceRange} /> : null}
             <QuickFact icon="walk" label="Walk" value={`${restaurant.distance} • ${restaurant.walkingTime}`} />
           </View>
         </View>

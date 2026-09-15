@@ -1,13 +1,6 @@
 import type { ImageSourcePropType } from 'react-native';
 
-export type RestaurantCategory =
-  | 'Pizza'
-  | 'Seafood'
-  | 'American'
-  | 'Coffee'
-  | 'Breakfast'
-  | 'Pub'
-  | 'Family';
+export type RestaurantCategory = string;
 
 export type Restaurant = {
   id: string;
@@ -15,10 +8,10 @@ export type Restaurant = {
   category: RestaurantCategory;
   cuisine: string;
   tags: string[];
-  priceRange: '$' | '$$' | '$$$';
+  priceRange?: '$' | '$$' | '$$$';
   address: string;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
   description: string;
   longDescription: string;
   hours: string;
@@ -29,11 +22,14 @@ export type Restaurant = {
   image: ImageSourcePropType;
   websiteUrl?: string;
   menuUrl?: string;
+  featured?: boolean;
+  contentUpdatedAt?: string;
+  sortOrder?: number;
 };
 
 const restaurantPlaceholder = require('../../assets/images/home/restaurants.png');
 
-export const restaurantCategories: ('All' | RestaurantCategory)[] = [
+export const restaurantCategories = [
   'All',
   'Pizza',
   'Seafood',
@@ -42,7 +38,7 @@ export const restaurantCategories: ('All' | RestaurantCategory)[] = [
   'Breakfast',
   'Pub',
   'Family',
-];
+] as const;
 
 export const restaurants: Restaurant[] = [
   {
@@ -172,7 +168,12 @@ export const restaurants: Restaurant[] = [
   },
 ];
 
-export function getRestaurant(id: string | string[] | undefined) {
+export const bundledRestaurants = restaurants;
+
+export function getBundledRestaurant(id: string | string[] | undefined) {
   const restaurantId = Array.isArray(id) ? id[0] : id;
   return restaurants.find((restaurant) => restaurant.id === restaurantId);
 }
+
+// Technical compatibility for callers that explicitly need bundled fallback data.
+export const getRestaurant = getBundledRestaurant;

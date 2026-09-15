@@ -3,7 +3,8 @@ import type { ImageSourcePropType } from 'react-native';
 import { bundledAttractions, type Attraction } from '@/data/attractions';
 import { getBathroomLocation } from '@/data/bathrooms';
 import { getParkingLocation } from '@/data/parking';
-import { getRestaurant } from '@/data/restaurants';
+import { bundledRestaurants, type Restaurant } from '@/data/restaurants';
+import { findRestaurantByStableId } from '@/services/restaurantContentCore';
 import type { FavoriteCategory, FavoriteReference } from '@/services/favoritesCore';
 
 export type FavoriteLocation = FavoriteReference & {
@@ -34,13 +35,14 @@ export function filterFavoriteLocations(
 export function resolveFavoriteLocation(
   reference: FavoriteReference,
   attractionContent: Attraction[] = bundledAttractions,
+  restaurantContent: Restaurant[] = bundledRestaurants,
 ): FavoriteLocation | null {
   if (reference.category === 'attractions') {
     const location = attractionContent.find((item) => item.id === reference.id);
     return location ? { ...reference, name: location.name, categoryLabel: 'Attraction', address: location.address, description: location.description, image: location.image } : null;
   }
   if (reference.category === 'restaurants') {
-    const location = getRestaurant(reference.id);
+    const location = findRestaurantByStableId(restaurantContent, reference.id);
     return location ? { ...reference, name: location.name, categoryLabel: 'Restaurant', address: location.address, description: location.description, image: location.image } : null;
   }
   if (reference.category === 'parking') {

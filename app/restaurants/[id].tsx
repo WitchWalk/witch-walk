@@ -3,11 +3,12 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { RestaurantDetailsView } from '@/components/restaurants/RestaurantDetailsView';
-import { getRestaurant } from '@/data/restaurants';
+import { useRestaurants } from '@/components/restaurants/RestaurantsProvider';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 export default function RestaurantDetailsRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { getRestaurant, ready } = useRestaurants();
   const restaurant = getRestaurant(id);
 
   if (restaurant) return <RestaurantDetailsView restaurant={restaurant} />;
@@ -15,8 +16,8 @@ export default function RestaurantDetailsRoute() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.content}>
-        <Text style={styles.title}>Restaurant not found</Text>
-        <Text style={styles.message}>This local restaurant entry is not available.</Text>
+        <Text style={styles.title}>{ready ? 'Restaurant unavailable' : 'Loading restaurant…'}</Text>
+        <Text style={styles.message}>{ready ? 'This restaurant is not currently published.' : 'Checking the latest Salem restaurant information.'}</Text>
         <Pressable
           accessibilityRole="button"
           onPress={() => router.replace('/restaurants')}

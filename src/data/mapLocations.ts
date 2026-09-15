@@ -4,7 +4,8 @@ import { bundledAttractions, type Attraction } from '@/data/attractions';
 import { getTrustedWaitReportingAttraction } from '@/data/trustedWaitReporting';
 import { bathroomLocations, getBathroomMapDestination, getVisibleBathroomLocations } from '@/data/bathrooms';
 import { getParkingMapDestination, parkingLocations } from '@/data/parking';
-import { restaurants } from '@/data/restaurants';
+import { bundledRestaurants, type Restaurant } from '@/data/restaurants';
+import { getMappableRestaurants } from '@/services/restaurantContentCore';
 import type { WaitTimeAggregate } from '@/services/waitReportCore';
 
 export type MapCategory = 'attractions' | 'restaurants' | 'parking' | 'bathrooms';
@@ -44,6 +45,7 @@ export function getMapLocations(
   waitAggregates: Record<string, WaitTimeAggregate> = {},
   now = new Date(),
   attractionContent: Attraction[] = bundledAttractions,
+  restaurantContent: Restaurant[] = bundledRestaurants,
 ): MapLocation[] {
   const attractionPins: MapLocation[] = attractionContent
     .filter(hasCoordinates)
@@ -68,14 +70,13 @@ export function getMapLocations(
       };
     });
 
-  const restaurantPins: MapLocation[] = restaurants
-    .filter(hasCoordinates)
+  const restaurantPins: MapLocation[] = getMappableRestaurants(restaurantContent)
     .map((location) => ({
       mapId: `restaurants:${location.id}`,
       sourceId: location.id,
       name: location.name,
       category: 'restaurants',
-      categoryLabel: 'Restaurant',
+      categoryLabel: location.category === 'Uncategorized' ? 'Restaurant' : location.category,
       latitude: location.latitude,
       longitude: location.longitude,
       address: location.address,

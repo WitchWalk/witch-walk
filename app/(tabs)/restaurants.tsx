@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import type { ComponentProps } from 'react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ImageBackground,
   Pressable,
@@ -15,18 +15,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import { RestaurantCard } from '@/components/restaurants/RestaurantCard';
+import { useRestaurants } from '@/components/restaurants/RestaurantsProvider';
 import {
   restaurantCategories,
-  restaurants,
-  type RestaurantCategory,
 } from '@/data/restaurants';
+import { restaurantMatchesCategory } from '@/services/restaurantContentCore';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 const headerImage = require('../../assets/images/home/restaurants.png');
 
 type CategoryIcon = ComponentProps<typeof Ionicons>['name'];
 
-const categoryIcons: Record<'All' | RestaurantCategory, CategoryIcon> = {
+const categoryIcons: Record<(typeof restaurantCategories)[number], CategoryIcon> = {
   All: 'restaurant',
   Pizza: 'pizza',
   Seafood: 'fish',
@@ -39,17 +39,17 @@ const categoryIcons: Record<'All' | RestaurantCategory, CategoryIcon> = {
 
 export default function RestaurantsScreen() {
   const [query, setQuery] = useState('');
-  const [category, setCategory] = useState<'All' | RestaurantCategory>('All');
+  const [category, setCategory] = useState<(typeof restaurantCategories)[number]>('All');
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { restaurants, ready, refresh } = useRestaurants();
+
+  useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
 
   const visibleRestaurants = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
     return restaurants.filter((restaurant) => {
-      const matchesCategory =
-        category === 'All' ||
-        restaurant.category === category ||
-        restaurant.tags.includes(category);
+      const matchesCategory = restaurantMatchesCategory(restaurant, category);
       const searchableText = [
         restaurant.name,
         restaurant.cuisine,
@@ -62,7 +62,7 @@ export default function RestaurantsScreen() {
 
       return matchesCategory && (!normalizedQuery || searchableText.includes(normalizedQuery));
     });
-  }, [category, query]);
+  }, [category, query, restaurants]);
 
   const openDetails = (id: string) => {
     router.push({ pathname: '/restaurants/[id]', params: { id } });
@@ -173,11 +173,16 @@ export default function RestaurantsScreen() {
 
         <View style={styles.sectionHeading}>
           <Ionicons name="sparkles" size={18} color={colors.gold} />
-          <Text style={styles.sectionTitle}>Featured Restaurants</Text>
+          <Text style={styles.sectionTitle}>{visibleRestaurants.some((restaurant) => restaurant.featured) ? 'Featured Restaurants' : 'Restaurants'}</Text>
           <View style={styles.headingLine} />
         </View>
 
-        {visibleRestaurants.length ? (
+        {!ready ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="hourglass-outline" size={32} color={colors.gold} />
+            <Text style={styles.emptyTitle}>Loading restaurants…</Text>
+          </View>
+        ) : visibleRestaurants.length ? (
           <View style={styles.restaurantList}>
             {visibleRestaurants.map((restaurant) => (
               <RestaurantCard
