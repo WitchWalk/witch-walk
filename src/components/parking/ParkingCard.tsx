@@ -66,6 +66,7 @@ export function ParkingCard({
             <Text style={[styles.name, narrow && styles.nameNarrow]}>{location.name}</Text>
             <Ionicons color={colors.textMuted} name="chevron-forward" size={21} />
           </View>
+          <Text numberOfLines={1} style={styles.typeLabel}>{location.type === 'Unknown' ? 'Parking type unavailable' : location.type}</Text>
           <View style={styles.metaRow}>
             <Ionicons color={colors.orange} name="location" size={14} />
             <Text numberOfLines={1} style={styles.metaText}>{location.address}</Text>
@@ -81,15 +82,15 @@ export function ParkingCard({
             </View>
           </View>
           <View style={styles.statusRow}>
-            <View style={[styles.statusDot, operatingStatus.kind === 'open' ? styles.openDot : styles.unknownDot]} />
-            <Text style={[styles.statusText, operatingStatus.kind === 'open' && styles.openText]}>{operatingStatus.label}</Text>
+            <View style={[styles.statusDot, operatingStatus.kind === 'open' ? styles.openDot : operatingStatus.kind === 'closed' ? styles.closedDot : styles.unknownDot]} />
+            <Text style={[styles.statusText, operatingStatus.kind === 'open' && styles.openText, operatingStatus.kind === 'closed' && styles.closedText]}>{operatingStatus.label}</Text>
           </View>
           <Text numberOfLines={2} style={styles.hours}>{location.schedule.summary}</Text>
           <Text numberOfLines={2} style={styles.rate}>{location.rateInformation}</Text>
           <View style={styles.featuresRow}>
             {location.accessible === true ? <Feature icon="accessibility" label="Accessible" /> : null}
-            {location.evCharging === 'available' ? <Feature icon="flash" label="EV Charging" /> : null}
-            {location.capacity ? <Feature icon="car" label={`${location.capacity} spaces`} /> : null}
+            {location.evCharging === 'yes' ? <Feature icon="flash" label="EV Charging" /> : null}
+            {location.capacity !== null ? <Feature icon="car" label={location.capacityLabel ?? `Capacity: ${location.capacity}`} /> : null}
           </View>
         </View>
       </Pressable>
@@ -166,9 +167,10 @@ const styles = StyleSheet.create({
   featuredBadgeText: { color: colors.text, fontSize: 8.5, fontWeight: '900', textTransform: 'uppercase' },
   favoriteButton: { position: 'absolute', right: spacing.sm, bottom: spacing.sm, width: 36, height: 36, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill, backgroundColor: 'rgba(7,5,11,0.82)' },
   info: { flex: 1, minWidth: 0, padding: spacing.md, paddingLeft: 10 },
-  titleRow: { height: 60, overflow: 'hidden', flexDirection: 'row', alignItems: 'flex-start', gap: 2 },
+  titleRow: { height: 48, overflow: 'hidden', flexDirection: 'row', alignItems: 'flex-start', gap: 2 },
   name: { ...typography.title, flex: 1, fontSize: 19, lineHeight: 23 },
   nameNarrow: { fontSize: 16.5, lineHeight: 19 },
+  typeLabel: { color: '#8FAFE1', fontSize: 9.5, fontWeight: '800', marginTop: 1 },
   metaRow: { minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
   metaText: { ...typography.caption, flex: 1, minWidth: 0, fontSize: 10.5, lineHeight: 15 },
   travelRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: 5 },
@@ -177,9 +179,11 @@ const styles = StyleSheet.create({
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6 },
   statusDot: { width: 8, height: 8, borderRadius: 4 },
   openDot: { backgroundColor: '#75E55E' },
+  closedDot: { backgroundColor: '#F26B7A' },
   unknownDot: { backgroundColor: colors.gold },
   statusText: { color: colors.gold, fontSize: 10.5, fontWeight: '900' },
   openText: { color: '#8CEB72' },
+  closedText: { color: '#F58A96' },
   hours: { color: colors.textMuted, fontSize: 9.5, lineHeight: 13, marginTop: 2 },
   rate: { color: colors.text, fontSize: 10, lineHeight: 14, fontWeight: '700', marginTop: 4 },
   featuresRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: 6 },

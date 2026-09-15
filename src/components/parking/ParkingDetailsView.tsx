@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import {
-  getParkingMapDestination,
+  getParkingExternalMapUrl,
   getParkingOperatingStatus,
   type ParkingLocation,
 } from '@/data/parking';
@@ -34,8 +34,7 @@ export function ParkingDetailsView({ location }: ParkingDetailsViewProps) {
   };
 
   const openDirections = () => {
-    const query = encodeURIComponent(getParkingMapDestination(location));
-    void openUrl(`https://www.google.com/maps/search/?api=1&query=${query}`);
+    void openUrl(getParkingExternalMapUrl(location, 'directions'));
   };
 
   return (
@@ -76,7 +75,7 @@ export function ParkingDetailsView({ location }: ParkingDetailsViewProps) {
             <Ionicons color={colors.orange} name="location" size={18} />
             <Text style={styles.address}>{location.address}</Text>
           </View>
-          <Text style={styles.description}>{location.description}</Text>
+          <Text style={styles.description}>{location.fullDescription ?? location.description}</Text>
         </View>
 
         <View style={styles.availabilityCard}>
@@ -89,30 +88,35 @@ export function ParkingDetailsView({ location }: ParkingDetailsViewProps) {
 
         <View style={styles.infoCard}>
           <InfoRow
-            color={operatingStatus.kind === 'open' ? '#78E567' : colors.gold}
+            color={operatingStatus.kind === 'open' ? '#78E567' : operatingStatus.kind === 'closed' ? '#F58A96' : colors.gold}
             icon="time-outline"
             label={operatingStatus.label}
             value={location.schedule.summary}
           />
           <View style={styles.rule} />
           <InfoRow color={colors.gold} icon="cash-outline" label="Rates" value={location.rateInformation} />
+          {location.accessibilityNotes ? <><View style={styles.rule} /><InfoRow color="#70AEFF" icon="accessibility" label="Accessibility" value={location.accessibilityNotes} /></> : null}
+          {location.evChargingNotes ? <><View style={styles.rule} /><InfoRow color="#70AEFF" icon="flash" label="EV charging notes" value={location.evChargingNotes} /></> : null}
+          {location.overnightAllowed !== null && location.overnightAllowed !== undefined ? <><View style={styles.rule} /><InfoRow color={colors.gold} icon="moon-outline" label="Overnight parking" value={location.overnightAllowed ? 'Allowed' : 'Not allowed'} /></> : null}
+          {location.rvSuitable !== null && location.rvSuitable !== undefined ? <><View style={styles.rule} /><InfoRow color={colors.gold} icon="car-outline" label="RV parking" value={location.rvSuitable ? 'Suitable' : 'Not suitable'} /></> : null}
+          {location.motorcycleNotes ? <><View style={styles.rule} /><InfoRow color={colors.gold} icon="bicycle-outline" label="Motorcycle information" value={location.motorcycleNotes} /></> : null}
         </View>
 
         <View style={styles.factsGrid}>
           <FactCard
             icon="car"
             label="Capacity"
-            value={location.capacityLabel ?? (location.capacity ? `${location.capacity} spaces` : 'Not listed')}
+            value={location.capacityLabel ?? (location.capacity !== null ? `Capacity: ${location.capacity} spaces` : 'Unknown')}
           />
           <FactCard
             icon="accessibility"
             label="Accessible"
-            value={location.accessible === true ? 'Spaces indicated' : 'Verify on-site'}
+            value={location.accessible === true ? 'Yes' : location.accessible === false ? 'No' : 'Unknown'}
           />
           <FactCard
             icon="flash"
             label="EV charging"
-            value={location.evCharging === 'available' ? 'Available' : 'Not listed'}
+            value={location.evCharging === 'yes' ? 'Available' : location.evCharging === 'no' ? 'Not available' : 'Unknown'}
           />
           <FactCard
             icon="walk"
@@ -123,7 +127,7 @@ export function ParkingDetailsView({ location }: ParkingDetailsViewProps) {
 
         <View style={styles.actionsRow}>
           <ActionButton color={colors.gold} icon="navigate" label="Directions" onPress={openDirections} />
-          <ActionButton color="#70AEFF" icon="map-outline" label="View on Map" onPress={openDirections} />
+          <ActionButton color="#70AEFF" icon="map-outline" label="View on Map" onPress={() => void openUrl(getParkingExternalMapUrl(location, 'map'))} />
         </View>
 
         {location.websiteUrl ? (

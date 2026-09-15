@@ -2,9 +2,10 @@ import type { ImageSourcePropType } from 'react-native';
 
 import { bundledAttractions, type Attraction } from '@/data/attractions';
 import { getBathroomLocation } from '@/data/bathrooms';
-import { getParkingLocation } from '@/data/parking';
+import { bundledParkingLocations, type ParkingLocation } from '@/data/parking';
 import { bundledRestaurants, type Restaurant } from '@/data/restaurants';
 import { findRestaurantByStableId } from '@/services/restaurantContentCore';
+import { findParkingByStableId } from '@/services/parkingContentCore';
 import type { FavoriteCategory, FavoriteReference } from '@/services/favoritesCore';
 
 export type FavoriteLocation = FavoriteReference & {
@@ -36,6 +37,7 @@ export function resolveFavoriteLocation(
   reference: FavoriteReference,
   attractionContent: Attraction[] = bundledAttractions,
   restaurantContent: Restaurant[] = bundledRestaurants,
+  parkingContent: ParkingLocation[] = bundledParkingLocations,
 ): FavoriteLocation | null {
   if (reference.category === 'attractions') {
     const location = attractionContent.find((item) => item.id === reference.id);
@@ -46,8 +48,8 @@ export function resolveFavoriteLocation(
     return location ? { ...reference, name: location.name, categoryLabel: 'Restaurant', address: location.address, description: location.description, image: location.image } : null;
   }
   if (reference.category === 'parking') {
-    const location = getParkingLocation(reference.id);
-    return location ? { ...reference, name: location.name, categoryLabel: `Parking ${location.type}`, address: location.address, description: location.description, image: location.image } : null;
+    const location = findParkingByStableId(parkingContent, reference.id);
+    return location ? { ...reference, name: location.name, categoryLabel: location.type === 'Unknown' ? 'Parking' : location.type, address: location.address, description: location.description, image: location.image } : null;
   }
 
   const location = getBathroomLocation(reference.id);

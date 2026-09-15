@@ -19,6 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import { useAttractions } from '@/components/attractions/AttractionsProvider';
 import { useRestaurants } from '@/components/restaurants/RestaurantsProvider';
+import { useParking } from '@/components/parking/ParkingProvider';
 import { WitchWalkMap } from '@/components/map/WitchWalkMap';
 import {
   filterMapLocations,
@@ -52,6 +53,7 @@ export function LiveMapScreen() {
   const { isFavorite, toggleFavorite } = useFavorites();
   const { attractions } = useAttractions();
   const { restaurants } = useRestaurants();
+  const { locations: parkingLocations } = useParking();
 
   useFocusEffect(useCallback(() => {
     let active = true;
@@ -73,8 +75,8 @@ export function LiveMapScreen() {
   }, []));
 
   const allLocations = useMemo(
-    () => getMapLocations(waitAggregates, new Date(), attractions, restaurants),
-    [attractions, restaurants, waitAggregates],
+    () => getMapLocations(waitAggregates, new Date(), attractions, restaurants, parkingLocations),
+    [attractions, restaurants, parkingLocations, waitAggregates],
   );
   const selected = allLocations.find(location => location.mapId === selectedItem?.mapId) ?? null;
   const visibleLocations = useMemo(

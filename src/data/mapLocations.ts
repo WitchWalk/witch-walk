@@ -3,9 +3,10 @@ import type { ImageSourcePropType } from 'react-native';
 import { bundledAttractions, type Attraction } from '@/data/attractions';
 import { getTrustedWaitReportingAttraction } from '@/data/trustedWaitReporting';
 import { bathroomLocations, getBathroomMapDestination, getVisibleBathroomLocations } from '@/data/bathrooms';
-import { getParkingMapDestination, parkingLocations } from '@/data/parking';
+import { bundledParkingLocations, getParkingMapDestination, type ParkingLocation } from '@/data/parking';
 import { bundledRestaurants, type Restaurant } from '@/data/restaurants';
 import { getMappableRestaurants } from '@/services/restaurantContentCore';
+import { getMappableParking } from '@/services/parkingContentCore';
 import type { WaitTimeAggregate } from '@/services/waitReportCore';
 
 export type MapCategory = 'attractions' | 'restaurants' | 'parking' | 'bathrooms';
@@ -46,6 +47,7 @@ export function getMapLocations(
   now = new Date(),
   attractionContent: Attraction[] = bundledAttractions,
   restaurantContent: Restaurant[] = bundledRestaurants,
+  parkingContent: ParkingLocation[] = bundledParkingLocations,
 ): MapLocation[] {
   const attractionPins: MapLocation[] = attractionContent
     .filter(hasCoordinates)
@@ -84,16 +86,15 @@ export function getMapLocations(
       directionsDestination: `${location.name}, ${location.address}`,
     }));
 
-  const parkingPins: MapLocation[] = parkingLocations
-    .filter(hasCoordinates)
+  const parkingPins: MapLocation[] = getMappableParking(parkingContent)
     .map((location) => ({
       mapId: `parking:${location.id}`,
       sourceId: location.id,
       name: location.name,
       category: 'parking',
       categoryLabel: location.type,
-      latitude: location.latitude as number,
-      longitude: location.longitude as number,
+      latitude: location.latitude,
+      longitude: location.longitude,
       address: location.address,
       image: location.image,
       directionsDestination: getParkingMapDestination(location),

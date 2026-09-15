@@ -7,6 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { FavoritesProvider } from '@/components/favorites/FavoritesProvider';
 import { AttractionsProvider } from '@/components/attractions/AttractionsProvider';
 import { RestaurantsProvider } from '@/components/restaurants/RestaurantsProvider';
+import { ParkingProvider } from '@/components/parking/ParkingProvider';
 import { AppSettingsProvider } from '@/components/settings/AppSettingsProvider';
 import { WitchWatchProvider } from '@/components/WitchWatchProvider';
 import { WaitRealtimeProvider } from '@/components/WaitRealtimeProvider';
@@ -24,6 +25,7 @@ export default function RootLayout() {
       <AppSettingsProvider>
         <AttractionsProvider>
           <RestaurantsProvider>
+            <ParkingProvider>
             <FavoritesProvider>
               <WitchWatchProvider>
                 <WaitRealtimeProvider>
@@ -45,6 +47,7 @@ export default function RootLayout() {
                 </WaitRealtimeProvider>
               </WitchWatchProvider>
             </FavoritesProvider>
+            </ParkingProvider>
           </RestaurantsProvider>
         </AttractionsProvider>
       </AppSettingsProvider>

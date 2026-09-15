@@ -3,20 +3,27 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ParkingDetailsView } from '@/components/parking/ParkingDetailsView';
-import { getParkingLocation } from '@/data/parking';
+import { useParking } from '@/components/parking/ParkingProvider';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 export default function ParkingDetailsRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const location = getParkingLocation(id);
+  const { getLocation, ready } = useParking();
+  const location = getLocation(id);
 
   if (location) return <ParkingDetailsView location={location} />;
+
+  if (!ready) return (
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.content}><Text style={styles.title}>Loading parking…</Text></View>
+    </SafeAreaView>
+  );
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.content}>
         <Text style={styles.title}>Parking location not found</Text>
-        <Text style={styles.message}>This local parking entry is not available.</Text>
+        <Text style={styles.message}>This parking location is not currently available.</Text>
         <Pressable
           accessibilityRole="button"
           onPress={() => router.replace('/parking')}

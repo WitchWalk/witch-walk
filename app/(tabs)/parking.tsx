@@ -1,18 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import type { ComponentProps } from 'react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Alert, ImageBackground, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import { ParkingCard } from '@/components/parking/ParkingCard';
+import { useParking } from '@/components/parking/ParkingProvider';
 import {
-  getParkingMapDestination,
+  getParkingExternalMapUrl,
   parkingFilterOptions,
-  parkingLocations,
   type ParkingFilter,
 } from '@/data/parking';
+import { parkingMatchesFilter } from '@/services/parkingContentCore';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 const headerImage = require('../../assets/images/home/parking.png');
@@ -30,29 +31,26 @@ const filterIcons: Record<ParkingFilter, FilterIcon> = {
 export default function ParkingScreen() {
   const [filter, setFilter] = useState<ParkingFilter>('All');
   const { isFavorite, toggleFavorite } = useFavorites();
-  const featuredParking = parkingLocations.find((location) => location.featured);
+  const { locations, ready, refresh } = useParking();
+  useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
+  const featuredParking = locations.find((location) => location.featured && parkingMatchesFilter(location, filter));
 
   const visibleLocations = useMemo(
     () =>
-      parkingLocations.filter((location) => {
+      locations.filter((location) => {
         if (location.featured) return false;
-        if (filter === 'All') return true;
-        if (filter === 'Garages') return location.type === 'Garage';
-        if (filter === 'Lots') return location.type === 'Lot';
-        if (filter === 'Accessible') return location.accessible === true;
-        return location.evCharging === 'available';
+        return parkingMatchesFilter(location, filter);
       }),
-    [filter],
+    [filter, locations],
   );
 
   const openDetails = (id: string) => {
     router.push({ pathname: '/parking/[id]', params: { id } });
   };
 
-  const openMap = async (address: string) => {
-    const query = encodeURIComponent(address);
+  const openMap = async (url: string) => {
     try {
-      await Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${query}`);
+      await Linking.openURL(url);
     } catch {
       Alert.alert('Unable to open map', 'Please try again from your maps app.');
     }
@@ -138,10 +136,10 @@ export default function ParkingScreen() {
               featured
               favorite={isFavorite('parking', featuredParking.id)}
               location={featuredParking}
-              onDirections={() => void openMap(getParkingMapDestination(featuredParking))}
+              onDirections={() => void openMap(getParkingExternalMapUrl(featuredParking, 'directions'))}
               onFavoritePress={() => toggleFavorite('parking', featuredParking.id)}
               onPress={() => openDetails(featuredParking.id)}
-              onViewMap={() => void openMap(getParkingMapDestination(featuredParking))}
+              onViewMap={() => void openMap(getParkingExternalMapUrl(featuredParking, 'map'))}
             />
           </View>
         ) : null}
@@ -160,25 +158,30 @@ export default function ParkingScreen() {
 
         <View style={styles.section}>
           <SectionHeading title="Nearby Parking Options" />
-          {visibleLocations.length ? (
+          {!ready ? (
+            <View style={styles.emptyState}>
+              <Ionicons color="#70AEFF" name="hourglass-outline" size={32} />
+              <Text style={styles.emptyTitle}>Loading parking…</Text>
+            </View>
+          ) : visibleLocations.length ? (
             <View style={styles.parkingList}>
               {visibleLocations.map((location) => (
                 <ParkingCard
                   favorite={isFavorite('parking', location.id)}
                   key={location.id}
                   location={location}
-                  onDirections={() => void openMap(getParkingMapDestination(location))}
+                  onDirections={() => void openMap(getParkingExternalMapUrl(location, 'directions'))}
                   onFavoritePress={() => toggleFavorite('parking', location.id)}
                   onPress={() => openDetails(location.id)}
-                  onViewMap={() => void openMap(getParkingMapDestination(location))}
+                  onViewMap={() => void openMap(getParkingExternalMapUrl(location, 'map'))}
                 />
               ))}
             </View>
           ) : (
             <View style={styles.emptyState}>
               <Ionicons color="#70AEFF" name="car-outline" size={32} />
-              <Text style={styles.emptyTitle}>No matching parking</Text>
-              <Text style={styles.emptyText}>Try another parking filter.</Text>
+              <Text style={styles.emptyTitle}>{filter === 'All' ? featuredParking ? 'No other parking listed' : 'No parking listed' : 'No matching parking'}</Text>
+              <Text style={styles.emptyText}>{filter === 'All' ? 'Check back as more locations are published.' : 'Try another parking filter.'}</Text>
             </View>
           )}
         </View>

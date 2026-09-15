@@ -1,6 +1,10 @@
 import type { ImageSourcePropType } from 'react-native';
+import { getParkingExternalMapUrl as externalMapUrl } from '@/services/parkingContentCore';
 
-export type ParkingType = 'Garage' | 'Lot';
+export type ParkingType =
+  | 'Garage' | 'Public Lot' | 'Street Parking' | 'MBTA / Transit Parking'
+  | 'Ferry Parking' | 'RV Parking' | 'Seasonal Parking'
+  | 'Private / Visitor Parking' | 'Other' | 'Unknown';
 export type ParkingFilter = 'All' | 'Garages' | 'Lots' | 'Accessible' | 'EV Charging';
 
 export type LiveParkingAvailability =
@@ -17,7 +21,8 @@ export type LiveParkingAvailability =
 
 export type ParkingSchedule =
   | { kind: 'always'; summary: string }
-  | { kind: 'unknown'; summary: string };
+  | { kind: 'unknown'; summary: string }
+  | { kind: 'structured'; summary: string; status: 'open' | 'closed' };
 
 export type ParkingLocation = {
   id: string;
@@ -32,7 +37,16 @@ export type ParkingLocation = {
   capacity: number | null;
   capacityLabel?: string;
   accessible: boolean | null;
-  evCharging: 'available' | 'not-listed';
+  evCharging: 'yes' | 'no' | 'unknown';
+  evChargingNotes?: string;
+  accessibilityNotes?: string;
+  overnightAllowed?: boolean | null;
+  rvSuitable?: boolean | null;
+  motorcycleNotes?: string;
+  fullDescription?: string;
+  directionsUrl?: string;
+  contentUpdatedAt?: string;
+  sortOrder?: number;
   description: string;
   image: ImageSourcePropType;
   websiteUrl?: string;
@@ -70,7 +84,7 @@ export const parkingLocations: ParkingLocation[] = [
     rateInformation: 'Rates vary; check posted signs or Passport Parking',
     capacity: 980,
     accessible: true,
-    evCharging: 'available',
+    evCharging: 'yes',
     description: 'A large city garage beside the Salem Visitor Center and downtown attractions.',
     image: parkingPlaceholder,
     websiteUrl: 'https://www.salemma.gov/379/Parking-Rates-Locations-Hours',
@@ -91,7 +105,7 @@ export const parkingLocations: ParkingLocation[] = [
     rateInformation: 'Rates vary; check posted signs or Passport Parking',
     capacity: 315,
     accessible: true,
-    evCharging: 'available',
+    evCharging: 'yes',
     description: 'A municipal garage near Derby Street, Pickering Wharf, and the waterfront.',
     image: parkingPlaceholder,
     websiteUrl: 'https://www.salemma.gov/379/Parking-Rates-Locations-Hours',
@@ -112,7 +126,7 @@ export const parkingLocations: ParkingLocation[] = [
     capacity: 710,
     capacityLabel: 'Approximately 710 spaces',
     accessible: true,
-    evCharging: 'not-listed',
+    evCharging: 'unknown',
     description: 'Commuter rail garage at Salem Station with a short walk into downtown.',
     image: parkingPlaceholder,
     websiteUrl: 'https://www.mbta.com/stops/place-ER-0168',
@@ -124,7 +138,7 @@ export const parkingLocations: ParkingLocation[] = [
   {
     id: 'church-street-west-lot',
     name: 'Church Street West Lot',
-    type: 'Lot',
+    type: 'Public Lot',
     address: '15 Federal Street, Salem, MA',
     latitude: 42.5233103,
     longitude: -70.8942869,
@@ -132,7 +146,7 @@ export const parkingLocations: ParkingLocation[] = [
     rateInformation: 'Pay with Passport Parking; posted rates apply',
     capacity: null,
     accessible: true,
-    evCharging: 'available',
+    evCharging: 'yes',
     description: 'A central surface lot close to Essex Street and downtown businesses.',
     image: parkingPlaceholder,
     websiteUrl: 'https://www.salem.org/parking/church-street-lot/',
@@ -144,7 +158,7 @@ export const parkingLocations: ParkingLocation[] = [
   {
     id: 'riley-plaza-lot',
     name: 'Riley Plaza West Lot',
-    type: 'Lot',
+    type: 'Public Lot',
     address: '212 Washington St, Salem, MA 01970',
     mapDestination: 'Riley Plaza West Lot, 212 Washington St, Salem, MA 01970',
     latitude: 42.5187341,
@@ -153,7 +167,7 @@ export const parkingLocations: ParkingLocation[] = [
     rateInformation: 'Rates and permit restrictions vary; check posted signs',
     capacity: null,
     accessible: null,
-    evCharging: 'not-listed',
+    evCharging: 'unknown',
     description: 'A downtown surface lot with rules that can vary by permit period and season.',
     image: parkingPlaceholder,
     websiteUrl: 'https://www.salemma.gov/379/Parking-Rates-Locations-Hours',
@@ -164,6 +178,8 @@ export const parkingLocations: ParkingLocation[] = [
   },
 ];
 
+export const bundledParkingLocations = parkingLocations;
+
 export function getParkingLocation(id: string | string[] | undefined) {
   const locationId = Array.isArray(id) ? id[0] : id;
   return parkingLocations.find((location) => location.id === locationId);
@@ -173,10 +189,18 @@ export function getParkingMapDestination(location: ParkingLocation) {
   return location.mapDestination ?? `${location.name}, ${location.address}`;
 }
 
+export function getParkingExternalMapUrl(location: ParkingLocation, action: 'directions' | 'map') {
+  return externalMapUrl(location, action);
+}
+
 export function getParkingOperatingStatus(location: ParkingLocation) {
   if (location.schedule.kind === 'always') {
     return { kind: 'open' as const, label: 'Open' };
   }
 
-  return { kind: 'unknown' as const, label: 'Hours unverified' };
+  if (location.schedule.kind === 'structured') {
+    return { kind: location.schedule.status, label: location.schedule.status === 'open' ? 'Open Now' : 'Closed Now' };
+  }
+
+  return { kind: 'unknown' as const, label: location.schedule.summary === 'Hours unavailable' ? 'Hours unavailable' : 'Hours unverified' };
 }
