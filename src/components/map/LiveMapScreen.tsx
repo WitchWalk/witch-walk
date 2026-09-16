@@ -291,12 +291,14 @@ function LocationPreview({
       <View style={styles.previewCopy}>
         <Text numberOfLines={2} style={styles.previewName}>{location.name}</Text>
         <View style={styles.previewMetaRow}>
-          <Text style={[styles.categoryText, { color: categoryColor(location.category) }]}>
-            {location.categoryLabel}
-          </Text>
-          <Text style={styles.distanceText}>
-            {distanceLabel(userLocation, location)}
-          </Text>
+          <View style={styles.previewMetaCopy}>
+            <Text numberOfLines={2} style={[styles.categoryText, { color: categoryColor(location.category) }]}>
+              {location.categoryLabel}
+            </Text>
+            <Text numberOfLines={1} style={styles.distanceText}>
+              {distanceLabel(userLocation, location)}
+            </Text>
+          </View>
           <Pressable
             accessibilityLabel={favorite ? `Remove ${location.name} from favorites` : `Add ${location.name} to favorites`}
             accessibilityRole="button"
@@ -453,7 +455,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     backgroundColor: 'rgba(9,7,13,0.94)',
   },
-  locateButtonRaised: { bottom: 170 },
+  locateButtonRaised: { bottom: 190 },
   mapHint: {
     position: 'absolute',
     bottom: spacing.md,
@@ -472,7 +474,7 @@ const styles = StyleSheet.create({
     right: spacing.sm,
     bottom: spacing.sm,
     left: spacing.sm,
-    height: 150,
+    minHeight: 150,
     flexDirection: 'row',
     gap: spacing.md,
     borderWidth: 1,
@@ -483,18 +485,27 @@ const styles = StyleSheet.create({
   },
   closeButton: { position: 'absolute', top: 6, right: 6, zIndex: 2, padding: 4 },
   previewImage: { width: 112, height: 132, borderRadius: radius.sm, backgroundColor: colors.surface },
-  previewCopy: { flex: 1, minWidth: 0, justifyContent: 'center', paddingRight: spacing.sm },
+  previewCopy: {
+    flexBasis: 0,
+    flexGrow: 1,
+    flexShrink: 1,
+    minWidth: 0,
+    justifyContent: 'center',
+    paddingRight: spacing.sm,
+  },
   previewName: { ...typography.title, fontSize: 18, lineHeight: 21, paddingRight: spacing.md },
   previewMetaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: 3 },
-  categoryText: { flexShrink: 1, fontSize: 10.5, fontWeight: '900', textTransform: 'uppercase' },
-  distanceText: { color: colors.textMuted, fontSize: 10.5, fontWeight: '700' },
-  previewFavorite: { width: 26, height: 24, alignItems: 'center', justifyContent: 'center', marginLeft: 'auto' },
+  previewMetaCopy: { flex: 1, minWidth: 0 },
+  categoryText: { fontSize: 10.5, lineHeight: 13, fontWeight: '900', textTransform: 'uppercase' },
+  distanceText: { color: colors.textMuted, fontSize: 10.5, lineHeight: 13, fontWeight: '700', marginTop: 1 },
+  previewFavorite: { width: 26, height: 24, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
   crowdRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 },
   crowdText: { fontSize: 11, fontWeight: '900' },
   crowdFreshness: { color: colors.textMuted, fontSize: 9, lineHeight: 12, marginLeft: 21 },
-  previewActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+  previewActions: { flexDirection: 'row', flexShrink: 0, gap: spacing.sm, marginTop: spacing.sm },
   detailsButton: {
     flex: 1,
+    minWidth: 0,
     minHeight: 40,
     alignItems: 'center',
     justifyContent: 'center',
@@ -506,6 +517,7 @@ const styles = StyleSheet.create({
   detailsButtonText: { color: colors.text, fontSize: 11, fontWeight: '900' },
   directionsButton: {
     flex: 1,
+    minWidth: 0,
     minHeight: 40,
     flexDirection: 'row',
     alignItems: 'center',
