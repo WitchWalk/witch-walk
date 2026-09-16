@@ -1,8 +1,9 @@
 import { Linking } from 'react-native';
 
-import { SUPPORT_URL } from '@/config/appLinks';
+import { validatePublicHttpsUrl } from '@/services/publicSettingsCore';
 import { openExternalUrl, type ExternalUrlOpener } from '@/services/supportLinkCore';
 
-export async function openSupportPage(opener: ExternalUrlOpener = Linking) {
-  return openExternalUrl(SUPPORT_URL, opener);
+export async function openSupportPage(url: string, opener: ExternalUrlOpener = Linking) {
+  const safeUrl = validatePublicHttpsUrl(url);
+  return safeUrl ? openExternalUrl(safeUrl, opener) : false;
 }

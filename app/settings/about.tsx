@@ -1,6 +1,7 @@
 import { SettingsInfoScreen } from '@/components/settings/SettingsInfoScreen';
-import { settingsContent } from '@/config/settingsContent';
+import { usePublicContentSettings } from '@/hooks/usePublicContentSettings';
 
 export default function AboutScreen() {
-  return <SettingsInfoScreen {...settingsContent.about} />;
+  const { settings, ready } = usePublicContentSettings();
+  return <SettingsInfoScreen title="About BROOMSTICK" icon="moon-outline" body={settings.aboutBroomstickText ?? (ready ? 'About information is unavailable right now.' : 'Loading…')} />;
 }

@@ -2,18 +2,20 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { SettingsInfoScreen } from '@/components/settings/SettingsInfoScreen';
+import { usePublicContentSettings } from '@/hooks/usePublicContentSettings';
 import { openSupportPage } from '@/services/supportLink';
 import { colors, radius, spacing } from '@/theme/tokens';
 
 export default function SupportWitchWalkScreen() {
   const [opening, setOpening] = useState(false);
   const [error, setError] = useState('');
+  const { settings, ready } = usePublicContentSettings();
 
   const openSupport = async () => {
-    if (opening) return;
+    if (opening || !settings.supportUrl) return;
     setOpening(true);
     setError('');
-    const opened = await openSupportPage();
+    const opened = await openSupportPage(settings.supportUrl);
     if (!opened) setError('Unable to open the support page right now. Please try again later.');
     setOpening(false);
   };
@@ -22,9 +24,9 @@ export default function SupportWitchWalkScreen() {
     <SettingsInfoScreen
       title="Enjoying BROOMSTICK?"
       icon="heart"
-      body="BROOMSTICK is free to use. If it helped make your Salem visit easier and you'd like to help with the costs of keeping it running, you can leave an optional tip."
+      body={!ready ? 'Loading…' : !settings.supportUrl ? 'The optional support page is unavailable right now.' : "BROOMSTICK is free to use. If it helped make your Salem visit easier and you'd like to help with the costs of keeping it running, you can leave an optional tip."}
     >
-      <Pressable
+      {settings.supportUrl ? <Pressable
         accessibilityRole="link"
         accessibilityState={{ disabled: opening }}
         disabled={opening}
@@ -32,8 +34,8 @@ export default function SupportWitchWalkScreen() {
         style={({ pressed }) => [styles.button, opening && styles.disabled, pressed && styles.pressed]}
       >
         <Text style={styles.buttonText}>{opening ? 'Opening Support Page…' : '❤️ Support BROOMSTICK'}</Text>
-      </Pressable>
-      <Text style={styles.thanks}>Thank you for helping keep BROOMSTICK free for everyone.</Text>
+      </Pressable> : null}
+      {settings.supportUrl ? <Text style={styles.thanks}>Thank you for helping keep BROOMSTICK free for everyone.</Text> : null}
       {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
     </SettingsInfoScreen>
   );

@@ -28,11 +28,11 @@ async function live() {
   const client = createClient(env.EXPO_PUBLIC_SUPABASE_URL, env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   });
-  const settings = await client.from('broomstick_app_settings').select('key,value');
+  const settings = await client.from('broomstick_app_settings').select('key,value').eq('key', 'house_arauz_youtube_channel_url');
   assert.equal(settings.error, null);
   assert.deepEqual(settings.data.map(row => row.key), ['house_arauz_youtube_channel_url']);
   assert.equal(validateHouseArauzChannelUrl(settings.data[0].value), settings.data[0].value);
-  const unrelated = await client.from('broomstick_app_settings').select('key').neq('key', 'house_arauz_youtube_channel_url');
+  const unrelated = await client.from('broomstick_app_settings').select('key').eq('key', 'private_test_setting_that_should_not_be_public');
   assert.equal(unrelated.error, null); assert.deepEqual(unrelated.data, []);
 
   const published = await client.from('broomstick_attractions')

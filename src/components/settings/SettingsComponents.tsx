@@ -42,7 +42,7 @@ export function SettingsRow({ icon, iconColor = colors.lavender, label, value, o
   );
 
   return onPress ? (
-    <Pressable accessibilityRole="button" accessibilityLabel={`${label}${value ? `, ${value}` : ''}`} onPress={onPress} style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
+    <Pressable accessibilityRole={external ? 'link' : 'button'} accessibilityLabel={`${label}${value ? `, ${value}` : ''}`} onPress={onPress} style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
       {content}
     </Pressable>
   ) : <View style={styles.row}>{content}</View>;
