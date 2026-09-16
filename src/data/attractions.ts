@@ -27,10 +27,7 @@ export type Attraction = {
   sortOrder?: number;
   historicalFact?: string;
   visitorTips: string[];
-  houseArauzVideo?: {
-    title: string;
-    subtitle: string;
-  };
+  houseArauzVideoUrl?: string;
 };
 
 const witchHouseImage = require('../../Photos/Witch House.png');
@@ -82,10 +79,6 @@ export const attractions: Attraction[] = [
     waitReportingEnabled: true,
     historicalFact: 'Judge Jonathan Corwin purchased the house in 1675 and lived here for more than forty years.',
     visitorTips: ['Self-guided experience', 'Popular in October', 'Allow 30–45 minutes', 'Historic site'],
-    houseArauzVideo: {
-      title: 'Watch George’s Witch House video',
-      subtitle: 'HOUSE ARAUZ',
-    },
   },
   {
     id: 'house-seven-gables',

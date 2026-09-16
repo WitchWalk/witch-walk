@@ -28,6 +28,7 @@ const row: SupabaseAttractionRow = {
   longitude: -70.8988987,
   website_url: 'https://example.com',
   ticket_url: 'https://example.com/tickets',
+  house_arauz_video_url: 'https://www.youtube.com/watch?v=abcdefghijk',
   hours: { mon: [{ open: '10:00', close: '17:00' }] },
   image_path: 'witch-house/header.jpg',
   featured: true,
@@ -48,6 +49,7 @@ async function run() {
   assert.equal(mapped.name, 'The Witch House — Admin Edit');
   assert.equal(mapped.featured, true);
   assert.equal(mapped.waitReportingEnabled, true);
+  assert.equal(mapped.houseArauzVideoUrl, row.house_arauz_video_url);
   assert.equal((mapped.image as { uri: string }).uri, 'https://cdn.example/witch-house/header.jpg');
   assert.equal(mapped.status, 'open');
 

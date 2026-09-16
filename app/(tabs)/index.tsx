@@ -1,16 +1,44 @@
-import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, AppState, Linking, StyleSheet, Text, View } from 'react-native';
 
 import { BrandHeader } from '@/components/BrandHeader';
 import { CrowdStatusCard } from '@/components/CrowdStatusCard';
 import { HomeShortcutCard } from '@/components/HomeShortcutCard';
 import { Screen } from '@/components/Screen';
 import { homeActions } from '@/data/homeActions';
+import { loadHouseArauzChannelUrl } from '@/services/houseArauzContentRepository';
+import { openExternalUrl } from '@/services/supportLinkCore';
 import { colors, spacing, typography } from '@/theme/tokens';
 
 export default function HomeScreen() {
+  const [houseArauzChannelUrl, setHouseArauzChannelUrl] = useState<string | null>(null);
   const shortcutRows = [homeActions.slice(0, 3), homeActions.slice(3, 6)];
   const featuredActions = homeActions.slice(6, 8);
+
+  const refreshHouseArauzChannel = useCallback(async () => {
+    const result = await loadHouseArauzChannelUrl();
+    setHouseArauzChannelUrl(result.url);
+    return result.url;
+  }, []);
+
+  useFocusEffect(useCallback(() => { void refreshHouseArauzChannel(); }, [refreshHouseArauzChannel]));
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void refreshHouseArauzChannel();
+    });
+    return () => subscription.remove();
+  }, [refreshHouseArauzChannel]);
+
+  const openAction = async (action: (typeof homeActions)[number]) => {
+    if (action.title !== 'HOUSE ARAUZ Videos') {
+      router.push(action.href);
+      return;
+    }
+    const url = houseArauzChannelUrl ?? await refreshHouseArauzChannel();
+    if (url && await openExternalUrl(url, Linking)) return;
+    Alert.alert('HOUSE ARAUZ channel unavailable', 'Please try again later.');
+  };
 
   return (
     <Screen scroll contentContainerStyle={styles.content}>
@@ -36,7 +64,7 @@ export default function HomeScreen() {
         <View style={styles.featuredRow}>
           {featuredActions.map((action) => (
             <View key={action.title} style={styles.featuredItem}>
-              <HomeShortcutCard {...action} wide onPress={() => router.push(action.href)} />
+              <HomeShortcutCard {...action} wide onPress={() => void openAction(action)} />
             </View>
           ))}
         </View>

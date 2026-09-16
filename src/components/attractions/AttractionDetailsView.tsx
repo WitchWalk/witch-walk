@@ -22,6 +22,8 @@ import { getTrustedWaitReportingAttraction } from '@/data/trustedWaitReporting';
 import { getWaitTimeAggregate } from '@/services/waitAggregationService';
 import { subscribeWaitAggregates } from '@/services/waitAggregateEvents';
 import { getQuickStatusLabel, type WaitTimeAggregate } from '@/services/waitReportCore';
+import { validateHouseArauzVideoUrl } from '@/services/houseArauzContentCore';
+import { openExternalUrl } from '@/services/supportLinkCore';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 const videoBackground = require('../../../assets/images/home/house-arauz-videos.png');
@@ -214,12 +216,17 @@ function ActionButton({ icon, color, title, subtitle, onPress }: ActionButtonPro
 }
 
 function DynamicFeature({ attraction }: AttractionDetailsViewProps) {
-  if (attraction.houseArauzVideo) {
+  const videoUrl = validateHouseArauzVideoUrl(attraction.houseArauzVideoUrl);
+  if (videoUrl) {
+    const openVideo = async () => {
+      if (await openExternalUrl(videoUrl, Linking)) return;
+      Alert.alert('Unable to open video', 'Please try again later.');
+    };
     return (
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={attraction.houseArauzVideo.title}
-        onPress={() => Alert.alert('HOUSE ARAUZ Video', 'The video card is ready. The final video link can be connected when supplied.')}
+        accessibilityLabel="Watch HOUSE ARAUZ Video"
+        onPress={() => void openVideo()}
         style={({ pressed }) => [styles.videoCard, pressed && styles.pressed]}
       >
         <ImageBackground source={videoBackground} resizeMode="cover" style={styles.videoImage} imageStyle={styles.featureImageRadius}>
@@ -227,8 +234,8 @@ function DynamicFeature({ attraction }: AttractionDetailsViewProps) {
           <View style={styles.playButton}><Ionicons name="play" size={24} color={colors.text} /></View>
         </ImageBackground>
         <View style={styles.featureCopy}>
-          <Text style={styles.featureEyebrow}>{attraction.houseArauzVideo.subtitle}</Text>
-          <Text style={styles.featureTitle}>{attraction.houseArauzVideo.title}</Text>
+          <Text style={styles.featureEyebrow}>HOUSE ARAUZ</Text>
+          <Text style={styles.featureTitle}>Watch HOUSE ARAUZ Video</Text>
           <Text style={styles.featureText}>Local video guide</Text>
         </View>
         <Ionicons name="chevron-forward" size={24} color={colors.text} />

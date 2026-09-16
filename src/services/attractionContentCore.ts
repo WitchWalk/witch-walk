@@ -1,6 +1,7 @@
 import type { ImageSourcePropType } from 'react-native';
 
 import type { Attraction } from '@/data/attractions';
+import { validateHouseArauzVideoUrl } from './houseArauzContentCore.ts';
 
 export const ATTRACTION_CACHE_VERSION = 1;
 export const ATTRACTION_CACHE_MAX_AGE_MILLISECONDS = 6 * 60 * 60 * 1000;
@@ -26,6 +27,7 @@ export type SupabaseAttractionRow = {
   longitude: number | null;
   website_url: string | null;
   ticket_url: string | null;
+  house_arauz_video_url: string | null;
   hours: AttractionHours;
   image_path: string | null;
   featured: boolean;
@@ -106,6 +108,7 @@ export function parsePublishedAttractionRows(value: unknown): SupabaseAttraction
       longitude,
       website_url: readOptionalUrl(candidate.website_url),
       ticket_url: readOptionalUrl(candidate.ticket_url),
+      house_arauz_video_url: validateHouseArauzVideoUrl(candidate.house_arauz_video_url),
       hours: parseAttractionHours(candidate.hours),
       image_path: readOptionalString(candidate.image_path),
       featured: candidate.featured === true,
@@ -202,7 +205,7 @@ export function mapSupabaseAttraction(
     sortOrder: row.sort_order,
     historicalFact: fallback?.historicalFact,
     visitorTips: fallback?.visitorTips ?? [],
-    houseArauzVideo: fallback?.houseArauzVideo,
+    houseArauzVideoUrl: row.house_arauz_video_url ?? undefined,
   };
 }
 
