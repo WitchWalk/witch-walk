@@ -23,7 +23,7 @@ Module._extensions['.ts'] = (module, filename) => module._compile(ts.transpileMo
 
 (async () => {
   const { createSharedWaitRepository, sharedWaitRepository } = require('../src/services/sharedWaitRepository.ts');
-  const { decodeSharedSummaries, getWaitTimeAggregates } = require('../src/services/waitAggregationService.ts');
+  const { decodeSharedSummaries, getWaitTimeAggregates, isWaitAggregateServiceUnavailable } = require('../src/services/waitAggregationService.ts');
   let session = null, signins = 0, calls = 0;
   let response = { data: { kind: 'success', reportId: 'receipt' }, error: null };
   const client = {
@@ -65,5 +65,6 @@ Module._extensions['.ts'] = (module, filename) => module._compile(ts.transpileMo
   assert.equal(neutral['witch-house'].hasRecentReports,false);
   sharedWaitRepository.read=async()=>{throw Error('offline');};
   assert.equal((await getWaitTimeAggregates())['witch-house'].freshnessLabel,'Live updates unavailable');
+  assert.equal(isWaitAggregateServiceUnavailable(),true);
   console.log('PASS: anonymous sign-in, session reuse, duplicates, validation, GPS, server failures, neutral/offline results');
 })().catch(() => { console.error('FAIL: shared wait adapter test'); process.exitCode=1; });

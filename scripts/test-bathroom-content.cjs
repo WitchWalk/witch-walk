@@ -1,4 +1,5 @@
 // Read-only tests: in-memory repository adapters; --live performs publishable SELECTs only.
+/* global __dirname */
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');

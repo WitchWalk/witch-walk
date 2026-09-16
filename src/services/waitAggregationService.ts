@@ -40,7 +40,12 @@ export function decodeSharedSummaries(data: unknown, now = Date.now()): Record<s
 }
 let loading: Promise<Record<string, WaitTimeAggregate>> | undefined;
 let cached: Record<string, WaitTimeAggregate> = {};
+let liveServiceUnavailable = false;
 const versions = new Map<string, { revision: number; evaluated: number }>();
+
+export function isWaitAggregateServiceUnavailable() {
+  return waitBackend === 'supabase' && liveServiceUnavailable;
+}
 
 function mergeEvents(events: SafeWaitEvent[], snapshot: boolean) {
   const changed: WaitTimeAggregate[] = [];
@@ -59,7 +64,10 @@ function mergeEvents(events: SafeWaitEvent[], snapshot: boolean) {
       if (JSON.stringify(cached[id]) !== JSON.stringify(next)) { cached = { ...cached, [id]: next }; changed.push(next); }
     } catch { /* Malformed transport events never replace trusted cached data. */ }
   }
-  if (changed.length) publishWaitAggregates(changed);
+  if (changed.length) {
+    liveServiceUnavailable = false;
+    publishWaitAggregates(changed);
+  }
 }
 export function applyRealtimeWaitEvents(events: SafeWaitEvent[]) { mergeEvents(events, false); }
 function currentCache(now: number) {
@@ -74,6 +82,7 @@ export async function getWaitTimeAggregates(now = Date.now()) {
       try {
         const data = await sharedWaitRepository.read();
         if (!Array.isArray(data)) throw new Error('Invalid snapshot');
+        liveServiceUnavailable = false;
         if (data.length && data[0]?.summary) mergeEvents(data, true);
         else {
           const results = decodeSharedSummaries(data, now);
@@ -82,6 +91,7 @@ export async function getWaitTimeAggregates(now = Date.now()) {
         }
         return currentCache(now);
       } catch {
+        liveServiceUnavailable = true;
         // Do not feed a failed read into Witch Watch or silently use local reports.
         return Object.keys(cached).length ? currentCache(now) : neutral(now, true);
       } finally { loading = undefined; }
@@ -89,6 +99,7 @@ export async function getWaitTimeAggregates(now = Date.now()) {
     return loading;
   }
   const reports = await localWaitReportRepository.getReports();
+  liveServiceUnavailable = false;
   const results = Object.fromEntries(
     waitTimeAttractions.map((attraction) => [
       attraction.attractionId,

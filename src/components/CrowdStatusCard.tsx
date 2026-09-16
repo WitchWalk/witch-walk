@@ -1,27 +1,39 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { crowdPresentation } from '@/data/waitTimes';
+import {
+  getDowntownCrowdAccessibilityLabel,
+  type DowntownCrowdStatus,
+} from '@/services/downtownCrowdStatus';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 type CrowdStatusCardProps = {
   onPress: () => void;
+  status: DowntownCrowdStatus;
 };
 
-export function CrowdStatusCard({ onPress }: CrowdStatusCardProps) {
+export function CrowdStatusCard({ onPress, status }: CrowdStatusCardProps) {
+  const liveStatus = status.kind === 'crowd' ? crowdPresentation[status.level] : null;
+  const statusText = status.kind === 'crowd'
+    ? liveStatus?.label.toUpperCase()
+    : status.kind === 'unavailable' ? 'Live status unavailable' : 'No recent crowd data';
+  const statusColor = liveStatus?.color ?? colors.textMuted;
+
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="Downtown Salem is busy. Open the live map."
+      accessibilityLabel={getDowntownCrowdAccessibilityLabel(status)}
       onPress={onPress}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
       <View style={styles.iconWrap}>
-        <Ionicons name="people" size={28} color={colors.warning} />
+        <Ionicons name={liveStatus ? 'people' : 'people-outline'} size={28} color={statusColor} />
       </View>
       <View style={styles.copy}>
         <Text style={styles.label}>Downtown Salem</Text>
-        <Text style={styles.statusLine}>
-          Currently <Text style={styles.status}>Busy</Text>
+        <Text adjustsFontSizeToFit minimumFontScale={0.78} numberOfLines={1} style={styles.statusLine}>
+          {liveStatus ? 'Currently ' : ''}<Text style={[styles.status, { color: statusColor }]}>{statusText}</Text>
         </Text>
       </View>
       <View style={styles.link}>
@@ -74,9 +86,7 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
   status: {
-    color: colors.warning,
     fontWeight: '900',
-    textTransform: 'uppercase',
   },
   link: {
     flexDirection: 'row',
