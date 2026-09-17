@@ -40,6 +40,12 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
   const supportsWaitReporting = attraction.waitReportingEnabled === true
     && Boolean(getTrustedWaitReportingAttraction(attraction.id));
   const [waitAggregate, setWaitAggregate] = useState<WaitTimeAggregate | null>(null);
+  const about = attraction.longDescription.trim();
+  const visitorTips = attraction.visitorTips.map((tip) => tip.trim()).filter(Boolean);
+  const hoursLabel = attraction.hours.trim() !== attraction.statusLabel.trim()
+    ? attraction.hours.trim()
+    : '';
+  const hoursNotes = attraction.hoursNotes?.trim();
 
   useFocusEffect(useCallback(() => {
     if (!supportsWaitReporting) return;
@@ -112,8 +118,9 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
           <View style={styles.infoRow}>
             <Ionicons name="time-outline" size={20} color={colors.text} />
             <Text style={[styles.statusText, attraction.status === 'open' && styles.openText]}>{attraction.statusLabel}</Text>
-            <Text style={styles.hours}>{attraction.hours}</Text>
+            {hoursLabel ? <Text style={styles.hours}>{hoursLabel}</Text> : null}
           </View>
+          {hoursNotes ? <Text style={styles.hoursNotes}>{hoursNotes}</Text> : null}
           <View style={styles.tagsRow}>
             {attraction.tags.map((tag) => (
               <View key={tag} style={styles.tag}><Text style={styles.tagText}>{tag}</Text></View>
@@ -166,30 +173,30 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
         </View>
 
         {supportsWaitReporting ? <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/witch-watch', params: { id: attraction.id } })} style={{ padding: 14, borderRadius: 14, borderWidth: 1, borderColor: colors.gold, flexDirection: 'row', gap: 10 }}><Ionicons name="notifications-outline" size={20} color={colors.gold} /><Text style={{ color: colors.gold }}>{watching ? 'Watching' : 'Witch Watch'}</Text></Pressable> : null}
-        <View style={styles.infoCards}>
-          {attraction.visitorTips.length ? <View style={styles.contentCard}>
+        {about || visitorTips.length ? <View style={styles.infoCards}>
+          {about ? <View style={styles.contentCard}>
             <View style={styles.cardHeading}>
               <Ionicons name="document-text" size={21} color={colors.gold} />
               <Text style={styles.cardTitle}>About</Text>
             </View>
             <View style={styles.rule} />
-            <Text style={styles.bodyText}>{attraction.longDescription}</Text>
+            <Text style={styles.bodyText}>{about}</Text>
           </View> : null}
 
-          <View style={styles.contentCard}>
+          {visitorTips.length ? <View style={styles.contentCard}>
             <View style={styles.cardHeading}>
               <Ionicons name="bulb" size={22} color={colors.gold} />
               <Text style={styles.cardTitle}>Visitor Tips</Text>
             </View>
             <View style={styles.rule} />
-            {attraction.visitorTips.map((tip, index) => (
-              <View key={tip} style={styles.tipRow}>
+            {visitorTips.map((tip, index) => (
+              <View key={`${index}-${tip}`} style={styles.tipRow}>
                 <Ionicons name={index === 0 ? 'checkmark-circle' : 'sparkles'} size={17} color={index === 0 ? colors.success : colors.orange} />
                 <Text style={styles.tipText}>{tip}</Text>
               </View>
             ))}
-          </View>
-        </View>
+          </View> : null}
+        </View> : null}
 
         <DynamicFeature attraction={attraction} />
       </ScrollView>
@@ -279,6 +286,7 @@ const styles = StyleSheet.create({
   statusText: { color: colors.gold, fontSize: 14, fontWeight: '900' },
   openText: { color: '#78E567' },
   hours: { color: colors.textMuted, fontSize: 14 },
+  hoursNotes: { ...typography.caption, color: colors.textMuted, fontSize: 12, lineHeight: 17, marginLeft: 28 },
   tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   tag: { backgroundColor: '#241A2C', borderRadius: radius.pill, paddingHorizontal: spacing.md, paddingVertical: 5 },
   tagText: { color: colors.textMuted, fontSize: 11, fontWeight: '700' },

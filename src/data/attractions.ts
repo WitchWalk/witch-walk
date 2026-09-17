@@ -14,6 +14,7 @@ export type Attraction = {
   description: string;
   longDescription: string;
   hours: string;
+  hoursNotes?: string;
   status: 'open' | 'closed' | 'unavailable';
   statusLabel: string;
   distance: string;

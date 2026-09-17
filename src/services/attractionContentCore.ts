@@ -29,6 +29,8 @@ export type SupabaseAttractionRow = {
   ticket_url: string | null;
   house_arauz_video_url: string | null;
   hours: AttractionHours;
+  hours_notes: string | null;
+  visitor_tips: string[];
   image_path: string | null;
   featured: boolean;
   wait_reporting_enabled: boolean;
@@ -85,6 +87,31 @@ export function parseAttractionHours(value: unknown): AttractionHours {
   return result;
 }
 
+function readVisitorTip(value: unknown) {
+  if (typeof value === 'string') return value.trim();
+  if (!isRecord(value)) return '';
+  return readOptionalString(value.text) ?? readOptionalString(value.tip) ?? '';
+}
+
+export function parseAttractionVisitorTips(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(readVisitorTip).filter(Boolean);
+  if (isRecord(value) && Array.isArray(value.tips)) return parseAttractionVisitorTips(value.tips);
+  if (typeof value !== 'string' || !value.trim()) return [];
+
+  const trimmed = value.trim();
+  if (trimmed.startsWith('[')) {
+    try {
+      return parseAttractionVisitorTips(JSON.parse(trimmed));
+    } catch {
+      // Treat invalid JSON as ordinary text so an Admin-authored tip is not lost.
+    }
+  }
+  return trimmed
+    .split(/\r?\n/)
+    .map((tip) => tip.replace(/^\s*[-*•]\s*/, '').trim())
+    .filter(Boolean);
+}
+
 export function parsePublishedAttractionRows(value: unknown): SupabaseAttractionRow[] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((candidate): SupabaseAttractionRow[] => {
@@ -110,6 +137,8 @@ export function parsePublishedAttractionRows(value: unknown): SupabaseAttraction
       ticket_url: readOptionalUrl(candidate.ticket_url),
       house_arauz_video_url: validateHouseArauzVideoUrl(candidate.house_arauz_video_url),
       hours: parseAttractionHours(candidate.hours),
+      hours_notes: readOptionalString(candidate.hours_notes),
+      visitor_tips: parseAttractionVisitorTips(candidate.visitor_tips),
       image_path: readOptionalString(candidate.image_path),
       featured: candidate.featured === true,
       wait_reporting_enabled: candidate.wait_reporting_enabled === true,
@@ -192,8 +221,9 @@ export function mapSupabaseAttraction(
     latitude: row.latitude,
     longitude: row.longitude,
     description: row.short_description,
-    longDescription: row.full_description || row.short_description,
+    longDescription: row.full_description,
     ...getAttractionHoursPresentation(row.hours, now),
+    hoursNotes: row.hours_notes ?? undefined,
     distance: fallback?.distance ?? 'Distance unavailable',
     image: resolveAttractionImage(row, fallback, publicImageUrl, placeholder),
     featured: row.featured,
@@ -204,7 +234,7 @@ export function mapSupabaseAttraction(
     contentUpdatedAt: row.updated_at || undefined,
     sortOrder: row.sort_order,
     historicalFact: fallback?.historicalFact,
-    visitorTips: fallback?.visitorTips ?? [],
+    visitorTips: row.visitor_tips,
     houseArauzVideoUrl: row.house_arauz_video_url ?? undefined,
   };
 }

@@ -16,7 +16,8 @@ const PLACEHOLDER = require('../../assets/images/home/attractions.png');
 
 const columns = [
   'id', 'name', 'address', 'short_description', 'full_description', 'category',
-  'latitude', 'longitude', 'website_url', 'ticket_url', 'house_arauz_video_url', 'hours', 'image_path',
+  'latitude', 'longitude', 'website_url', 'ticket_url', 'house_arauz_video_url',
+  'hours', 'hours_notes', 'visitor_tips', 'image_path',
   'featured', 'wait_reporting_enabled', 'published', 'sort_order', 'archived_at', 'updated_at',
 ].join(',');
 
