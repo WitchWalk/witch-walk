@@ -12,7 +12,6 @@ import { RestroomMap } from '@/components/bathrooms/RestroomMap';
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import {
   bathroomFilters,
-  getBathroomOperatingStatus,
   isBathroomVisible,
   sortBathroomsForDiscovery,
   type BathroomFilter,
@@ -28,8 +27,6 @@ const filterIcons: Record<BathroomFilter, IoniconName> = {
   All: 'sparkles',
   Permanent: 'business-outline',
   Seasonal: 'calendar-outline',
-  Accessible: 'accessibility',
-  'Open Now': 'time-outline',
 };
 
 export default function BathroomsScreen() {
@@ -44,9 +41,7 @@ export default function BathroomsScreen() {
     const filtered = locations.filter(location => isBathroomVisible(location)).filter((location) => {
       if (filter === 'All') return true;
       if (filter === 'Permanent') return location.restroomCategory === 'permanent';
-      if (filter === 'Seasonal') return location.seasonal;
-      if (filter === 'Accessible') return location.accessible === true;
-      return getBathroomOperatingStatus(location).kind === 'open';
+      return location.seasonal;
     });
 
     return sortBathroomsForDiscovery(filtered);
@@ -210,9 +205,6 @@ export default function BathroomsScreen() {
           )}
         </View>
 
-        <Text style={styles.sampleNote}>
-          Hours and access may change. Verify posted information when you arrive.
-        </Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -329,5 +321,4 @@ const styles = StyleSheet.create({
   },
   emptyTitle: { ...typography.heading, marginTop: spacing.sm },
   emptyText: { ...typography.caption, marginTop: spacing.xs },
-  sampleNote: { ...typography.caption, fontSize: 10.5, lineHeight: 15, textAlign: 'center' },
 });

@@ -39,7 +39,9 @@ export function FavoriteCard({ location, onRemove, onViewDetails }: FavoriteCard
           <Ionicons color={colors.gold} name="location" size={15} />
           <Text numberOfLines={2} style={styles.address}>{location.address}</Text>
         </View>
-        <Text ellipsizeMode="tail" numberOfLines={2} style={styles.description}>{location.description}</Text>
+        {location.category !== 'bathrooms' ? (
+          <Text ellipsizeMode="tail" numberOfLines={2} style={styles.description}>{location.description}</Text>
+        ) : null}
 
         <Pressable
           accessibilityLabel={`View details for ${location.name}`}

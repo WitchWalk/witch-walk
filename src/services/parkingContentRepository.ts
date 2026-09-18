@@ -1,11 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { bundledParkingLocations, getParkingLocation, type ParkingLocation } from '@/data/parking';
+import { bundledParkingLocations, getParkingLocation, universalParkingImage, type ParkingLocation } from '@/data/parking';
 import { loadParkingRows, mapSupabaseParking, preferCurrentParkingContent, type ParkingContentSource } from '@/services/parkingContentCore';
 
 const CACHE_KEY = '@witch-walk/parking-content-v1';
 const TABLE_NAME = 'broomstick_parking';
-const PLACEHOLDER = require('../../assets/images/home/parking.png');
 const columns = [
   'id', 'name', 'address', 'short_description', 'full_description', 'parking_type',
   'capacity', 'rate_notes', 'accessibility', 'accessibility_notes', 'ev_charging',
@@ -43,7 +42,7 @@ export async function loadParkingContent(current?: ParkingContentResult): Promis
     locations: bundledParkingLocations, source: 'bundled', refreshedAt: loaded.refreshedAt,
   });
   return {
-    locations: loaded.rows.map((row) => mapSupabaseParking(row, getParkingLocation(row.id), PLACEHOLDER)),
+    locations: loaded.rows.map((row) => mapSupabaseParking(row, getParkingLocation(row.id), universalParkingImage)),
     source: loaded.source,
     refreshedAt: loaded.refreshedAt,
   };

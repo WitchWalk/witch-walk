@@ -4,23 +4,21 @@ import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
-import {
-  getBathroomHours,
-  getBathroomOperatingStatus,
-  type BathroomStatusKind,
-  type BathroomLocation,
-} from '@/data/bathrooms';
-import { bathroomAmenityLabel, bathroomAccessLabel, getBathroomExternalMapUrl } from '@/services/bathroomContentCore';
-import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
+import type { BathroomLocation } from '@/data/bathrooms';
+import { getBathroomExternalMapUrl } from '@/services/bathroomContentCore';
+import { colors, radius, spacing, typography } from '@/theme/tokens';
 
-type BathroomDetailsViewProps = {
-  location: BathroomLocation;
-};
+type BathroomDetailsViewProps = { location: BathroomLocation };
 
 export function BathroomDetailsView({ location }: BathroomDetailsViewProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const favorite = isFavorite('bathrooms', location.id);
-  const operatingStatus = getBathroomOperatingStatus(location);
+  const seasonalNote = location.seasonal
+    ? location.seasonalNotes || 'This restroom is available seasonally.'
+    : null;
+  const accessNote = location.publicAccess === 'Limited / Conditional'
+    ? location.accessNotes || 'Access to this restroom is limited or conditional.'
+    : null;
 
   const goBackToBathrooms = () => {
     if (router.canGoBack()) router.back();
@@ -44,19 +42,11 @@ export function BathroomDetailsView({ location }: BathroomDetailsViewProps) {
           <Image resizeMode="cover" source={location.image} style={styles.heroPhoto} />
           <View style={styles.heroShade} />
           <View style={styles.topBar}>
-            <Pressable
-              accessibilityLabel="Back to Bathrooms"
-              accessibilityRole="button"
-              hitSlop={10}
-              onPress={goBackToBathrooms}
-              style={styles.backButton}
-            >
+            <Pressable accessibilityLabel="Back to Bathrooms" accessibilityRole="button" hitSlop={10} onPress={goBackToBathrooms} style={styles.backButton}>
               <Ionicons color={colors.text} name="chevron-back" size={27} />
               <Text style={styles.backText}>Back</Text>
             </Pressable>
-            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78} style={styles.brand}>
-              BROOMSTICK
-            </Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.78} style={styles.brand}>BROOMSTICK</Text>
             <Pressable
               accessibilityLabel={favorite ? `Remove ${location.name} from favorites` : `Add ${location.name} to favorites`}
               accessibilityRole="button"
@@ -71,126 +61,36 @@ export function BathroomDetailsView({ location }: BathroomDetailsViewProps) {
         <View style={styles.heroCopy}>
           <Text style={styles.type}>{location.restroomType}</Text>
           <Text style={styles.name}>{location.name}</Text>
-          {location.facilityName && location.facilityName !== location.name ? <Text style={styles.description}>{location.facilityName}</Text> : null}
+          {location.facilityName && location.facilityName !== location.name ? <Text style={styles.facilityName}>{location.facilityName}</Text> : null}
           <View style={styles.addressRow}>
             <Ionicons color={colors.orange} name="location" size={18} />
             <Text style={styles.address}>{location.address}</Text>
           </View>
-          <Text style={styles.description}>{location.description}</Text>
         </View>
 
-        {location.advisoryLevel && location.advisoryLevel !== 'None' ? (
-          <View style={styles.seasonalCard}>
-            <Ionicons color={colors.orange} name="warning" size={27} />
-            <View style={styles.warningCopy}>
-              <Text style={styles.seasonalLabel}>{location.advisoryLevel}</Text>
-              <Text style={styles.seasonalText}>{location.advisoryText || 'Check access before visiting.'}</Text>
-            </View>
+        {seasonalNote || accessNote ? (
+          <View style={styles.notesCard}>
+            {seasonalNote ? <NoteRow icon="calendar-outline" text={seasonalNote} /> : null}
+            {accessNote ? <NoteRow icon="information-circle-outline" text={accessNote} /> : null}
           </View>
         ) : null}
-
-        {location.seasonal ? (
-          <View style={styles.seasonalCard}>
-            <Ionicons color={colors.orange} name="calendar" size={27} />
-            <View style={styles.warningCopy}>
-              <Text style={styles.seasonalLabel}>SEASONAL RESTROOM</Text>
-              <Text style={styles.seasonalText}>
-                {location.seasonalNotes || (location.schedule.kind === 'seasonal' ? location.schedule.seasonLabel : 'Seasonal access; confirm before visiting.')}
-              </Text>
-            </View>
-          </View>
-        ) : null}
-
-        <View style={styles.statusCard}>
-          <View style={[styles.statusIcon, statusIconStyle(operatingStatus.kind)]}>
-            <Ionicons color={statusColor(operatingStatus.kind)} name="time-outline" size={25} />
-          </View>
-          <View style={styles.statusCopy}>
-            <Text style={[styles.statusLabel, { color: statusColor(operatingStatus.kind) }]}>
-              {operatingStatus.label}
-            </Text>
-            <Text style={styles.hours}>{getBathroomHours(location)}</Text>
-          </View>
-        </View>
-
-        <View style={styles.factsGrid}>
-          <FactCard
-            icon="accessibility"
-            label="Accessibility"
-            value={`${bathroomAmenityLabel(location.accessible)}${location.accessibilityNotes ? ` • ${location.accessibilityNotes}` : ''}`}
-          />
-          <FactCard
-            icon="walk"
-            label="Walking time"
-            value={
-              location.distanceMiles === undefined
-                ? 'Available when location is enabled'
-                : `${location.distanceMiles.toFixed(1)} mi • ${location.walkingTimeMinutes ?? '—'} min`
-            }
-          />
-          <FactCard
-            icon="business-outline"
-            label="Public access"
-            value={bathroomAccessLabel(location)}
-          />
-          <FactCard icon="information-circle-outline" label="Access notes" value={location.accessNotes || location.notes || 'Check posted access information.'} />
-          <FactCard icon="calendar-outline" label="Seasonality" value={location.seasonalState ?? (location.seasonal ? 'Seasonal' : 'Unknown')} />
-          <FactCard icon="information-circle-outline" label="Portable toilets" value={bathroomAmenityLabel(location.portableToilets)} />
-          <FactCard icon="information-circle-outline" label="Changing table" value={bathroomAmenityLabel(location.changingTable)} />
-          <FactCard icon="information-circle-outline" label="Family / gender-neutral restroom" value={bathroomAmenityLabel(location.familyRestroom)} />
-        </View>
-
-        {location.officialUrl ? <View style={styles.actionsRow}>
-          <ActionButton icon="open-outline" label="Official information" onPress={() => {
-            void Linking.openURL(location.officialUrl!).catch(() => Alert.alert('Unable to open website', 'Please try again later.'));
-          }} />
-        </View> : null}
 
         <View style={styles.actionsRow}>
           <ActionButton icon="navigate" label="Directions" onPress={openDirections} primary />
           <ActionButton icon="map-outline" label="View on Map" onPress={openDirections} />
-        </View>
-
-        <View style={styles.disclaimerCard}>
-          <Ionicons color={colors.gold} name="information-circle-outline" size={21} />
-          <View style={styles.disclaimerCopy}>
-            <Text style={styles.disclaimerText}>
-              Restroom hours and access may change seasonally or during events. Check posted signs when you arrive.
-            </Text>
-            {location.lastVerifiedDate ? <Text style={styles.verifiedText}>Last verified: {location.lastVerifiedDate}</Text> : null}
-          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function statusColor(kind: BathroomStatusKind) {
-  if (kind === 'open') return '#78E567';
-  if (kind === 'closed') return '#FF7968';
-  if (kind === 'seasonal') return colors.orange;
-  return colors.gold;
-}
+type NoteRowProps = { icon: React.ComponentProps<typeof Ionicons>['name']; text: string };
 
-function statusIconStyle(kind: BathroomStatusKind) {
-  if (kind === 'open') return styles.openStatusIcon;
-  if (kind === 'closed') return styles.closedStatusIcon;
-  if (kind === 'seasonal') return styles.seasonalStatusIcon;
-  return styles.unknownStatusIcon;
-}
-
-type FactCardProps = {
-  icon: React.ComponentProps<typeof Ionicons>['name'];
-  label: string;
-  value: string;
-};
-
-function FactCard({ icon, label, value }: FactCardProps) {
+function NoteRow({ icon, text }: NoteRowProps) {
   return (
-    <View style={styles.factCard}>
-      <Ionicons color="#70AEFF" name={icon} size={23} />
-      <Text style={styles.factLabel}>{label}</Text>
-      <Text style={styles.factValue}>{value}</Text>
+    <View style={styles.noteRow}>
+      <Ionicons color={colors.gold} name={icon} size={21} />
+      <Text style={styles.noteText}>{text}</Text>
     </View>
   );
 }
@@ -207,21 +107,10 @@ function ActionButton({ icon, label, onPress, primary = false }: ActionButtonPro
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.actionButton,
-        primary && styles.primaryAction,
-        pressed && styles.pressed,
-      ]}
+      style={({ pressed }) => [styles.actionButton, primary && styles.primaryAction, pressed && styles.pressed]}
     >
       <Ionicons color={primary ? colors.black : colors.gold} name={icon} size={23} />
-      <Text
-        adjustsFontSizeToFit
-        minimumFontScale={0.8}
-        numberOfLines={1}
-        style={[styles.actionText, primary && styles.primaryActionText]}
-      >
-        {label}
-      </Text>
+      <Text adjustsFontSizeToFit minimumFontScale={0.8} numberOfLines={1} style={[styles.actionText, primary && styles.primaryActionText]}>{label}</Text>
     </Pressable>
   );
 }
@@ -233,137 +122,23 @@ const styles = StyleSheet.create({
   heroPhoto: { position: 'absolute', inset: 0, width: '100%', height: '100%' },
   heroShade: { position: 'absolute', inset: 0, backgroundColor: 'rgba(4, 3, 8, 0.32)' },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  backButton: {
-    minWidth: 78,
-    minHeight: 42,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: radius.pill,
-    backgroundColor: 'rgba(4, 3, 8, 0.74)',
-    paddingRight: spacing.md,
-  },
+  backButton: { minWidth: 78, minHeight: 42, flexDirection: 'row', alignItems: 'center', borderRadius: radius.pill, backgroundColor: 'rgba(4, 3, 8, 0.74)', paddingRight: spacing.md },
   backText: { color: colors.text, fontSize: 15, fontWeight: '800' },
-  brand: {
-    ...typography.title,
-    fontSize: 21,
-    lineHeight: 27,
-    textTransform: 'uppercase',
-    textShadowColor: colors.black,
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
-  brandStar: { color: colors.gold, fontSize: 16 },
-  iconButton: {
-    width: 42,
-    height: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radius.pill,
-    backgroundColor: 'rgba(4, 3, 8, 0.74)',
-  },
-  heroCopy: {
-    marginHorizontal: spacing.lg,
-    borderWidth: 1,
-    borderColor: '#41516D',
-    borderRadius: radius.md,
-    backgroundColor: '#0D1018',
-    padding: spacing.md,
-  },
-  type: { ...typography.eyebrow, color: '#F4D46C', fontSize: 10, letterSpacing: 1.5 },
-  name: { ...typography.display, fontSize: 29, lineHeight: 35, marginTop: spacing.xs },
-  addressRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs, marginTop: spacing.sm },
-  address: { ...typography.body, flex: 1, fontSize: 14, lineHeight: 19 },
-  description: { ...typography.caption, color: '#DED5E1', fontSize: 13, lineHeight: 19, marginTop: spacing.sm },
-  seasonalCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginHorizontal: spacing.lg,
-    borderWidth: 1,
-    borderColor: '#8B5A34',
-    borderRadius: radius.md,
-    backgroundColor: '#291C13',
-    padding: spacing.md,
-  },
-  warningCopy: { flex: 1 },
-  seasonalLabel: { color: colors.orange, fontSize: 11, fontWeight: '900', letterSpacing: 0.45 },
-  seasonalText: { color: colors.text, fontSize: 15, lineHeight: 20, fontWeight: '900', marginTop: 3 },
-  statusCard: {
-    ...shadows.card,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginHorizontal: spacing.lg,
-    borderWidth: 1,
-    borderColor: '#41516D',
-    borderRadius: radius.md,
-    backgroundColor: '#0D111A',
-    padding: spacing.md,
-  },
-  statusIcon: {
-    width: 48,
-    height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radius.pill,
-  },
-  openStatusIcon: { backgroundColor: '#102A1B' },
-  closedStatusIcon: { backgroundColor: '#2A1515' },
-  seasonalStatusIcon: { backgroundColor: '#291C13' },
-  unknownStatusIcon: { backgroundColor: '#2D2416' },
-  statusCopy: { flex: 1 },
-  statusLabel: { fontSize: 14, fontWeight: '900' },
-  hours: { ...typography.caption, fontSize: 12, lineHeight: 17, marginTop: 2 },
-  factsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginHorizontal: spacing.lg },
-  factCard: {
-    width: '48.8%',
-    minHeight: 112,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#3D4962',
-    borderRadius: radius.md,
-    backgroundColor: '#11131D',
-    padding: spacing.sm,
-  },
-  factLabel: {
-    color: colors.textMuted,
-    fontSize: 9.5,
-    fontWeight: '800',
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    marginTop: 4,
-  },
-  factValue: { color: colors.text, fontSize: 12, lineHeight: 16, fontWeight: '800', textAlign: 'center', marginTop: 3 },
-  actionsRow: { flexDirection: 'row', gap: spacing.sm, marginHorizontal: spacing.lg },
-  actionButton: {
-    flex: 1,
-    minWidth: 0,
-    minHeight: 64,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.gold,
-    borderRadius: radius.md,
-    backgroundColor: '#11101A',
-    paddingHorizontal: spacing.sm,
-  },
+  brand: { ...typography.title, fontSize: 21, lineHeight: 27, textTransform: 'uppercase', textShadowColor: colors.black, textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 },
+  iconButton: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center', borderRadius: 21, backgroundColor: 'rgba(4, 3, 8, 0.76)' },
+  heroCopy: { paddingHorizontal: spacing.lg, gap: spacing.xs },
+  type: { color: colors.gold, fontSize: 13, fontWeight: '900', letterSpacing: 1.2, textTransform: 'uppercase' },
+  name: { ...typography.display, color: colors.text, fontSize: 31, lineHeight: 37 },
+  facilityName: { color: colors.textMuted, fontSize: 15, lineHeight: 21 },
+  addressRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs, marginTop: spacing.xs },
+  address: { color: colors.text, fontSize: 16, lineHeight: 22, flex: 1 },
+  notesCard: { marginHorizontal: spacing.lg, padding: spacing.md, gap: spacing.sm, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
+  noteRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
+  noteText: { color: colors.textMuted, fontSize: 14, lineHeight: 20, flex: 1 },
+  actionsRow: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.lg, marginTop: spacing.xs },
+  actionButton: { minWidth: 0, minHeight: 52, flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs, borderRadius: radius.md, borderWidth: 1, borderColor: colors.gold, backgroundColor: colors.surface },
   primaryAction: { backgroundColor: colors.gold },
-  actionText: { color: colors.text, fontSize: 13, fontWeight: '900' },
+  actionText: { color: colors.gold, fontSize: 15, fontWeight: '900' },
   primaryActionText: { color: colors.black },
-  pressed: { opacity: 0.76, transform: [{ scale: 0.98 }] },
-  disclaimerCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.sm,
-    marginHorizontal: spacing.lg,
-    borderRadius: radius.md,
-    backgroundColor: '#211B12',
-    padding: spacing.md,
-  },
-  disclaimerText: { ...typography.caption, flex: 1, fontSize: 11.5, lineHeight: 16 },
-  disclaimerCopy: { flex: 1 },
-  verifiedText: { color: colors.gold, fontSize: 9.5, fontWeight: '800', marginTop: spacing.xs },
+  pressed: { opacity: 0.78 },
 });

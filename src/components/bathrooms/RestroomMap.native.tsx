@@ -3,11 +3,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
-import {
-  getBathroomOperatingStatus,
-  getBathroomHours,
-  type BathroomLocation,
-} from '@/data/bathrooms';
+import type { BathroomLocation } from '@/data/bathrooms';
 import { getMappableBathrooms } from '@/services/bathroomContentCore';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
@@ -89,21 +85,18 @@ type MapPreviewProps = {
 };
 
 function MapPreview({ location, onClose, onDirections, onViewDetails }: MapPreviewProps) {
-  const status = getBathroomOperatingStatus(location);
-
   return (
     <View style={styles.preview}>
       <Pressable accessibilityLabel="Close restroom preview" hitSlop={8} onPress={onClose} style={styles.closeButton}>
         <Ionicons color={colors.textMuted} name="close" size={19} />
       </Pressable>
       <Text numberOfLines={2} style={styles.previewName}>{location.mapLabel}</Text>
+      <Text numberOfLines={2} style={styles.previewAddress}>{location.address}</Text>
       <View style={styles.previewMetaRow}>
-        <Text style={[styles.previewStatus, { color: statusColor(status.kind) }]}>{status.label}</Text>
         <Text style={styles.previewDistance}>
           {location.distanceMiles === undefined ? 'Distance unavailable' : `${location.distanceMiles.toFixed(1)} mi`}
         </Text>
       </View>
-      <Text numberOfLines={2} style={styles.previewHours}>{getBathroomHours(location)}</Text>
       <View style={styles.previewActions}>
         <Pressable accessibilityRole="button" onPress={onDirections} style={styles.primaryButton}>
           <Ionicons color={colors.black} name="navigate" size={15} />
@@ -115,13 +108,6 @@ function MapPreview({ location, onClose, onDirections, onViewDetails }: MapPrevi
       </View>
     </View>
   );
-}
-
-function statusColor(kind: 'open' | 'closed' | 'seasonal' | 'unknown') {
-  if (kind === 'open') return '#78E567';
-  if (kind === 'closed') return '#FF7968';
-  if (kind === 'seasonal') return colors.orange;
-  return colors.gold;
 }
 
 const styles = StyleSheet.create({
@@ -169,10 +155,9 @@ const styles = StyleSheet.create({
   },
   closeButton: { position: 'absolute', top: spacing.sm, right: spacing.sm, zIndex: 1 },
   previewName: { ...typography.title, fontSize: 18, lineHeight: 22, paddingRight: spacing.xl },
+  previewAddress: { ...typography.caption, fontSize: 10.5, lineHeight: 15, marginTop: 3 },
   previewMetaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.xs },
-  previewStatus: { fontSize: 11, fontWeight: '900' },
   previewDistance: { color: colors.textMuted, fontSize: 10.5, fontWeight: '800' },
-  previewHours: { ...typography.caption, fontSize: 10.5, lineHeight: 15, marginTop: 3 },
   previewActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
   primaryButton: {
     flex: 1,

@@ -76,10 +76,6 @@ export function ParkingCard({
               <Ionicons color="#70AEFF" name="navigate" size={13} />
               <Text style={styles.travelText}>{location.distance}</Text>
             </View>
-            <View style={styles.travelItem}>
-              <Ionicons color={colors.gold} name="walk" size={14} />
-              <Text style={styles.travelText}>{location.walkingTime} to {location.walkingDestination}</Text>
-            </View>
           </View>
           <View style={styles.statusRow}>
             <View style={[styles.statusDot, operatingStatus.kind === 'open' ? styles.openDot : operatingStatus.kind === 'closed' ? styles.closedDot : styles.unknownDot]} />
@@ -90,15 +86,9 @@ export function ParkingCard({
           <View style={styles.featuresRow}>
             {location.accessible === true ? <Feature icon="accessibility" label="Accessible" /> : null}
             {location.evCharging === 'yes' ? <Feature icon="flash" label="EV Charging" /> : null}
-            {location.capacity !== null ? <Feature icon="car" label={location.capacityLabel ?? `Capacity: ${location.capacity}`} /> : null}
           </View>
         </View>
       </Pressable>
-
-      <View style={styles.availabilityBanner}>
-        <Ionicons color="#70AEFF" name="cloud-offline-outline" size={15} />
-        <Text numberOfLines={1} style={styles.availabilityText}>{location.availability.label}</Text>
-      </View>
 
       <View style={styles.actionsRow}>
         <Pressable
@@ -136,7 +126,7 @@ function Feature({ icon, label }: { icon: React.ComponentProps<typeof Ionicons>[
 const styles = StyleSheet.create({
   card: {
     ...shadows.card,
-    height: 306,
+    minHeight: 248,
     overflow: 'hidden',
     backgroundColor: '#0C1018',
     borderWidth: 1,
@@ -145,10 +135,10 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   featuredCard: { borderColor: '#8052A1' },
-  cardNarrow: { height: 320 },
-  summaryButton: { flex: 1, minHeight: 0, flexDirection: 'row' },
+  cardNarrow: { minHeight: 260 },
+  summaryButton: { minHeight: 190, flexDirection: 'row' },
   pressed: { opacity: 0.78, transform: [{ scale: 0.99 }] },
-  imageFrame: { width: '39%', height: '100%', overflow: 'hidden' },
+  imageFrame: { width: '39%', alignSelf: 'stretch', overflow: 'hidden' },
   imageFrameNarrow: { width: '36%' },
   image: { width: '100%', height: '100%' },
   imageShade: { position: 'absolute', inset: 0, backgroundColor: 'rgba(4, 5, 10, 0.08)' },
@@ -189,19 +179,6 @@ const styles = StyleSheet.create({
   featuresRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: 6 },
   feature: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   featureText: { color: '#A8B5D6', fontSize: 8.5, fontWeight: '700' },
-  availabilityBanner: {
-    minHeight: 30,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginHorizontal: spacing.sm,
-    marginTop: spacing.sm,
-    borderRadius: radius.sm,
-    backgroundColor: '#111A29',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 6,
-  },
-  availabilityText: { flex: 1, color: '#A8B5D6', fontSize: 10.5, fontWeight: '800' },
   actionsRow: { flexDirection: 'row', gap: spacing.sm, marginHorizontal: spacing.sm, marginTop: spacing.sm },
   primaryAction: {
     flex: 1,

@@ -57,7 +57,7 @@ export type ParkingLocation = {
   featured?: boolean;
 };
 
-const parkingPlaceholder = require('../../assets/images/home/parking.png');
+export const universalParkingImage = require('../../Photos/universal parking photo.png');
 
 const unavailable: LiveParkingAvailability = {
   kind: 'unavailable',
@@ -86,7 +86,7 @@ export const parkingLocations: ParkingLocation[] = [
     accessible: true,
     evCharging: 'yes',
     description: 'A large city garage beside the Salem Visitor Center and downtown attractions.',
-    image: parkingPlaceholder,
+    image: universalParkingImage,
     websiteUrl: 'https://www.salemma.gov/379/Parking-Rates-Locations-Hours',
     distance: '0.2 mi',
     walkingTime: '5 min',
@@ -107,7 +107,7 @@ export const parkingLocations: ParkingLocation[] = [
     accessible: true,
     evCharging: 'yes',
     description: 'A municipal garage near Derby Street, Pickering Wharf, and the waterfront.',
-    image: parkingPlaceholder,
+    image: universalParkingImage,
     websiteUrl: 'https://www.salemma.gov/379/Parking-Rates-Locations-Hours',
     distance: '0.6 mi',
     walkingTime: '8 min',
@@ -128,7 +128,7 @@ export const parkingLocations: ParkingLocation[] = [
     accessible: true,
     evCharging: 'unknown',
     description: 'Commuter rail garage at Salem Station with a short walk into downtown.',
-    image: parkingPlaceholder,
+    image: universalParkingImage,
     websiteUrl: 'https://www.mbta.com/stops/place-ER-0168',
     distance: '0.8 mi',
     walkingTime: '10 min',
@@ -148,7 +148,7 @@ export const parkingLocations: ParkingLocation[] = [
     accessible: true,
     evCharging: 'yes',
     description: 'A central surface lot close to Essex Street and downtown businesses.',
-    image: parkingPlaceholder,
+    image: universalParkingImage,
     websiteUrl: 'https://www.salem.org/parking/church-street-lot/',
     distance: '0.3 mi',
     walkingTime: '6 min',
@@ -169,7 +169,7 @@ export const parkingLocations: ParkingLocation[] = [
     accessible: null,
     evCharging: 'unknown',
     description: 'A downtown surface lot with rules that can vary by permit period and season.',
-    image: parkingPlaceholder,
+    image: universalParkingImage,
     websiteUrl: 'https://www.salemma.gov/379/Parking-Rates-Locations-Hours',
     distance: '0.7 mi',
     walkingTime: '12 min',

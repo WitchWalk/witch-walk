@@ -1,13 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
-import {
-  getBathroomOperatingStatus,
-  getBathroomHours,
-  type BathroomStatusKind,
-  type BathroomLocation,
-} from '@/data/bathrooms';
-import { bathroomAccessLabel, bathroomNotice } from '@/services/bathroomContentCore';
+import type { BathroomLocation } from '@/data/bathrooms';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 type BathroomCardProps = {
@@ -21,17 +15,21 @@ type BathroomCardProps = {
 export function BathroomCard({ favorite, location, onDirections, onFavoritePress, onPress }: BathroomCardProps) {
   const { width } = useWindowDimensions();
   const narrow = width < 375;
-  const operatingStatus = getBathroomOperatingStatus(location);
-  const seasonal = location.seasonal;
-  const warning = location.advisoryLevel === 'Warning';
+  const seasonalNote = location.seasonal
+    ? location.seasonalNotes || 'This restroom is available seasonally.'
+    : '';
+  const accessNote = location.publicAccess === 'Limited / Conditional'
+    ? location.accessNotes || 'Limited / Conditional access'
+    : '';
+  const essentialNote = seasonalNote || accessNote;
 
   return (
-    <View style={[styles.card, narrow && styles.cardNarrow, seasonal && styles.seasonalCard]}>
+    <View style={[styles.card, location.seasonal && styles.seasonalCard]}>
       <Pressable
         accessibilityLabel={`View details for ${location.name}`}
         accessibilityRole="button"
         onPress={onPress}
-        style={({ pressed }) => [styles.summary, pressed && styles.pressed]}
+        style={({ pressed }) => [styles.summary, narrow && styles.summaryNarrow, pressed && styles.pressed]}
       >
         <View style={[styles.imageFrame, narrow && styles.imageFrameNarrow]}>
           <Image resizeMode="cover" source={location.image} style={styles.image} />
@@ -54,58 +52,29 @@ export function BathroomCard({ favorite, location, onDirections, onFavoritePress
         </View>
 
         <View style={styles.info}>
-          <View style={styles.titleArea}>
-            <Text style={[styles.name, narrow && styles.nameNarrow]}>{location.name}</Text>
-          </View>
-
+          <Text style={[styles.name, narrow && styles.nameNarrow]}>{location.name}</Text>
+          {location.restroomType && location.restroomType !== 'Unknown' ? (
+            <Text numberOfLines={1} style={styles.typeLabel}>{location.restroomType}</Text>
+          ) : null}
           <View style={styles.metaRow}>
             <Ionicons color={colors.orange} name="location" size={14} />
-            <Text numberOfLines={2} style={styles.metaText}>{location.address}</Text>
+            <Text numberOfLines={3} style={styles.metaText}>{location.address}</Text>
           </View>
-
-          <View style={styles.statusRow}>
-            <View style={[styles.statusDot, statusDotStyle(operatingStatus.kind)]} />
-            <Text style={[styles.statusText, statusTextStyle(operatingStatus.kind)]}>
-              {operatingStatus.label}
-            </Text>
-          </View>
-          <Text numberOfLines={2} style={styles.hours}>{getBathroomHours(location)}</Text>
-          <Text style={styles.accessText}>{bathroomAccessLabel(location)}{location.portableToilets === true || location.restroomType === 'Portable Toilets' ? ' • Portable toilets' : ''}</Text>
-
-          <View style={styles.travelRow}>
-            <View style={styles.travelItem}>
-              <Ionicons color="#8DBDFF" name="navigate" size={14} />
-              <Text style={styles.travelText}>
-                {location.distanceMiles === undefined ? 'Distance unavailable' : `${location.distanceMiles.toFixed(1)} mi`}
-              </Text>
-            </View>
-            {location.walkingTimeMinutes === undefined ? null : (
-              <View style={styles.travelItem}>
-                <Ionicons color={colors.gold} name="walk" size={15} />
-                <Text style={styles.travelText}>{location.walkingTimeMinutes} min walk</Text>
-              </View>
-            )}
-          </View>
-
-          <View style={styles.accessRow}>
-            <Ionicons color="#70AEFF" name="accessibility" size={15} />
-            <Text style={styles.accessText}>
-              {location.accessible === true ? 'Accessible' : location.accessible === false ? 'Not accessible' : 'Accessibility unverified'}
+          <View style={styles.distanceRow}>
+            <Ionicons color="#8DBDFF" name="navigate" size={14} />
+            <Text style={styles.distanceText}>
+              {location.distanceMiles === undefined ? 'Distance unavailable' : `${location.distanceMiles.toFixed(1)} mi`}
             </Text>
           </View>
         </View>
       </Pressable>
 
-      <View style={[styles.noteRow, (seasonal || warning) && styles.seasonalRow]}>
-        <Ionicons
-          color={seasonal || warning ? colors.orange : colors.gold}
-          name={warning ? 'warning' : seasonal ? 'calendar' : 'information-circle'}
-          size={16}
-        />
-        <Text numberOfLines={2} style={[styles.noteText, (seasonal || warning) && styles.seasonalText]}>
-          {bathroomNotice(location) || 'Check posted hours and access on arrival.'}
-        </Text>
-      </View>
+      {essentialNote ? (
+        <View style={[styles.noteRow, location.seasonal && styles.seasonalRow]}>
+          <Ionicons color={location.seasonal ? colors.orange : colors.gold} name={location.seasonal ? 'calendar' : 'information-circle'} size={16} />
+          <Text numberOfLines={2} style={[styles.noteText, location.seasonal && styles.seasonalText]}>{essentialNote}</Text>
+        </View>
+      ) : null}
 
       <View style={styles.actionsRow}>
         <Pressable
@@ -131,24 +100,9 @@ export function BathroomCard({ favorite, location, onDirections, onFavoritePress
   );
 }
 
-function statusDotStyle(kind: BathroomStatusKind) {
-  if (kind === 'open') return styles.openDot;
-  if (kind === 'closed') return styles.closedDot;
-  if (kind === 'seasonal') return styles.seasonalDot;
-  return styles.unknownDot;
-}
-
-function statusTextStyle(kind: BathroomStatusKind) {
-  if (kind === 'open') return styles.openText;
-  if (kind === 'closed') return styles.closedText;
-  if (kind === 'seasonal') return styles.seasonalStatusText;
-  return styles.unknownText;
-}
-
 const styles = StyleSheet.create({
   card: {
     ...shadows.card,
-    minHeight: 326,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#43516B',
@@ -156,14 +110,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#0C1018',
     paddingBottom: spacing.sm,
   },
-  cardNarrow: { minHeight: 340 },
   seasonalCard: { borderColor: '#8B5A34' },
-  summary: { flexDirection: 'row' },
+  summary: { minHeight: 174, flexDirection: 'row' },
+  summaryNarrow: { minHeight: 184 },
   pressed: { opacity: 0.78, transform: [{ scale: 0.99 }] },
-  imageFrame: { width: '35%', alignSelf: 'stretch', overflow: 'hidden' },
-  imageFrameNarrow: { width: '32%' },
+  imageFrame: { width: '38%', alignSelf: 'stretch', overflow: 'hidden' },
+  imageFrameNarrow: { width: '35%' },
   image: { position: 'absolute', inset: 0, width: '100%', height: '100%' },
-  imageShade: { position: 'absolute', inset: 0, backgroundColor: 'rgba(5, 5, 10, 0.18)' },
+  imageShade: { position: 'absolute', inset: 0, backgroundColor: 'rgba(5, 5, 10, 0.12)' },
   restroomBadge: {
     position: 'absolute',
     top: spacing.sm,
@@ -178,29 +132,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(9, 7, 13, 0.84)',
   },
   favoriteButton: { position: 'absolute', right: spacing.sm, bottom: spacing.sm, width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill, backgroundColor: 'rgba(9,7,13,0.84)' },
-  info: { flex: 1, minWidth: 0, padding: spacing.md, paddingLeft: 10 },
-  titleArea: { minHeight: 82, justifyContent: 'flex-start' },
+  info: { flex: 1, minWidth: 0, justifyContent: 'center', padding: spacing.md, paddingLeft: 10 },
   name: { ...typography.title, fontSize: 18, lineHeight: 21 },
   nameNarrow: { fontSize: 15.5, lineHeight: 18.5 },
-  metaRow: { minWidth: 0, flexDirection: 'row', alignItems: 'flex-start', gap: 3 },
+  typeLabel: { color: '#A9B8DC', fontSize: 9.5, fontWeight: '900', marginTop: spacing.xs, textTransform: 'uppercase' },
+  metaRow: { minWidth: 0, flexDirection: 'row', alignItems: 'flex-start', gap: 3, marginTop: spacing.sm },
   metaText: { ...typography.caption, flex: 1, minWidth: 0, fontSize: 10.5, lineHeight: 14 },
-  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6 },
-  statusDot: { width: 8, height: 8, borderRadius: radius.pill },
-  openDot: { backgroundColor: '#75E55E' },
-  closedDot: { backgroundColor: '#FF7968' },
-  seasonalDot: { backgroundColor: colors.orange },
-  unknownDot: { backgroundColor: colors.gold },
-  statusText: { fontSize: 11, fontWeight: '900' },
-  openText: { color: '#8CEB72' },
-  closedText: { color: '#FF8D7D' },
-  seasonalStatusText: { color: '#F0A35C' },
-  unknownText: { color: colors.gold },
-  hours: { color: colors.textMuted, fontSize: 9.5, lineHeight: 13, marginTop: 2 },
-  travelRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: 6 },
-  travelItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  travelText: { color: '#D4D9E7', fontSize: 10, fontWeight: '800' },
-  accessRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 5 },
-  accessText: { color: '#9EC7FF', fontSize: 10, fontWeight: '800' },
+  distanceRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: spacing.sm },
+  distanceText: { color: '#D4D9E7', fontSize: 10, fontWeight: '800' },
   noteRow: {
     minHeight: 30,
     flexDirection: 'row',

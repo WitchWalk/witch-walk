@@ -19,6 +19,8 @@ export function ParkingDetailsView({ location }: ParkingDetailsViewProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const favorite = isFavorite('parking', location.id);
   const operatingStatus = getParkingOperatingStatus(location);
+  const showAccessibility = location.accessible !== null;
+  const showEvCharging = location.evCharging !== 'unknown';
 
   const goBackToParking = () => {
     if (router.canGoBack()) router.back();
@@ -78,14 +80,6 @@ export function ParkingDetailsView({ location }: ParkingDetailsViewProps) {
           <Text style={styles.description}>{location.fullDescription ?? location.description}</Text>
         </View>
 
-        <View style={styles.availabilityCard}>
-          <Ionicons color="#70AEFF" name="cloud-offline-outline" size={25} />
-          <View style={styles.availabilityCopy}>
-            <Text style={styles.availabilityEyebrow}>Parking availability</Text>
-            <Text style={styles.availabilityText}>{location.availability.label}</Text>
-          </View>
-        </View>
-
         <View style={styles.infoCard}>
           <InfoRow
             color={operatingStatus.kind === 'open' ? '#78E567' : operatingStatus.kind === 'closed' ? '#F58A96' : colors.gold}
@@ -102,28 +96,18 @@ export function ParkingDetailsView({ location }: ParkingDetailsViewProps) {
           {location.motorcycleNotes ? <><View style={styles.rule} /><InfoRow color={colors.gold} icon="bicycle-outline" label="Motorcycle information" value={location.motorcycleNotes} /></> : null}
         </View>
 
-        <View style={styles.factsGrid}>
-          <FactCard
-            icon="car"
-            label="Capacity"
-            value={location.capacityLabel ?? (location.capacity !== null ? `Capacity: ${location.capacity} spaces` : 'Unknown')}
-          />
-          <FactCard
+        {showAccessibility || showEvCharging ? <View style={styles.factsGrid}>
+          {showAccessibility ? <FactCard
             icon="accessibility"
             label="Accessible"
-            value={location.accessible === true ? 'Yes' : location.accessible === false ? 'No' : 'Unknown'}
-          />
-          <FactCard
+            value={location.accessible ? 'Yes' : 'No'}
+          /> : null}
+          {showEvCharging ? <FactCard
             icon="flash"
             label="EV charging"
-            value={location.evCharging === 'yes' ? 'Available' : location.evCharging === 'no' ? 'Not available' : 'Unknown'}
-          />
-          <FactCard
-            icon="walk"
-            label={`Walk to ${location.walkingDestination}`}
-            value={`${location.distance} • ${location.walkingTime}`}
-          />
-        </View>
+            value={location.evCharging === 'yes' ? 'Yes' : 'No'}
+          /> : null}
+        </View> : null}
 
         <View style={styles.actionsRow}>
           <ActionButton color={colors.gold} icon="navigate" label="Directions" onPress={openDirections} />
@@ -251,20 +235,6 @@ const styles = StyleSheet.create({
   addressRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs, marginTop: spacing.sm },
   address: { ...typography.body, flex: 1, fontSize: 14, lineHeight: 19 },
   description: { ...typography.caption, color: '#DED5E1', fontSize: 13, lineHeight: 19, marginTop: spacing.sm },
-  availabilityCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginHorizontal: spacing.lg,
-    backgroundColor: '#111A29',
-    borderWidth: 1,
-    borderColor: '#3E5E8A',
-    borderRadius: radius.md,
-    padding: spacing.md,
-  },
-  availabilityCopy: { flex: 1 },
-  availabilityEyebrow: { color: '#8FAFE1', fontSize: 10, fontWeight: '900', textTransform: 'uppercase' },
-  availabilityText: { color: colors.text, fontSize: 14, lineHeight: 19, fontWeight: '800', marginTop: 2 },
   infoCard: {
     ...shadows.card,
     marginHorizontal: spacing.lg,
@@ -281,7 +251,8 @@ const styles = StyleSheet.create({
   rule: { height: 1, backgroundColor: colors.borderSoft, marginVertical: spacing.md },
   factsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginHorizontal: spacing.lg },
   factCard: {
-    width: '48.8%',
+    flexGrow: 1,
+    flexBasis: '48%',
     minHeight: 103,
     alignItems: 'center',
     justifyContent: 'center',

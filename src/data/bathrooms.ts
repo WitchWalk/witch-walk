@@ -1,7 +1,7 @@
 import type { ImageSourcePropType } from 'react-native';
 import { getAttractionHoursPresentation, type AttractionHours } from '@/services/attractionContentCore';
 
-export type BathroomFilter = 'All' | 'Permanent' | 'Seasonal' | 'Accessible' | 'Open Now';
+export type BathroomFilter = 'All' | 'Permanent' | 'Seasonal';
 export type RestroomCategory = 'permanent' | 'seasonal_public' | 'halloween_portable' | 'portable' | 'unknown';
 export type BathroomStatusKind = 'open' | 'closed' | 'seasonal' | 'unknown';
 
@@ -71,12 +71,10 @@ export type BathroomOperatingStatus = {
   label: 'Open' | 'Closed' | 'Seasonal' | 'Hours Unknown' | 'Hours unavailable';
 };
 
-const bathroomPlaceholder = require('../../assets/images/home/bathrooms.png');
-const southHarborImage = require('../../Photos/South Harbor garage.png');
-const centralWharfImage = require('../../Photos/Salem Maritime Historic.png');
+export const universalBathroomImage = require('../../Photos/universal bathroom photo.png');
 const verifiedDate = '2026-09-10';
 
-export const bathroomFilters: BathroomFilter[] = ['All', 'Permanent', 'Seasonal', 'Accessible', 'Open Now'];
+export const bathroomFilters: BathroomFilter[] = ['All', 'Permanent', 'Seasonal'];
 
 export const bathroomLocations: BathroomLocation[] = [
   {
@@ -93,7 +91,7 @@ export const bathroomLocations: BathroomLocation[] = [
     accessible: null,
     description: 'Ground-floor public restroom near the Destination Salem Visitor Information Center.',
     notes: 'South Harbor Garage and the Destination Salem Visitor Information Center share this single restroom location.',
-    image: southHarborImage,
+    image: universalBathroomImage,
     directionsDestination: 'South Harbor Garage Restrooms, 245 Derby Street, Salem, MA 01970',
     sourceReference: 'https://www.salem.org/restrooms/south-harbor-garage/',
     lastVerifiedDate: verifiedDate,
@@ -113,7 +111,7 @@ export const bathroomLocations: BathroomLocation[] = [
     accessible: true,
     description: 'Public restroom at Central Wharf within Salem Maritime National Historical Park.',
     notes: 'Accessible restroom information is published by Destination Salem.',
-    image: centralWharfImage,
+    image: universalBathroomImage,
     directionsDestination: 'Central Wharf Restrooms, 193 Derby Street, Salem, MA 01970',
     sourceReference: 'https://www.salem.org/restrooms/salem-maritime-national-historic-site-central-wharf/',
     lastVerifiedDate: verifiedDate,
@@ -133,7 +131,7 @@ export const bathroomLocations: BathroomLocation[] = [
     accessible: null,
     description: 'A regular public restroom option inside Salem Waterfront Hotel & Suites.',
     notes: 'Ask hotel staff for the public restroom location if needed.',
-    image: bathroomPlaceholder,
+    image: universalBathroomImage,
     directionsDestination: 'Salem Waterfront Hotel & Suites, 225 Derby Street, Salem, MA 01970',
     sourceReference: 'https://www.salem.org/restrooms/salem-waterfront-hotel-suites/',
     lastVerifiedDate: verifiedDate,
@@ -153,7 +151,7 @@ export const bathroomLocations: BathroomLocation[] = [
     accessible: null,
     description: 'Public restroom associated with the Real Pirates Salem location.',
     notes: 'Available during the listed attraction hours.',
-    image: bathroomPlaceholder,
+    image: universalBathroomImage,
     directionsDestination: 'Real Pirates Restrooms, 285 Derby Street, Salem, MA 01970',
     sourceReference: 'https://www.salem.org/restrooms/real-pirates/',
     lastVerifiedDate: verifiedDate,
@@ -173,7 +171,7 @@ export const bathroomLocations: BathroomLocation[] = [
     accessible: null,
     description: 'A 24-hour public restroom option at the Derby Street Speedway gas station.',
     notes: 'Restroom access is inside the gas station.',
-    image: bathroomPlaceholder,
+    image: universalBathroomImage,
     directionsDestination: 'Speedway Restroom, 295 Derby Street, Salem, MA 01970',
     sourceReference: 'https://www.salem.org/restrooms/speedway-gas-station/',
     lastVerifiedDate: verifiedDate,
@@ -199,7 +197,7 @@ export const bathroomLocations: BathroomLocation[] = [
     accessible: true,
     description: 'A seasonal public restroom in Artists’ Row near Derby Square.',
     notes: 'Confirm that the seasonal facility is operating before arrival.',
-    image: bathroomPlaceholder,
+    image: universalBathroomImage,
     directionsDestination: 'Artists’ Row Restrooms, 24 New Derby Street, Salem, MA 01970',
     sourceReference: 'https://www.salem.org/listing/artists-row/',
     lastVerifiedDate: verifiedDate,
@@ -229,7 +227,7 @@ export const bathroomLocations: BathroomLocation[] = [
     accessible: null,
     description: 'Public restroom inside Old Town Hall at the Salem 400+ Welcome Center.',
     notes: 'Hours are highly variable and may change for events.',
-    image: bathroomPlaceholder,
+    image: universalBathroomImage,
     directionsDestination: 'Old Town Hall Restrooms, 32 Derby Square, Salem, MA 01970',
     sourceReference: 'https://www.salem.org/restrooms/old-town-hall-salem-400-welcome-center/',
     lastVerifiedDate: verifiedDate,
@@ -259,7 +257,7 @@ export const bathroomLocations: BathroomLocation[] = [
     accessible: null,
     description: 'A public restroom option inside the Salem City Hall Annex.',
     notes: 'Closed Saturdays and Sundays.',
-    image: bathroomPlaceholder,
+    image: universalBathroomImage,
     directionsDestination: 'City Hall Annex Restrooms, 98 Washington Street, Salem, MA 01970',
     sourceReference: 'https://www.salem.org/restrooms/salem-city-hall-annex/',
     lastVerifiedDate: verifiedDate,
@@ -291,7 +289,7 @@ export const bathroomLocations: BathroomLocation[] = [
     accessible: null,
     description: 'Public restroom available inside the Salem Public Library during library hours.',
     notes: 'Library closures and holiday schedules may affect access.',
-    image: bathroomPlaceholder,
+    image: universalBathroomImage,
     directionsDestination: 'Salem Public Library Restrooms, 370 Essex Street, Salem, MA 01970',
     sourceReference: 'https://www.salem.org/restrooms/salem-public-library/',
     lastVerifiedDate: verifiedDate,
@@ -311,7 +309,7 @@ export const bathroomLocations: BathroomLocation[] = [
     accessible: true,
     description: 'Public restroom inside the Salem Armory Regional Visitor Center operated with the National Park Service.',
     notes: 'Accessible restrooms are available during visitor center operating hours.',
-    image: bathroomPlaceholder,
+    image: universalBathroomImage,
     directionsDestination: 'Salem Armory Visitor Center Restrooms, 2 New Liberty Street, Salem, MA 01970',
     sourceReference: 'https://www.salem.org/restrooms/salem-armory-regional-visitor-center-national-park-service/',
     lastVerifiedDate: verifiedDate,
@@ -342,7 +340,7 @@ export const bathroomLocations: BathroomLocation[] = [
     accessible: null,
     description: 'Public restroom at Sofi at Salem Station near the MBTA commuter rail station.',
     notes: 'Closed Sundays.',
-    image: bathroomPlaceholder,
+    image: universalBathroomImage,
     directionsDestination: 'Salem Station Restrooms, 190 Bridge Street, Salem, MA 01970',
     sourceReference: 'https://www.salem.org/restrooms/sofi/',
     lastVerifiedDate: verifiedDate,
