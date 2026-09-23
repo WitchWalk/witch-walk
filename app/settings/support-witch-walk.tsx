@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 
+import { AppText as Text } from '@/components/AppText';
 import { SettingsInfoScreen } from '@/components/settings/SettingsInfoScreen';
 import { usePublicContentSettings } from '@/hooks/usePublicContentSettings';
 import { openSupportPage } from '@/services/supportLink';

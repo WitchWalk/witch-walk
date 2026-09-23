@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Image, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
+import { AppText as Text } from '@/components/AppText';
 import type { WaitTimeAttraction } from '@/data/waitTimes';
 import { crowdPresentation } from '@/data/waitTimes';
 import { getQuickStatusLabel, type WaitTimeAggregate } from '@/services/waitReportCore';
+import { validDistanceLabel } from '@/services/displayValues';
 import { colors, radius, shadows, typography } from '@/theme/tokens';
 
 type WaitTimeCardProps = {
@@ -18,6 +20,7 @@ export function WaitTimeCard({ item, aggregate, onDetails, onReport }: WaitTimeC
   const narrow = width < 375;
   const crowd = aggregate.crowdLevel ? crowdPresentation[aggregate.crowdLevel] : null;
   const quickStatus = getQuickStatusLabel(aggregate.quickStatusTag);
+  const distance = validDistanceLabel(item.distance);
 
   return (
     <View style={styles.card}>
@@ -34,8 +37,7 @@ export function WaitTimeCard({ item, aggregate, onDetails, onReport }: WaitTimeC
         </View>
         <View style={styles.metaRow}>
           <Text numberOfLines={1} style={styles.updated}>{aggregate.hasRecentReports ? aggregate.freshnessLabel : ''}</Text>
-          <Ionicons name="walk" size={13} color={colors.gold} />
-          <Text style={styles.distance}>{item.distance}</Text>
+          {distance ? <><Ionicons name="walk" size={13} color={colors.gold} /><Text style={styles.distance}>{distance}</Text></> : null}
         </View>
         <View style={styles.actions}>
           <Pressable accessibilityRole="button" onPress={onDetails} style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}>

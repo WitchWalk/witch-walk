@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { AppText as Text } from '@/components/AppText';
 import { useAppSettings } from '@/components/settings/AppSettingsProvider';
 import { SettingsInfoScreen } from '@/components/settings/SettingsInfoScreen';
 import type { TextSizePreference } from '@/services/appSettingsRepository';
@@ -7,7 +8,7 @@ import { colors, radius, spacing } from '@/theme/tokens';
 
 const options: { value: TextSizePreference; title: string; detail: string }[] = [
   { value: 'default', title: 'Default', detail: 'Use the current approved BROOMSTICK typography.' },
-  { value: 'larger', title: 'Larger', detail: 'Save a preference for the planned app-wide larger-text layout pass.' },
+  { value: 'larger', title: 'Larger', detail: 'Use larger readable text throughout BROOMSTICK.' },
 ];
 
 export default function TextSizeScreen() {
@@ -28,7 +29,7 @@ export default function TextSizeScreen() {
           );
         })}
       </View>
-      <Text style={styles.note}>The preference persists now. To protect approved layouts, Larger will not alter every screen until responsive typography is validated app-wide.</Text>
+      <Text style={styles.note}>Your choice is saved on this device and applies throughout the app.</Text>
     </SettingsInfoScreen>
   );
 }

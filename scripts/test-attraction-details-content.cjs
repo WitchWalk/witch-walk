@@ -16,7 +16,7 @@ assert.match(core, /visitorTips: row\.visitor_tips/);
 assert.match(core, /hoursNotes: row\.hours_notes \?\? undefined/);
 
 assert.match(details, /const about = attraction\.longDescription\.trim\(\)/);
-assert.match(details, /\{about \|\| visitorTips\.length \? <View style=\{styles\.infoCards\}>/);
+assert.match(details, /\{about \|\| visitorTips\.length \? <View style=\{\[styles\.infoCards, narrowContentCards && styles\.infoCardsNarrow\]\}>/);
 assert.match(details, /\{about \? <View style=\{styles\.contentCard\}>/);
 assert.match(details, /\{visitorTips\.length \? <View style=\{styles\.contentCard\}>/);
 assert.match(details, /const hoursLabel = attraction\.hours\.trim\(\) !== attraction\.statusLabel\.trim\(\)/);

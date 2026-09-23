@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Image, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
+import { AppText as Text } from '@/components/AppText';
 import type { Attraction } from '@/data/attractions';
+import { validDistanceLabel } from '@/services/displayValues';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 type AttractionCardProps = {
@@ -14,6 +16,7 @@ type AttractionCardProps = {
 export function AttractionCard({ attraction, favorite, onFavoritePress, onPress }: AttractionCardProps) {
   const { width } = useWindowDimensions();
   const compactTitle = width <= 375;
+  const distance = validDistanceLabel(attraction.distance);
 
   return (
     <View style={styles.card}>
@@ -57,10 +60,10 @@ export function AttractionCard({ attraction, favorite, onFavoritePress, onPress 
           </View>
 
           <View style={styles.footer}>
-            <View style={styles.distanceRow}>
+            {distance ? <View style={styles.distanceRow}>
               <Ionicons name="walk" size={13} color={colors.gold} />
-              <Text ellipsizeMode="tail" numberOfLines={1} style={styles.distance}>{attraction.distance}</Text>
-            </View>
+              <Text ellipsizeMode="tail" numberOfLines={1} style={styles.distance}>{distance}</Text>
+            </View> : null}
             <View style={styles.detailsButton}>
               <Text adjustsFontSizeToFit minimumFontScale={0.75} numberOfLines={1} style={styles.detailsText}>View Details</Text>
               <Ionicons name="chevron-forward" size={12} color={colors.gold} />
@@ -129,6 +132,6 @@ const styles = StyleSheet.create({
   footer: { height: 34, flexDirection: 'row', alignItems: 'center', gap: 3, overflow: 'hidden', marginTop: 'auto' },
   distanceRow: { minWidth: 0, flex: 1, flexDirection: 'row', alignItems: 'center', gap: 1 },
   distance: { minWidth: 0, flexShrink: 1, color: colors.textMuted, fontSize: 10, fontWeight: '700' },
-  detailsButton: { maxWidth: '68%', flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 1, borderWidth: 1, borderColor: colors.gold, borderRadius: 8, paddingHorizontal: 5, paddingVertical: 6 },
+  detailsButton: { maxWidth: '68%', flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 1, marginLeft: 'auto', borderWidth: 1, borderColor: colors.gold, borderRadius: 8, paddingHorizontal: 5, paddingVertical: 6 },
   detailsText: { flexShrink: 1, color: colors.gold, fontSize: 8.5, fontWeight: '900' },
 });

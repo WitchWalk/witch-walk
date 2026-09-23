@@ -1,7 +1,8 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppText as Text } from '@/components/AppText';
 import { BathroomDetailsView } from '@/components/bathrooms/BathroomDetailsView';
 import { useBathrooms } from '@/components/bathrooms/BathroomsProvider';
 import { colors, radius, spacing, typography } from '@/theme/tokens';

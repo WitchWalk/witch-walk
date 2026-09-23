@@ -1,7 +1,9 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { Image, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Image, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
+import { AppText as Text } from '@/components/AppText';
 import type { BathroomLocation } from '@/data/bathrooms';
+import { distanceMilesLabel } from '@/services/displayValues';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 type BathroomCardProps = {
@@ -15,6 +17,7 @@ type BathroomCardProps = {
 export function BathroomCard({ favorite, location, onDirections, onFavoritePress, onPress }: BathroomCardProps) {
   const { width } = useWindowDimensions();
   const narrow = width < 375;
+  const distance = distanceMilesLabel(location.distanceMiles);
   const seasonalNote = location.seasonal
     ? location.seasonalNotes || 'This restroom is available seasonally.'
     : '';
@@ -60,12 +63,10 @@ export function BathroomCard({ favorite, location, onDirections, onFavoritePress
             <Ionicons color={colors.orange} name="location" size={14} />
             <Text numberOfLines={3} style={styles.metaText}>{location.address}</Text>
           </View>
-          <View style={styles.distanceRow}>
+          {distance ? <View style={styles.distanceRow}>
             <Ionicons color="#8DBDFF" name="navigate" size={14} />
-            <Text style={styles.distanceText}>
-              {location.distanceMiles === undefined ? 'Distance unavailable' : `${location.distanceMiles.toFixed(1)} mi`}
-            </Text>
-          </View>
+            <Text style={styles.distanceText}>{distance}</Text>
+          </View> : null}
         </View>
       </Pressable>
 

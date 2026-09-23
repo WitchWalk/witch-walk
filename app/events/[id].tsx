@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppText as Text } from '@/components/AppText';
 import { useEvents } from '@/components/events/EventsProvider';
 import { getEventDateLabel, getEventDirectionsUrl, getEventTimeLabel, type EventLocation } from '@/services/eventContentCore';
 import { colors, radius, spacing, typography } from '@/theme/tokens';

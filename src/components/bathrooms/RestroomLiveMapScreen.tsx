@@ -1,8 +1,9 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Alert, Linking, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Alert, Linking, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppText as Text } from '@/components/AppText';
 import { RestroomMap } from '@/components/bathrooms/RestroomMap';
 import { useBathrooms } from '@/components/bathrooms/BathroomsProvider';
 import { getBathroomExternalMapUrl, getMappableBathrooms } from '@/services/bathroomContentCore';

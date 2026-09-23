@@ -10,12 +10,12 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppText as Text } from '@/components/AppText';
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import { useAttractions } from '@/components/attractions/AttractionsProvider';
 import { useRestaurants } from '@/components/restaurants/RestaurantsProvider';
@@ -39,6 +39,7 @@ import {
 import { getWaitTimeAggregates } from '@/services/waitAggregationService';
 import { subscribeWaitAggregates } from '@/services/waitAggregateEvents';
 import type { WaitTimeAggregate } from '@/services/waitReportCore';
+import { validDistanceLabel } from '@/services/displayValues';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 const heroArtwork = require('../../../assets/images/home/live-map.png');
@@ -282,6 +283,7 @@ function LocationPreview({
   onFavorite: () => void;
   onViewDetails: () => void;
 }) {
+  const distance = validDistanceLabel(distanceLabel(userLocation, location));
   return (
     <View style={styles.previewCard}>
       <Pressable accessibilityLabel="Close location preview" hitSlop={8} onPress={onClose} style={styles.closeButton}>
@@ -295,9 +297,7 @@ function LocationPreview({
             <Text numberOfLines={2} style={[styles.categoryText, { color: categoryColor(location.category) }]}>
               {location.categoryLabel}
             </Text>
-            <Text numberOfLines={1} style={styles.distanceText}>
-              {distanceLabel(userLocation, location)}
-            </Text>
+            {distance ? <Text numberOfLines={1} style={styles.distanceText}>{distance}</Text> : null}
           </View>
           <Pressable
             accessibilityLabel={favorite ? `Remove ${location.name} from favorites` : `Add ${location.name} to favorites`}

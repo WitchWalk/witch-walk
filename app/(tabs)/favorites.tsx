@@ -1,9 +1,10 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppText as Text } from '@/components/AppText';
 import { FavoriteCard } from '@/components/favorites/FavoriteCard';
 import { useAttractions } from '@/components/attractions/AttractionsProvider';
 import { useRestaurants } from '@/components/restaurants/RestaurantsProvider';

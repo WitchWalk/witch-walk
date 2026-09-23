@@ -7,12 +7,11 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppText as Text, AppTextInput as TextInput } from '@/components/AppText';
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import { RestaurantCard } from '@/components/restaurants/RestaurantCard';
 import { useRestaurants } from '@/components/restaurants/RestaurantsProvider';

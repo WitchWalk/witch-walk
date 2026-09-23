@@ -1,6 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { Image, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Image, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
+import { AppText as Text } from '@/components/AppText';
 import type { FavoriteLocation } from '@/data/favoriteLocations';
 import { colors, radius, shadows, typography } from '@/theme/tokens';
 

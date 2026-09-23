@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 
+import { AppText as Text } from '@/components/AppText';
 import type { Attraction } from '@/data/attractions';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 

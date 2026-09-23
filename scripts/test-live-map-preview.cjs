@@ -9,7 +9,8 @@ const mapData = fs.readFileSync(path.join(root, 'src/data/mapLocations.ts'), 'ut
 
 // Category and distance share a flexible text column; the favorite remains fixed.
 assert.match(screen, /<View style=\{styles\.previewMetaCopy\}>[\s\S]*?<Text numberOfLines=\{2\} style=\{\[styles\.categoryText/);
-assert.match(screen, /<Text numberOfLines=\{1\} style=\{styles\.distanceText\}>/);
+assert.match(screen, /validDistanceLabel\(distanceLabel\(userLocation, location\)\)/);
+assert.match(screen, /distance \? <Text numberOfLines=\{1\} style=\{styles\.distanceText\}>/);
 assert.match(screen, /previewMetaCopy: \{ flex: 1, minWidth: 0 \}/);
 assert.match(screen, /previewFavorite: \{ width: 26, height: 24, flexShrink: 0/);
 assert.doesNotMatch(screen, /categoryText: \{ flexShrink: 1/);
@@ -39,7 +40,7 @@ assert.ok(textWidthAt(390) > textWidthAt(320));
 assert.ok(textWidthAt(430) > textWidthAt(390));
 
 assert.match(screen, /<Text numberOfLines=\{2\} style=\{styles\.previewName\}>/);
-assert.match(screen, /distanceLabel\(userLocation, location\)/);
+assert.doesNotMatch(screen, />Distance unavailable</);
 assert.match(screen, />View Details<\/Text>/);
 assert.match(screen, />Directions<\/Text>/);
 assert.match(screen, /accessibilityLabel="Close location preview"/);

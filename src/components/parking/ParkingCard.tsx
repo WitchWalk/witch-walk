@@ -1,11 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Image, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
+import { AppText as Text } from '@/components/AppText';
 import {
   getParkingOperatingStatus,
   type ParkingLocation,
 } from '@/data/parking';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
+import { validDistanceLabel } from '@/services/displayValues';
+import { getParkingCardLayout } from '@/services/parkingCardLayout';
 
 type ParkingCardProps = {
   location: ParkingLocation;
@@ -27,18 +30,20 @@ export function ParkingCard({
   onViewMap,
 }: ParkingCardProps) {
   const { width } = useWindowDimensions();
-  const narrow = width < 370;
+  const layout = getParkingCardLayout(width);
+  const narrow = layout.narrow;
   const operatingStatus = getParkingOperatingStatus(location);
+  const distance = validDistanceLabel(location.distance);
 
   return (
-    <View style={[styles.card, featured && styles.featuredCard, narrow && styles.cardNarrow]}>
+    <View style={[styles.card, featured && styles.featuredCard]}>
       <Pressable
         accessibilityLabel={`View details for ${location.name}`}
         accessibilityRole="button"
         onPress={onPress}
         style={({ pressed }) => [styles.summaryButton, pressed && styles.pressed]}
       >
-        <View style={[styles.imageFrame, narrow && styles.imageFrameNarrow]}>
+        <View style={[styles.imageFrame, { height: layout.imageHeight, width: layout.imageWidth }]}>
           <Image resizeMode="cover" source={location.image} style={styles.image} />
           <View style={styles.imageShade} />
           {featured ? (
@@ -71,12 +76,12 @@ export function ParkingCard({
             <Ionicons color={colors.orange} name="location" size={14} />
             <Text numberOfLines={1} style={styles.metaText}>{location.address}</Text>
           </View>
-          <View style={styles.travelRow}>
+          {distance ? <View style={styles.travelRow}>
             <View style={styles.travelItem}>
               <Ionicons color="#70AEFF" name="navigate" size={13} />
-              <Text style={styles.travelText}>{location.distance}</Text>
+              <Text style={styles.travelText}>{distance}</Text>
             </View>
-          </View>
+          </View> : null}
           <View style={styles.statusRow}>
             <View style={[styles.statusDot, operatingStatus.kind === 'open' ? styles.openDot : operatingStatus.kind === 'closed' ? styles.closedDot : styles.unknownDot]} />
             <Text style={[styles.statusText, operatingStatus.kind === 'open' && styles.openText, operatingStatus.kind === 'closed' && styles.closedText]}>{operatingStatus.label}</Text>
@@ -126,7 +131,6 @@ function Feature({ icon, label }: { icon: React.ComponentProps<typeof Ionicons>[
 const styles = StyleSheet.create({
   card: {
     ...shadows.card,
-    minHeight: 248,
     overflow: 'hidden',
     backgroundColor: '#0C1018',
     borderWidth: 1,
@@ -135,11 +139,9 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   featuredCard: { borderColor: '#8052A1' },
-  cardNarrow: { minHeight: 260 },
-  summaryButton: { minHeight: 190, flexDirection: 'row' },
+  summaryButton: { flexDirection: 'row', alignItems: 'flex-start' },
   pressed: { opacity: 0.78, transform: [{ scale: 0.99 }] },
-  imageFrame: { width: '39%', alignSelf: 'stretch', overflow: 'hidden' },
-  imageFrameNarrow: { width: '36%' },
+  imageFrame: { flexShrink: 0, overflow: 'hidden' },
   image: { width: '100%', height: '100%' },
   imageShade: { position: 'absolute', inset: 0, backgroundColor: 'rgba(4, 5, 10, 0.08)' },
   featuredBadge: {

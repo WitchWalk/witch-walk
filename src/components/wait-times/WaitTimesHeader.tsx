@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, Pressable, StyleSheet, View } from 'react-native';
 
+import { AppText as Text } from '@/components/AppText';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 const headerImage = require('../../../assets/images/home/wait-times.png');

@@ -2,9 +2,10 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, ImageBackground, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ImageBackground, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppText as Text } from '@/components/AppText';
 import { BathroomCard } from '@/components/bathrooms/BathroomCard';
 import { useBathrooms } from '@/components/bathrooms/BathroomsProvider';
 import { getBathroomExternalMapUrl } from '@/services/bathroomContentCore';

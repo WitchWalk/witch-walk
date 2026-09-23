@@ -1,5 +1,6 @@
-import { Linking, Pressable, StyleSheet, Text } from 'react-native';
+import { Linking, Pressable, StyleSheet } from 'react-native';
 
+import { AppText as Text } from '@/components/AppText';
 import { SettingsInfoScreen } from '@/components/settings/SettingsInfoScreen';
 import { usePublicContentSettings } from '@/hooks/usePublicContentSettings';
 import { createSupportEmailUrl } from '@/services/publicSettingsCore';

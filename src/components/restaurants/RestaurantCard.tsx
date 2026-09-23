@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Image, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
+import { AppText as Text } from '@/components/AppText';
 import type { Restaurant } from '@/data/restaurants';
+import { validDistanceLabel } from '@/services/displayValues';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 type RestaurantCardProps = {
@@ -20,6 +22,7 @@ export function RestaurantCard({
   const { width } = useWindowDimensions();
   const narrow = width < 370;
   const veryNarrow = width < 340;
+  const distance = validDistanceLabel(restaurant.distance);
 
   return (
     <View style={[styles.card, narrow && styles.cardNarrow]}>
@@ -53,10 +56,10 @@ export function RestaurantCard({
           </View>
 
           <View style={styles.travelRow}>
-            <View style={styles.travelItem}>
+            {distance ? <View style={styles.travelItem}>
               <Ionicons name="walk" size={14} color={colors.gold} />
-              <Text style={styles.travelText}>{restaurant.distance}</Text>
-            </View>
+              <Text style={styles.travelText}>{distance}</Text>
+            </View> : null}
             <View style={styles.travelItem}>
               <Ionicons name="walk-outline" size={14} color={colors.gold} />
               <Text style={styles.travelText}>{restaurant.walkingTime}</Text>

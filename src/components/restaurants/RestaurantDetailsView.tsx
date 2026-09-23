@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppText as Text } from '@/components/AppText';
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import type { Restaurant } from '@/data/restaurants';
+import { validDistanceLabel } from '@/services/displayValues';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 type RestaurantDetailsViewProps = {
@@ -34,6 +36,7 @@ export function RestaurantDetailsView({ restaurant }: RestaurantDetailsViewProps
   };
 
   const menuOrWebsiteUrl = restaurant.menuUrl ?? restaurant.websiteUrl;
+  const distance = validDistanceLabel(restaurant.distance);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -94,7 +97,7 @@ export function RestaurantDetailsView({ restaurant }: RestaurantDetailsViewProps
           <View style={styles.quickFacts}>
             <QuickFact icon="restaurant" label="Cuisine" value={restaurant.cuisine} />
             {restaurant.priceRange ? <QuickFact icon="cash" label="Price" value={restaurant.priceRange} /> : null}
-            <QuickFact icon="walk" label="Walk" value={`${restaurant.distance} • ${restaurant.walkingTime}`} />
+            {distance ? <QuickFact icon="walk" label="Walk" value={`${distance} • ${restaurant.walkingTime}`} /> : null}
           </View>
         </View>
 

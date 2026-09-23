@@ -1,8 +1,9 @@
 import type { ComponentProps } from 'react';
 import { useState } from 'react';
-import { Linking, Pressable, StyleSheet, Text } from 'react-native';
+import { Linking, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { AppText as Text } from '@/components/AppText';
 import { usePublicContentSettings } from '@/hooks/usePublicContentSettings';
 import { openExternalUrl } from '@/services/supportLinkCore';
 import { colors, radius, spacing } from '@/theme/tokens';

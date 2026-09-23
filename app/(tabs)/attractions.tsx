@@ -7,13 +7,12 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   useWindowDimensions,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppText as Text, AppTextInput as TextInput } from '@/components/AppText';
 import { AttractionCard } from '@/components/attractions/AttractionCard';
 import { useAttractions } from '@/components/attractions/AttractionsProvider';
 import { FeaturedAttractionCard } from '@/components/attractions/FeaturedAttractionCard';

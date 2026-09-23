@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppText as Text } from '@/components/AppText';
 import { WaitTimesHeader } from '@/components/wait-times/WaitTimesHeader';
 import { useAttractions } from '@/components/attractions/AttractionsProvider';
 import { crowdPresentation, getWaitTimeAttractionForContent, type CrowdLevel } from '@/data/waitTimes';

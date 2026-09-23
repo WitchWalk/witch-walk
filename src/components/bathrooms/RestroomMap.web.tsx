@@ -1,9 +1,11 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, Pressable, StyleSheet, View } from 'react-native';
 
+import { AppText as Text } from '@/components/AppText';
 import type { BathroomLocation } from '@/data/bathrooms';
 import { getMappableBathrooms } from '@/services/bathroomContentCore';
+import { distanceMilesLabel } from '@/services/displayValues';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 export type RestroomMapProps = {
@@ -72,6 +74,7 @@ type MapPreviewProps = {
 };
 
 function MapPreview({ location, onClose, onDirections, onViewDetails }: MapPreviewProps) {
+  const distance = distanceMilesLabel(location.distanceMiles);
   return (
     <View style={styles.preview}>
       <Pressable accessibilityLabel="Close restroom preview" hitSlop={8} onPress={onClose} style={styles.closeButton}>
@@ -79,11 +82,7 @@ function MapPreview({ location, onClose, onDirections, onViewDetails }: MapPrevi
       </Pressable>
       <Text numberOfLines={2} style={styles.previewName}>{location.mapLabel}</Text>
       <Text numberOfLines={2} style={styles.previewAddress}>{location.address}</Text>
-      <View style={styles.previewMetaRow}>
-        <Text style={styles.previewDistance}>
-          {location.distanceMiles === undefined ? 'Distance unavailable' : `${location.distanceMiles.toFixed(1)} mi`}
-        </Text>
-      </View>
+      {distance ? <View style={styles.previewMetaRow}><Text style={styles.previewDistance}>{distance}</Text></View> : null}
       <View style={styles.previewActions}>
         <Pressable accessibilityRole="button" onPress={onDirections} style={styles.primaryButton}>
           <Ionicons color={colors.black} name="navigate" size={15} />

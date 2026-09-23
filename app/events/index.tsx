@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppText as Text } from '@/components/AppText';
 import { useEvents } from '@/components/events/EventsProvider';
 import { getEventDateLabel, getEventTimeLabel, getUpcomingEvents, type EventLocation } from '@/services/eventContentCore';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';

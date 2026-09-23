@@ -9,11 +9,12 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppText as Text } from '@/components/AppText';
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import { useWitchWatch } from '@/components/WitchWatchProvider';
 import type { Attraction } from '@/data/attractions';
@@ -33,6 +34,8 @@ type AttractionDetailsViewProps = {
 };
 
 export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps) {
+  const { width } = useWindowDimensions();
+  const narrowContentCards = width < 390;
   const { watches } = useWitchWatch();
   const watching = watches.some(w => w.attractionId === attraction.id && w.enabled);
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -170,7 +173,7 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
         </View>
 
         {supportsWaitReporting ? <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/witch-watch', params: { id: attraction.id } })} style={{ padding: 14, borderRadius: 14, borderWidth: 1, borderColor: colors.gold, flexDirection: 'row', gap: 10 }}><Ionicons name="notifications-outline" size={20} color={colors.gold} /><Text style={{ color: colors.gold }}>{watching ? 'Watching' : 'Witch Watch'}</Text></Pressable> : null}
-        {about || visitorTips.length ? <View style={styles.infoCards}>
+        {about || visitorTips.length ? <View style={[styles.infoCards, narrowContentCards && styles.infoCardsNarrow]}>
           {about ? <View style={styles.contentCard}>
             <View style={styles.cardHeading}>
               <Ionicons name="document-text" size={21} color={colors.gold} />
@@ -183,7 +186,7 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
           {visitorTips.length ? <View style={styles.contentCard}>
             <View style={styles.cardHeading}>
               <Ionicons name="bulb" size={22} color={colors.gold} />
-              <Text style={styles.cardTitle}>Visitor Tips</Text>
+              <Text adjustsFontSizeToFit minimumFontScale={0.85} numberOfLines={1} style={styles.cardTitle}>Visitor Tips</Text>
             </View>
             <View style={styles.rule} />
             {visitorTips.map((tip, index) => (
@@ -302,9 +305,10 @@ const styles = StyleSheet.create({
   actionTitle: { color: colors.text, fontSize: 14, lineHeight: 19, fontWeight: '900', textTransform: 'uppercase', marginTop: spacing.xs },
   actionSubtitle: { color: colors.textMuted, fontSize: 11, lineHeight: 15 },
   infoCards: { flexDirection: 'row', gap: spacing.sm, marginHorizontal: spacing.lg },
-  contentCard: { flex: 1, minHeight: 190, backgroundColor: '#0D111A', borderWidth: 1, borderColor: '#46516D', borderRadius: radius.md, padding: spacing.md },
-  cardHeading: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  cardTitle: { ...typography.title, fontSize: 19, lineHeight: 24 },
+  infoCardsNarrow: { flexDirection: 'column' },
+  contentCard: { minWidth: 0, flex: 1, minHeight: 190, backgroundColor: '#0D111A', borderWidth: 1, borderColor: '#46516D', borderRadius: radius.md, padding: spacing.md },
+  cardHeading: { minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  cardTitle: { ...typography.title, minWidth: 0, flexShrink: 1, fontSize: 19, lineHeight: 24 },
   rule: { height: 1, backgroundColor: colors.borderSoft, marginVertical: spacing.sm },
   bodyText: { ...typography.body, color: colors.textMuted, fontSize: 13, lineHeight: 19 },
   tipRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, marginBottom: spacing.sm },

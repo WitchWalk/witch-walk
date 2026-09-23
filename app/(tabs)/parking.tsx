@@ -2,9 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, ImageBackground, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ImageBackground, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppText as Text } from '@/components/AppText';
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import { ParkingCard } from '@/components/parking/ParkingCard';
 import { useParking } from '@/components/parking/ParkingProvider';

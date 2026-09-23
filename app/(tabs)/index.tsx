@@ -1,7 +1,8 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, AppState, Linking, StyleSheet, Text, View } from 'react-native';
+import { Alert, AppState, Linking, StyleSheet, View } from 'react-native';
 
+import { AppText as Text } from '@/components/AppText';
 import { BrandHeader } from '@/components/BrandHeader';
 import { CrowdStatusCard } from '@/components/CrowdStatusCard';
 import { HomeShortcutCard } from '@/components/HomeShortcutCard';

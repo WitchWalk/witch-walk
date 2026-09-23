@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppText as Text } from '@/components/AppText';
 import { WaitTimeCard } from '@/components/wait-times/WaitTimeCard';
 import { WaitTimesHeader } from '@/components/wait-times/WaitTimesHeader';
 import { useAttractions } from '@/components/attractions/AttractionsProvider';

@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Image, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Linking, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppText as Text } from '@/components/AppText';
 import { useAppSettings } from '@/components/settings/AppSettingsProvider';
 import { SettingsRow, SettingsSection, SettingsSwitchRow } from '@/components/settings/SettingsComponents';
 import { usePublicContentSettings } from '@/hooks/usePublicContentSettings';

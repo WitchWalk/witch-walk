@@ -1,7 +1,8 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
-import { ImageBackground, Pressable, StyleSheet, Text, View, type ImageSourcePropType } from 'react-native';
+import { ImageBackground, Pressable, StyleSheet, View, type ImageSourcePropType } from 'react-native';
 
+import { AppText as Text } from '@/components/AppText';
 import { colors, radius, shadows, spacing } from '@/theme/tokens';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
