@@ -1,6 +1,15 @@
 import type { ImageSourcePropType } from 'react-native';
 
 export type AttractionCategory = string;
+export type AttractionHoursMode =
+  | 'regular'
+  | 'always_open'
+  | 'dawn_to_dusk'
+  | 'closed_for_season'
+  | 'seasonal_hours'
+  | 'by_appointment'
+  | 'hours_vary'
+  | 'hidden';
 
 export type Attraction = {
   id: string;
@@ -15,6 +24,7 @@ export type Attraction = {
   longDescription: string;
   hours: string;
   hoursNotes?: string;
+  hoursMode?: AttractionHoursMode;
   status: 'open' | 'closed' | 'unavailable';
   statusLabel: string;
   distance: string;

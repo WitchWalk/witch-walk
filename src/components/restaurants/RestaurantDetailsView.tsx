@@ -94,6 +94,7 @@ export function RestaurantDetailsView({ restaurant }: RestaurantDetailsViewProps
             </Text>
             <Text style={styles.hours}>{restaurant.hours}</Text>
           </View>
+          {restaurant.hoursNotes ? <Text style={styles.hoursNotes}>{restaurant.hoursNotes}</Text> : null}
           <View style={styles.quickFacts}>
             <QuickFact icon="restaurant" label="Cuisine" value={restaurant.cuisine} />
             {restaurant.priceRange ? <QuickFact icon="cash" label="Price" value={restaurant.priceRange} /> : null}
@@ -252,6 +253,7 @@ const styles = StyleSheet.create({
   openText: { color: '#78E567' },
   closedText: { color: '#F58A96' },
   hours: { flex: 1, color: colors.textMuted, fontSize: 14 },
+  hoursNotes: { ...typography.caption, color: colors.textMuted, fontSize: 12, lineHeight: 17, marginLeft: 28 },
   quickFacts: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
   quickFact: {
     flex: 1,

@@ -24,6 +24,7 @@ import { subscribeWaitAggregates } from '@/services/waitAggregateEvents';
 import { isAttractionWaitEligible } from '@/services/waitEligibility';
 import { getQuickStatusLabel, type WaitTimeAggregate } from '@/services/waitReportCore';
 import { validateHouseArauzVideoUrl } from '@/services/houseArauzContentCore';
+import { getAttractionDirectionsUrl, getAttractionExternalActions } from '@/services/attractionContentCore';
 import { openExternalUrl } from '@/services/supportLinkCore';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
@@ -48,6 +49,9 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
     ? attraction.hours.trim()
     : '';
   const hoursNotes = attraction.hoursNotes?.trim();
+  const showHours = attraction.hoursMode !== 'hidden';
+  const directionsUrl = getAttractionDirectionsUrl(attraction);
+  const externalActions = getAttractionExternalActions(attraction);
 
   useFocusEffect(useCallback(() => {
     if (!supportsWaitReporting) return;
@@ -84,8 +88,7 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
   };
 
   const openDirections = () => {
-    const query = encodeURIComponent(attraction.address);
-    void openUrl(`https://www.google.com/maps/search/?api=1&query=${query}`);
+    if (directionsUrl) void openUrl(directionsUrl);
   };
 
   return (
@@ -113,16 +116,16 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
         </View>
 
         <View style={styles.primaryInfo}>
-          <View style={styles.infoRow}>
+          {attraction.address.trim() ? <View style={styles.infoRow}>
             <Ionicons name="location" size={20} color={colors.text} />
             <Text style={styles.infoText}>{attraction.address}</Text>
-          </View>
-          <View style={styles.infoRow}>
+          </View> : null}
+          {showHours ? <View style={styles.infoRow}>
             <Ionicons name="time-outline" size={20} color={colors.text} />
             <Text style={[styles.statusText, attraction.status === 'open' && styles.openText]}>{attraction.statusLabel}</Text>
             {hoursLabel ? <Text style={styles.hours}>{hoursLabel}</Text> : null}
-          </View>
-          {hoursNotes ? <Text style={styles.hoursNotes}>{hoursNotes}</Text> : null}
+          </View> : null}
+          {showHours && hoursNotes ? <Text style={styles.hoursNotes}>{hoursNotes}</Text> : null}
           <View style={styles.tagsRow}>
             {attraction.tags.map((tag) => (
               <View key={tag} style={styles.tag}><Text style={styles.tagText}>{tag}</Text></View>
@@ -150,12 +153,17 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
         ) : null}
 
         <View style={styles.actionsGrid}>
-          <ActionButton icon="navigate" color={colors.purple} title="Directions" subtitle="Get there" onPress={openDirections} />
-          {attraction.ticketUrl || attraction.websiteUrl ? (
-            <ActionButton icon="ticket" color="#F17B67" title="Tickets / Site" subtitle="View options" onPress={() => void openUrl((attraction.ticketUrl ?? attraction.websiteUrl)!)} />
-          ) : (
-            <ActionButton icon="information-circle" color="#F17B67" title="Visitor Info" subtitle="Local details" onPress={() => Alert.alert('Visitor information', attraction.hours)} />
-          )}
+          {directionsUrl ? <ActionButton icon="navigate" color={colors.purple} title="Directions" subtitle="Get there" onPress={openDirections} /> : null}
+          {externalActions.map((action) => (
+            <ActionButton
+              key={action.kind}
+              icon={action.kind === 'website' ? 'globe-outline' : 'ticket'}
+              color="#F17B67"
+              title={action.kind === 'website' ? 'Website' : 'Tickets'}
+              subtitle={action.kind === 'website' ? 'Visit site' : 'View options'}
+              onPress={() => void openUrl(action.url)}
+            />
+          ))}
           {supportsWaitReporting ? <ActionButton
             icon="create-outline"
             color={colors.gold}

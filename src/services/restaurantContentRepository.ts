@@ -15,7 +15,7 @@ const PLACEHOLDER = require('../../assets/images/home/restaurants.png');
 
 const columns = [
   'id', 'name', 'address', 'short_description', 'full_description', 'category', 'cuisine',
-  'latitude', 'longitude', 'website_url', 'menu_url', 'hours', 'image_path',
+  'latitude', 'longitude', 'website_url', 'menu_url', 'hours', 'hours_notes', 'image_path',
   'featured', 'published', 'sort_order', 'archived_at', 'updated_at',
 ].join(',');
 

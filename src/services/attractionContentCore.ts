@@ -1,6 +1,6 @@
 import type { ImageSourcePropType } from 'react-native';
 
-import type { Attraction } from '@/data/attractions';
+import type { Attraction, AttractionHoursMode } from '@/data/attractions';
 import { validateHouseArauzVideoUrl } from './houseArauzContentCore.ts';
 
 export const ATTRACTION_CACHE_VERSION = 1;
@@ -9,6 +9,7 @@ export const ATTRACTION_CACHE_MAX_AGE_MILLISECONDS = 6 * 60 * 60 * 1000;
 export type AttractionHoursInterval = {
   open: string;
   close: string;
+  closes_next_day?: boolean;
 };
 
 export type AttractionHours = Partial<Record<
@@ -29,6 +30,7 @@ export type SupabaseAttractionRow = {
   ticket_url: string | null;
   house_arauz_video_url: string | null;
   hours: AttractionHours;
+  hours_mode: AttractionHoursMode;
   hours_notes: string | null;
   visitor_tips: string[];
   image_path: string | null;
@@ -44,6 +46,18 @@ type HoursPresentation = Pick<Attraction, 'hours' | 'status' | 'statusLabel'>;
 
 const dayKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
 const timePattern = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
+const attractionHoursModes = new Set<AttractionHoursMode>([
+  'regular', 'always_open', 'dawn_to_dusk', 'closed_for_season',
+  'seasonal_hours', 'by_appointment', 'hours_vary', 'hidden',
+]);
+const hoursModeLabels: Record<Exclude<AttractionHoursMode, 'regular' | 'hidden'>, string> = {
+  always_open: 'Always Open',
+  dawn_to_dusk: 'Dawn to Dusk',
+  closed_for_season: 'Closed for the Season',
+  seasonal_hours: 'Seasonal Hours',
+  by_appointment: 'By Appointment',
+  hours_vary: 'Hours Vary',
+};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -79,10 +93,20 @@ export function parseAttractionHours(value: unknown): AttractionHours {
       if (!isRecord(candidate)) return [];
       const open = readOptionalString(candidate.open);
       const close = readOptionalString(candidate.close);
-      if (!open || !close || !timePattern.test(open) || !timePattern.test(close) || open >= close) return [];
-      return [{ open, close }];
+      const closesNextDay = candidate.closes_next_day === true;
+      if (!open || !close || !timePattern.test(open) || !timePattern.test(close)) return [];
+      if ((!closesNextDay && open >= close) || (closesNextDay && open <= close)) return [];
+      return [{ open, close, ...(closesNextDay ? { closes_next_day: true } : {}) }];
     });
     if (intervals.length === rawIntervals.length) result[day] = intervals;
+  }
+  for (const [index, day] of dayKeys.entries()) {
+    const previous = result[dayKeys[(index + dayKeys.length - 1) % dayKeys.length]];
+    const current = result[day];
+    const previousLast = previous?.at(-1);
+    const currentFirst = current?.[0];
+    if (previousLast?.closes_next_day && currentFirst
+      && minutesFromTime(currentFirst.open) < minutesFromTime(previousLast.close)) return {};
   }
   return result;
 }
@@ -118,12 +142,15 @@ export function parsePublishedAttractionRows(value: unknown): SupabaseAttraction
     if (!isRecord(candidate) || candidate.published !== true || candidate.archived_at !== null) return [];
     const id = readRequiredString(candidate.id);
     const name = readRequiredString(candidate.name);
-    const address = readRequiredString(candidate.address);
-    if (!id || !name || !address || !/^[A-Za-z0-9_-]{1,100}$/.test(id)) return [];
+    const address = readOptionalString(candidate.address) ?? '';
+    if (!id || !name || !/^[A-Za-z0-9_-]{1,100}$/.test(id)) return [];
     const latitude = readCoordinate(candidate.latitude, -90, 90);
     const longitude = readCoordinate(candidate.longitude, -180, 180);
     const hasOneCoordinate = latitude === null !== (longitude === null);
-    if (hasOneCoordinate) return [];
+    if (hasOneCoordinate || (!address && latitude === null)) return [];
+    const rawHoursMode = readOptionalString(candidate.hours_mode);
+    const hoursMode = rawHoursMode && attractionHoursModes.has(rawHoursMode as AttractionHoursMode)
+      ? rawHoursMode as AttractionHoursMode : 'regular';
     return [{
       id,
       name,
@@ -137,6 +164,7 @@ export function parsePublishedAttractionRows(value: unknown): SupabaseAttraction
       ticket_url: readOptionalUrl(candidate.ticket_url),
       house_arauz_video_url: validateHouseArauzVideoUrl(candidate.house_arauz_video_url),
       hours: parseAttractionHours(candidate.hours),
+      hours_mode: hoursMode,
       hours_notes: readOptionalString(candidate.hours_notes),
       visitor_tips: parseAttractionVisitorTips(candidate.visitor_tips),
       image_path: readOptionalString(candidate.image_path),
@@ -177,15 +205,37 @@ function formatTime(value: string) {
   return `${hour}:${String(minute).padStart(2, '0')} ${suffix}`;
 }
 
-export function getAttractionHoursPresentation(hours: AttractionHours, now = new Date()): HoursPresentation {
+export function getAttractionHoursPresentation(
+  hours: AttractionHours,
+  now = new Date(),
+  mode: AttractionHoursMode = 'regular',
+): HoursPresentation {
+  if (mode === 'hidden') return { hours: '', status: 'unavailable', statusLabel: '' };
+  if (mode !== 'regular') {
+    const label = hoursModeLabels[mode];
+    return { hours: label, status: 'unavailable', statusLabel: label };
+  }
   const { weekday, minutes } = salemTimeParts(now);
-  if (!weekday || !(weekday in hours)) {
+  if (!weekday) {
     return { hours: 'Hours unavailable', status: 'unavailable', statusLabel: 'Hours unavailable' };
   }
+  const dayIndex = dayKeys.indexOf(weekday);
+  const previousDay = dayKeys[(dayIndex + dayKeys.length - 1) % dayKeys.length];
+  const previousOvernight = (hours[previousDay] ?? []).find((interval) =>
+    interval.closes_next_day && minutes < minutesFromTime(interval.close));
   const intervals = hours[weekday] ?? [];
+  if (previousOvernight) {
+    const label = `${formatTime(previousOvernight.open)} – ${formatTime(previousOvernight.close)} next day`;
+    return { hours: label, status: 'open', statusLabel: 'Open Now' };
+  }
+  if (!(weekday in hours)) {
+    return { hours: 'Hours unavailable', status: 'unavailable', statusLabel: 'Hours unavailable' };
+  }
   if (!intervals.length) return { hours: 'Closed today', status: 'closed', statusLabel: 'Closed Today' };
-  const label = intervals.map((interval) => `${formatTime(interval.open)} – ${formatTime(interval.close)}`).join(', ');
-  const open = intervals.some((interval) => minutes >= minutesFromTime(interval.open) && minutes < minutesFromTime(interval.close));
+  const label = intervals.map((interval) =>
+    `${formatTime(interval.open)} – ${formatTime(interval.close)}${interval.closes_next_day ? ' next day' : ''}`).join(', ');
+  const open = intervals.some((interval) => minutes >= minutesFromTime(interval.open)
+    && (interval.closes_next_day || minutes < minutesFromTime(interval.close)));
   return { hours: label, status: open ? 'open' : 'closed', statusLabel: open ? 'Open Now' : 'Closed Now' };
 }
 
@@ -222,8 +272,9 @@ export function mapSupabaseAttraction(
     longitude: row.longitude,
     description: row.short_description,
     longDescription: row.full_description,
-    ...getAttractionHoursPresentation(row.hours, now),
+    ...getAttractionHoursPresentation(row.hours, now, row.hours_mode),
     hoursNotes: row.hours_notes ?? undefined,
+    hoursMode: row.hours_mode,
     distance: fallback?.distance ?? 'Distance unavailable',
     image: resolveAttractionImage(row, fallback, publicImageUrl, placeholder),
     featured: row.featured,
@@ -239,6 +290,27 @@ export function mapSupabaseAttraction(
     visitorTips: row.visitor_tips,
     houseArauzVideoUrl: row.house_arauz_video_url ?? undefined,
   };
+}
+
+export function getAttractionDirectionsUrl(
+  attraction: Pick<Attraction, 'address' | 'latitude' | 'longitude'>,
+) {
+  const destination = attraction.latitude !== null && attraction.longitude !== null
+    && Number.isFinite(attraction.latitude) && Number.isFinite(attraction.longitude)
+    ? `${attraction.latitude},${attraction.longitude}`
+    : attraction.address.trim();
+  return destination
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination)}`
+    : null;
+}
+
+export function getAttractionExternalActions(
+  attraction: Pick<Attraction, 'websiteUrl' | 'ticketUrl'>,
+) {
+  return [
+    attraction.websiteUrl ? { kind: 'website' as const, url: attraction.websiteUrl } : null,
+    attraction.ticketUrl ? { kind: 'tickets' as const, url: attraction.ticketUrl } : null,
+  ].filter((action): action is NonNullable<typeof action> => action !== null);
 }
 
 export function serializeAttractionCache(rows: SupabaseAttractionRow[], savedAt: number) {

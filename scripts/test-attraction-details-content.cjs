@@ -9,7 +9,7 @@ const details = read('src/components/attractions/AttractionDetailsView.tsx');
 const repository = read('src/services/attractionContentRepository.ts');
 const core = read('src/services/attractionContentCore.ts');
 
-assert.match(repository, /'hours', 'hours_notes', 'visitor_tips', 'image_path'/);
+assert.match(repository, /'hours', 'hours_mode', 'hours_notes', 'visitor_tips', 'image_path'/);
 assert.match(core, /description: row\.short_description/);
 assert.match(core, /longDescription: row\.full_description/);
 assert.match(core, /visitorTips: row\.visitor_tips/);
@@ -20,7 +20,7 @@ assert.match(details, /\{about \|\| visitorTips\.length \? <View style=\{\[style
 assert.match(details, /\{about \? <View style=\{styles\.contentCard\}>/);
 assert.match(details, /\{visitorTips\.length \? <View style=\{styles\.contentCard\}>/);
 assert.match(details, /const hoursLabel = attraction\.hours\.trim\(\) !== attraction\.statusLabel\.trim\(\)/);
-assert.match(details, /\{hoursNotes \? <Text style=\{styles\.hoursNotes\}>/);
+assert.match(details, /\{showHours && hoursNotes \? <Text style=\{styles\.hoursNotes\}>/);
 
 assert.match(details, /title="Directions"/);
 assert.match(details, /title="Report Wait"/);

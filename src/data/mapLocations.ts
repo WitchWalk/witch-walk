@@ -66,7 +66,9 @@ export function getMapLocations(
         longitude: location.longitude as number,
         address: location.address,
         image: location.image,
-        directionsDestination: `${location.name}, ${location.address}`,
+        directionsDestination: location.latitude !== null && location.longitude !== null
+          ? `${location.latitude},${location.longitude}`
+          : `${location.name}, ${location.address}`,
         crowdLevel: aggregate?.crowdLevel ?? undefined,
         waitReportingSupported: isAttractionWaitEligible(location),
         waitEstimateLabel: aggregate?.estimatedWaitLabel,

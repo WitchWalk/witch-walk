@@ -34,6 +34,7 @@ const row: SupabaseRestaurantRow = {
   website_url: 'https://example.com',
   menu_url: 'https://example.com/menu',
   hours: { mon: [{ open: '12:00', close: '21:00' }] },
+  hours_notes: null,
   image_path: 'turners-seafood/11111111-1111-1111-1111-111111111111.webp',
   featured: true,
   published: true,
@@ -61,6 +62,38 @@ async function run() {
   assert.equal(mapped.featured, true);
   assert.equal(mapped.priceRange, undefined);
   assert.equal((mapped.image as { uri: string }).uri, 'https://cdn.example/turners-seafood/11111111-1111-1111-1111-111111111111.webp');
+
+  const overnightFriday = mapSupabaseRestaurant({
+    ...row,
+    hours: {
+      fri: [{ open: '12:00', close: '01:00', closes_next_day: true }],
+      sat: [{ open: '17:00', close: '02:00', closes_next_day: true }],
+      sun: [],
+    },
+  }, undefined, () => null, 1, new Date('2026-09-19T04:30:00Z'));
+  assert.equal(overnightFriday.status, 'open');
+  assert.equal(overnightFriday.statusLabel, 'Open Now');
+  const fridayEnded = mapSupabaseRestaurant({
+    ...row,
+    hours: { fri: [{ open: '12:00', close: '01:00', closes_next_day: true }] },
+  }, undefined, () => null, 1, new Date('2026-09-19T05:30:00Z'));
+  assert.equal(fridayEnded.status, 'unavailable');
+  const saturdayOpen = mapSupabaseRestaurant({
+    ...row,
+    hours: { sat: [{ open: '17:00', close: '02:00', closes_next_day: true }] },
+  }, undefined, () => null, 1, new Date('2026-09-20T05:30:00Z'));
+  assert.equal(saturdayOpen.status, 'open');
+  assert.equal(parsePublishedRestaurantRows([{
+    ...row,
+    hours: { fri: [{ open: '12:00', close: '01:00', closes_next_day: true }] },
+  }])[0].hours.fri?.[0].closes_next_day, true);
+  assert.equal(Object.keys(parsePublishedRestaurantRows([{
+    ...row,
+    hours: {
+      fri: [{ open: '18:00', close: '01:00', closes_next_day: true }],
+      sat: [{ open: '00:30', close: '02:00' }],
+    },
+  }])[0].hours).length, 0);
 
   const localImage = { uri: 'bundled-image' };
   const local = mapSupabaseRestaurant({ ...row, image_path: null, hours: {} }, { ...mapped, image: localImage }, () => null, 99, monday);

@@ -24,6 +24,7 @@ export type SupabaseRestaurantRow = {
   website_url: string | null;
   menu_url: string | null;
   hours: AttractionHours;
+  hours_notes: string | null;
   image_path: string | null;
   featured: boolean;
   published: true;
@@ -126,6 +127,7 @@ export function parsePublishedRestaurantRows(value: unknown): SupabaseRestaurant
       website_url: optionalUrl(candidate.website_url),
       menu_url: optionalUrl(candidate.menu_url),
       hours: parseAttractionHours(candidate.hours),
+      hours_notes: optionalString(candidate.hours_notes),
       image_path: optionalString(candidate.image_path),
       featured: candidate.featured === true,
       published: true,
@@ -171,6 +173,7 @@ export function mapSupabaseRestaurant(
     description: row.short_description,
     longDescription: row.full_description || row.short_description,
     ...getAttractionHoursPresentation(row.hours, now),
+    hoursNotes: row.hours_notes ?? undefined,
     distance: row.latitude === null ? 'Distance unavailable' : fallback?.distance ?? 'Distance unavailable',
     walkingTime: row.latitude === null ? 'Walk unavailable' : fallback?.walkingTime ?? 'Walk unavailable',
     image: resolveRestaurantImage(row, fallback, publicImageUrl, placeholder),

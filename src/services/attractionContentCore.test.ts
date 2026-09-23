@@ -1,5 +1,7 @@
 import {
   getAttractionHoursPresentation,
+  getAttractionDirectionsUrl,
+  getAttractionExternalActions,
   loadAttractionRows,
   mapSupabaseAttraction,
   parseAttractionCache,
@@ -31,6 +33,7 @@ const row: SupabaseAttractionRow = {
   ticket_url: 'https://example.com/tickets',
   house_arauz_video_url: 'https://www.youtube.com/watch?v=abcdefghijk',
   hours: { mon: [{ open: '10:00', close: '17:00' }] },
+  hours_mode: 'regular',
   hours_notes: 'Seasonal hours may vary.',
   visitor_tips: ['Book ahead', 'Allow 45 minutes'],
   image_path: 'witch-house/header.jpg',
@@ -43,6 +46,7 @@ const row: SupabaseAttractionRow = {
 };
 
 async function run() {
+  const monday = new Date('2026-09-14T15:00:00Z');
   const visible = parsePublishedAttractionRows([row]);
   assert.equal(visible.length, 1);
   assert.equal(parsePublishedAttractionRows([{ ...row, published: false }]).length, 0);
@@ -59,6 +63,34 @@ async function run() {
   assert.equal(mapped.visitorTips.join('|'), 'Book ahead|Allow 45 minutes');
   assert.equal((mapped.image as { uri: string }).uri, 'https://cdn.example/witch-house/header.jpg');
   assert.equal(mapped.status, 'open');
+
+  const specialModes = [
+    ['always_open', 'Always Open'],
+    ['dawn_to_dusk', 'Dawn to Dusk'],
+    ['closed_for_season', 'Closed for the Season'],
+    ['seasonal_hours', 'Seasonal Hours'],
+    ['by_appointment', 'By Appointment'],
+    ['hours_vary', 'Hours Vary'],
+  ] as const;
+  for (const [mode, label] of specialModes) {
+    const presentation = getAttractionHoursPresentation({}, monday, mode);
+    assert.equal(presentation.status, 'unavailable');
+    assert.equal(presentation.statusLabel, label);
+  }
+  assert.equal(getAttractionHoursPresentation({}, monday, 'hidden').statusLabel, '');
+  assert.equal(getAttractionHoursPresentation(row.hours, monday, 'regular').status, 'open');
+
+  assert.equal(getAttractionExternalActions({ websiteUrl: 'https://example.com', ticketUrl: 'https://example.com/tickets' }).length, 2);
+  assert.equal(getAttractionExternalActions({ websiteUrl: 'https://example.com' }).map((item) => item.kind).join(','), 'website');
+  assert.equal(getAttractionExternalActions({ ticketUrl: 'https://example.com/tickets' }).map((item) => item.kind).join(','), 'tickets');
+  assert.equal(getAttractionExternalActions({}).length, 0);
+
+  const coordinateOnly = parsePublishedAttractionRows([{ ...row, address: '' }]);
+  assert.equal(coordinateOnly.length, 1);
+  assert.ok(getAttractionDirectionsUrl(coordinateOnly[0])?.includes(encodeURIComponent('42.5215539,-70.8988987')));
+  assert.equal(parsePublishedAttractionRows([{ ...row, address: '', latitude: null, longitude: null }]).length, 0);
+  assert.equal(parsePublishedAttractionRows([{ ...row, latitude: null, longitude: null }]).length, 1);
+  assert.ok(getAttractionDirectionsUrl({ ...mapped, latitude: null, longitude: null })?.includes('310%201%2F2%20Essex'));
 
   const localImage = { uri: 'local' };
   const localFallback = mapSupabaseAttraction({ ...row, image_path: null }, {
@@ -93,7 +125,7 @@ async function run() {
   assert.equal(unknownHoursWithNote.hours, 'Hours unavailable');
   assert.equal(unknownHoursWithNote.hoursNotes, 'Open seasonally; confirm before visiting.');
 
-  const mondayOpen = getAttractionHoursPresentation(row.hours, new Date('2026-09-14T15:00:00Z'));
+  const mondayOpen = getAttractionHoursPresentation(row.hours, monday);
   assert.equal(mondayOpen.status, 'open');
   assert.equal(getAttractionHoursPresentation({}, new Date('2026-09-14T15:00:00Z')).hours, 'Hours unavailable');
 
