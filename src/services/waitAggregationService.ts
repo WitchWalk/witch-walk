@@ -1,4 +1,4 @@
-import { waitTimeAttractions } from '@/data/waitTimes';
+import { getActiveWaitTimeAttractions } from '@/data/waitTimes';
 import {
   aggregateWaitReports,
   type WaitTimeAggregate,
@@ -11,7 +11,7 @@ import { sharedWaitRepository } from '@/services/sharedWaitRepository';
 import type { SafeWaitEvent } from '@/services/waitRealtimeCore';
 
 function neutral(now: number, unavailable = false) {
-  return Object.fromEntries(waitTimeAttractions.map(item => {
+  return Object.fromEntries(getActiveWaitTimeAttractions().map(item => {
     const value = aggregateWaitReports([], item.attractionId, now);
     if (unavailable) value.freshnessLabel = 'Live updates unavailable';
     return [item.attractionId, value];
@@ -48,12 +48,13 @@ export function isWaitAggregateServiceUnavailable() {
 }
 
 function mergeEvents(events: SafeWaitEvent[], snapshot: boolean) {
+  const eligibleIds = new Set(getActiveWaitTimeAttractions().map(item => item.attractionId));
   const changed: WaitTimeAggregate[] = [];
   for (const event of events) {
     const row = event?.summary as { attractionId?: unknown } | undefined;
     const id = row?.attractionId;
     const evaluated = Date.parse(event?.evaluated_at);
-    if (typeof id !== 'string' || !waitTimeAttractions.some(item => item.attractionId === id)
+    if (typeof id !== 'string' || !eligibleIds.has(id)
       || !Number.isSafeInteger(event.revision) || event.revision < 0 || !Number.isFinite(evaluated)) continue;
     const previous = versions.get(id);
     if (previous && (event.revision < previous.revision || evaluated < previous.evaluated
@@ -71,9 +72,10 @@ function mergeEvents(events: SafeWaitEvent[], snapshot: boolean) {
 }
 export function applyRealtimeWaitEvents(events: SafeWaitEvent[]) { mergeEvents(events, false); }
 function currentCache(now: number) {
-  return { ...neutral(now), ...Object.fromEntries(Object.entries(cached).map(([id,value]) => [id, {
+  const eligibleIds = new Set(getActiveWaitTimeAttractions().map(item => item.attractionId));
+  return { ...neutral(now), ...Object.fromEntries(Object.entries(cached).flatMap(([id,value]) => eligibleIds.has(id) ? [[id, {
     ...value, freshnessLabel: value.newestReportTimestamp ? freshnessLabel(value.newestReportTimestamp, now) : value.freshnessLabel,
-  }])) };
+  }]] : [])) };
 }
 
 export async function getWaitTimeAggregates(now = Date.now()) {
@@ -101,7 +103,7 @@ export async function getWaitTimeAggregates(now = Date.now()) {
   const reports = await localWaitReportRepository.getReports();
   liveServiceUnavailable = false;
   const results = Object.fromEntries(
-    waitTimeAttractions.map((attraction) => [
+    getActiveWaitTimeAttractions().map((attraction) => [
       attraction.attractionId,
       aggregateWaitReports(reports, attraction.attractionId, now),
     ]),

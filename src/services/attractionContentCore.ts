@@ -231,6 +231,8 @@ export function mapSupabaseAttraction(
     websiteUrl: row.website_url ?? undefined,
     ticketUrl: row.ticket_url ?? undefined,
     waitReportingEnabled: row.wait_reporting_enabled,
+    published: row.published,
+    archivedAt: row.archived_at,
     contentUpdatedAt: row.updated_at || undefined,
     sortOrder: row.sort_order,
     historicalFact: fallback?.historicalFact,

@@ -1,7 +1,7 @@
 import type { Attraction } from '../data/attractions.ts';
 import {
   getActiveAttraction,
-  isActiveAttractionWaitReportingEnabled,
+  isActiveAttractionWaitEligible,
   setActiveAttractions,
 } from './attractionContentState.ts';
 
@@ -33,7 +33,7 @@ const attraction: Attraction = {
 setActiveAttractions([attraction]);
 assert.equal(getActiveAttraction('witch-house')?.name, 'Admin-managed name');
 assert.equal(getActiveAttraction('hidden-attraction'), undefined);
-assert.equal(isActiveAttractionWaitReportingEnabled('witch-house'), true);
+assert.equal(isActiveAttractionWaitEligible('witch-house'), true);
 setActiveAttractions([{ ...attraction, waitReportingEnabled: false }]);
-assert.equal(isActiveAttractionWaitReportingEnabled('witch-house'), false);
+assert.equal(isActiveAttractionWaitEligible('witch-house'), false);
 console.log('Stable-ID content lookup, hidden-item handling, and reporting eligibility checks passed.');

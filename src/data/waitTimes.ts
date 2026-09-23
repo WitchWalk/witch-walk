@@ -1,7 +1,9 @@
 import type { ImageSourcePropType } from 'react-native';
 
 import { bundledAttractions, type Attraction } from '@/data/attractions';
-import { trustedWaitReportingAttractions } from '@/data/trustedWaitReporting';
+import { getTrustedWaitReportingAttraction } from '@/data/trustedWaitReporting';
+import { getActiveAttractions } from '@/services/attractionContentState';
+import { getEligibleWaitAttractions } from '@/services/waitEligibility';
 
 export type CrowdLevel = 'light' | 'moderate' | 'busy';
 
@@ -15,12 +17,10 @@ export type WaitTimeAttraction = {
   image: ImageSourcePropType;
 };
 
-export const waitReportingAttractionIds = trustedWaitReportingAttractions.map((item) => item.id);
-
 export function getWaitTimeAttractionsForContent(attractions: Attraction[]): WaitTimeAttraction[] {
-  return trustedWaitReportingAttractions.flatMap((trusted) => {
-    const attraction = attractions.find((item) => item.id === trusted.id && item.waitReportingEnabled === true);
-    if (!attraction) return [];
+  return getEligibleWaitAttractions(attractions).flatMap((attraction) => {
+    const trusted = getTrustedWaitReportingAttraction(attraction.id);
+    if (!trusted) return [];
 
     return [{
       attractionId: trusted.id,
@@ -34,14 +34,16 @@ export function getWaitTimeAttractionsForContent(attractions: Attraction[]): Wai
   });
 }
 
-export const waitTimeAttractions: WaitTimeAttraction[] = getWaitTimeAttractionsForContent(bundledAttractions);
+export function getActiveWaitTimeAttractions() {
+  return getWaitTimeAttractionsForContent(getActiveAttractions() ?? bundledAttractions);
+}
 
 export function getWaitTimeAttractionForContent(id: string | undefined, attractions: Attraction[]) {
   return getWaitTimeAttractionsForContent(attractions).find((item) => item.attractionId === id);
 }
 
 export const getWaitTimeAttraction = (id?: string) =>
-  waitTimeAttractions.find((item) => item.attractionId === id);
+  getActiveWaitTimeAttractions().find((item) => item.attractionId === id);
 
 export const crowdPresentation: Record<CrowdLevel, { label: string; color: string }> = {
   light: { label: 'Light', color: '#5DE29A' },

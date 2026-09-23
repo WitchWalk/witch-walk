@@ -9,6 +9,7 @@ update wait_private.reporting_attractions set display_name = case id
   when 'peabody-essex-museum' then 'Peabody Essex Museum'
   when 'witch-dungeon-museum' then 'Witch Dungeon Museum'
   when 'salem-maritime' then 'Salem Maritime National Historical Park'
+  when 'salem-witch-village' then 'Salem Witch Village'
 end;
 alter table wait_private.reporting_attractions alter column display_name set not null;
 

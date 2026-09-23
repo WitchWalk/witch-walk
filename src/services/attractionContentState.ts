@@ -1,4 +1,5 @@
 import type { Attraction } from '@/data/attractions';
+import { isAttractionWaitEligible } from '@/services/waitEligibility';
 
 let activeAttractions: Attraction[] | null = null;
 
@@ -10,6 +11,10 @@ export function getActiveAttraction(id: string | undefined) {
   return activeAttractions?.find((attraction) => attraction.id === id);
 }
 
-export function isActiveAttractionWaitReportingEnabled(id: string) {
-  return getActiveAttraction(id)?.waitReportingEnabled === true;
+export function getActiveAttractions() {
+  return activeAttractions;
+}
+
+export function isActiveAttractionWaitEligible(id: string) {
+  return isAttractionWaitEligible(getActiveAttraction(id));
 }

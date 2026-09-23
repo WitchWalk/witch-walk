@@ -7,6 +7,7 @@ import { useAppSettings } from '@/components/settings/AppSettingsProvider';
 import { useAttractions } from '@/components/attractions/AttractionsProvider';
 import { getWaitTimeAggregates } from '@/services/waitAggregationService';
 import type { WaitTimeAggregate } from '@/services/waitReportCore';
+import { filterWaitEligibleAttractionReferences, isAttractionWaitEligible } from '@/services/waitEligibility';
 import { WATCH_THRESHOLDS, watchRuleLabel, type Watch, type WatchRule } from '@/services/witchWatchCore';
 import { enableRemoteWatchNotifications, enableWatchNotifications } from '@/services/witchWatchNotifications';
 import { remoteWitchWatchEnabled } from '@/config/witchWatchBackend';
@@ -24,12 +25,18 @@ function WitchWatchContent() {
   const { watches, ready, save, remove } = useWitchWatch();
   const { settings } = useAppSettings();
   const existing = watches.find(w => w.attractionId === id);
-  const [editing, setEditing] = useState<string | null>(id ?? null);
+  const requestedAttractionEligible = !id || isAttractionWaitEligible(getAttraction(id));
+  const [editing, setEditing] = useState<string | null>(id && requestedAttractionEligible ? id : null);
   const [rule, setRule] = useState<WatchRule>(existing?.crowdAlertType ?? 'busy-to-moderate');
   const [threshold, setThreshold] = useState<number | null>(existing ? existing.waitThresholdMinutes : settings.defaultWaitThresholdMinutes);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [aggregates, setAggregates] = useState<Record<string, WaitTimeAggregate>>({});
+  const eligibleWatches = filterWaitEligibleAttractionReferences(watches, getAttraction);
+  const activeEditing = editing && isAttractionWaitEligible(getAttraction(editing)) ? editing : null;
+  const displayedMessage = !requestedAttractionEligible
+    ? 'Witch Watch is unavailable because wait reporting is not enabled for this attraction.'
+    : message;
   useEffect(() => {
     let active = true;
     const refresh = () => { void getWaitTimeAggregates().then(v => { if (active) setAggregates(v); }).catch(() => undefined); };
@@ -43,6 +50,10 @@ function WitchWatchContent() {
     try { await action(); } catch { setMessage('Could not save your changes. Please try again.'); } finally { setBusy(false); }
   };
   const enable = async (watch: Watch) => {
+    if (!isAttractionWaitEligible(getAttraction(watch.attractionId))) {
+      setMessage('Witch Watch is unavailable because wait reporting is not enabled for this attraction.');
+      return;
+    }
     const registration = remoteWitchWatchEnabled
       ? await enableRemoteWatchNotifications().catch(() => 'unavailable' as const)
       : (await enableWatchNotifications().catch(() => false) ? 'local' as const : 'denied' as const);
@@ -63,22 +74,22 @@ function WitchWatchContent() {
     <Text style={styles.note}>{remoteWitchWatchEnabled
       ? 'Witch Watch can alert you when shared wait conditions improve, even while the app is closed.'
       : 'Alerts use updates available while BROOMSTICK is open. Remote alerts are prepared but not deployed yet.'}</Text>
-    {message ? <Text accessibilityRole="alert" style={styles.note}>{message}</Text> : null}
+    {displayedMessage ? <Text accessibilityRole="alert" style={styles.note}>{displayedMessage}</Text> : null}
     <Pressable accessibilityRole="button" onPress={() => void Linking.openSettings().catch(() => setMessage('Open your device settings to enable notifications.'))}><Text style={styles.link}>Notification settings</Text></Pressable>
-    {editing && getAttraction(editing) ? <View style={styles.card}>
-      <Text style={styles.name}>{getAttraction(editing)?.name}</Text>
+    {activeEditing ? <View style={styles.card}>
+      <Text style={styles.name}>{getAttraction(activeEditing)?.name}</Text>
       <Text style={styles.body}>Notify me when</Text>
       {(['busy-to-moderate', 'moderate-to-light'] as WatchRule[]).map(value => <Pressable accessibilityRole="radio" accessibilityState={{ checked: rule === value }} key={value} onPress={() => setRule(value)} style={[styles.option, rule === value && styles.selected]}><Text style={styles.body}>{watchRuleLabel(value)}</Text></Pressable>)}
       <Text style={styles.body}>Or when wait drops to (optional)</Text>
       <View style={styles.row}>{[null, ...WATCH_THRESHOLDS].map(value => <Pressable accessibilityRole="button" accessibilityState={{ selected: threshold === value }} key={String(value)} onPress={() => setThreshold(value)} style={[styles.option, threshold === value && styles.selected]}><Text style={styles.body}>{value === null ? 'None' : `${value} min or less`}</Text></Pressable>)}</View>
       <Pressable disabled={busy || !ready} accessibilityRole="button" style={styles.option} onPress={() => void run(async () => {
-        await enable({ attractionId: editing, enabled: true, crowdAlertType: rule, waitThresholdMinutes: threshold, lastKnownCrowdStatus: null, lastKnownEstimatedWait: null, lastTriggeredState: null, lastAlertTimestamp: null }); setEditing(null);
+        await enable({ attractionId: activeEditing, enabled: true, crowdAlertType: rule, waitThresholdMinutes: threshold, lastKnownCrowdStatus: null, lastKnownEstimatedWait: null, lastTriggeredState: null, lastAlertTimestamp: null }); setEditing(null);
       })}><Text style={styles.link}>{busy ? 'Saving…' : 'Save Witch Watch'}</Text></Pressable>
       <Pressable accessibilityRole="button" onPress={() => setEditing(null)}><Text style={styles.body}>Cancel</Text></Pressable>
     </View> : null}
     <Text style={styles.name}>Manage Witch Watch</Text>
-    {!ready ? <Text style={styles.body}>Loading…</Text> : !watches.length ? <Text style={styles.body}>No watches yet. Choose Witch Watch on an attraction’s details page.</Text> : null}
-    {watches.map(watch => <View style={styles.card} key={watch.attractionId}>
+    {!ready ? <Text style={styles.body}>Loading…</Text> : !eligibleWatches.length ? <Text style={styles.body}>No watches yet. Choose Witch Watch on an eligible attraction’s details page.</Text> : null}
+    {eligibleWatches.map(watch => <View style={styles.card} key={watch.attractionId}>
       <Text style={styles.name}>{getAttraction(watch.attractionId)?.name ?? 'Unavailable attraction'}</Text>
       <Text style={styles.body}>{aggregates[watch.attractionId]?.hasRecentReports ? `${aggregates[watch.attractionId].crowdLevel} • ${aggregates[watch.attractionId].estimatedWaitLabel}` : 'No recent reports • —'}</Text>
       <Text style={styles.body}>{watchRuleLabel(watch.crowdAlertType)}{watch.waitThresholdMinutes !== null ? ` or wait ≤ ${watch.waitThresholdMinutes} min` : ''}</Text>

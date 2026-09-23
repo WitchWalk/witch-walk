@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getTrustedWaitReportingAttraction } from '@/data/trustedWaitReporting';
-import { isActiveAttractionWaitReportingEnabled } from '@/services/attractionContentState';
+import { isActiveAttractionWaitEligible } from '@/services/attractionContentState';
 import { verifyProximity } from '@/services/proximity';
 import { ensureSupabaseSession } from '@/services/supabaseSession';
 import { isApprovedCrowd, isApprovedQuickStatus, isApprovedWait, type WaitReportSubmission, type WaitReportResult } from '@/services/waitReportCore';
@@ -20,7 +20,7 @@ export function createSharedWaitRepository(getClient: () => Promise<SupabaseClie
 
   const process = async (input: WaitReportSubmission): Promise<SharedSubmissionResult> => {
     const attraction = getTrustedWaitReportingAttraction(input.attractionId);
-    if (!attraction || !isActiveAttractionWaitReportingEnabled(input.attractionId)) return { kind: 'invalid', field: 'attraction' };
+    if (!attraction || !isActiveAttractionWaitEligible(input.attractionId)) return { kind: 'invalid', field: 'attraction' };
     if (!isApprovedWait(input.waitMinutes)) return { kind: 'invalid', field: 'wait' };
     if (!isApprovedCrowd(input.crowdLevel)) return { kind: 'invalid', field: 'crowd' };
     if (input.quickStatusTag != null && !isApprovedQuickStatus(input.quickStatusTag)) return { kind: 'invalid', field: 'quick status' };

@@ -24,6 +24,8 @@ export type Attraction = {
   websiteUrl?: string;
   ticketUrl?: string;
   waitReportingEnabled?: boolean;
+  published?: boolean;
+  archivedAt?: string | null;
   contentUpdatedAt?: string;
   sortOrder?: number;
   historicalFact?: string;
@@ -344,6 +346,7 @@ export const attractions: Attraction[] = [
     statusLabel: 'Check Hours',
     distance: '0.7 mi',
     image: historicPlaceholder,
+    waitReportingEnabled: true,
     historicalFact: 'The attraction is located near several major destinations along Salem’s historic waterfront.',
     visitorTips: ['Guided presentation', 'Seasonal hours', 'Near Pickering Wharf'],
   },

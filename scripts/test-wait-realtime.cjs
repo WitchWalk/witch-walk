@@ -6,7 +6,7 @@ const Module=require('node:module');
 const ts=require('typescript');
 const originalLoad=Module._load;
 Module._load=function(name,...args) {
-  if(name==='@/data/waitTimes') return {waitTimeAttractions:[{attractionId:'witch-house'},{attractionId:'salem-witch-museum'}]};
+  if(name==='@/data/waitTimes') return {getActiveWaitTimeAttractions:()=>[{attractionId:'witch-house'},{attractionId:'salem-witch-museum'}]};
   if(name==='@/services/waitReportRepository') return {localWaitReportRepository:{}};
   if(name.startsWith('@/')) name=path.join(__dirname,'../src',name.slice(2));
   return originalLoad.call(this,name,...args);

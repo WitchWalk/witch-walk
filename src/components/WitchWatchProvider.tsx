@@ -1,7 +1,9 @@
-import { createContext, useContext, useEffect, useRef, useState, type PropsWithChildren } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type PropsWithChildren } from 'react';
 import { AppState } from 'react-native';
+import { useAttractions } from '@/components/attractions/AttractionsProvider';
 import { useAppSettings } from '@/components/settings/AppSettingsProvider';
-import { getActiveAttraction } from '@/services/attractionContentState';
+import { getActiveAttraction, isActiveAttractionWaitEligible } from '@/services/attractionContentState';
+import { filterWaitEligibleAttractionReferences } from '@/services/waitEligibility';
 import { getWaitTimeAggregates } from '@/services/waitAggregationService';
 import { subscribeWaitAggregates } from '@/services/waitAggregateEvents';
 import { evaluateWatch, type Watch } from '@/services/witchWatchCore';
@@ -28,6 +30,7 @@ function mutate(update: (current: Watch[]) => Watch[], after?: () => Promise<voi
 }
 const Context = createContext({ watches, ready: false, save: async (_watch: Watch) => {}, remove: async (_id: string) => {} });
 export function WitchWatchProvider({ children }: PropsWithChildren) {
+  const { attractions, ready: attractionsReady } = useAttractions();
   const { settings, ready: settingsReady } = useAppSettings();
   const settingsRef = useRef({ settings, ready: settingsReady });
   const [items, setItems] = useState<Watch[]>([]);
@@ -42,7 +45,7 @@ export function WitchWatchProvider({ children }: PropsWithChildren) {
       const currentSettings = settingsRef.current;
       if (!currentSettings.ready || !currentSettings.settings.witchWatchEnabled) return;
       const triggered: string[] = [];
-      void mutate(current => current.map(watch => {
+      void mutate(current => filterWaitEligibleAttractionReferences(current, getActiveAttraction).map(watch => {
         const snapshot = values.find(value => value.attractionId === watch.attractionId);
         if (!snapshot) return watch;
         const result = evaluateWatch(watch, snapshot, Date.now(), {
@@ -63,17 +66,26 @@ export function WitchWatchProvider({ children }: PropsWithChildren) {
     const appState = AppState.addEventListener('change', state => { if (state === 'active') refresh(); });
     return () => { active = false; listeners.delete(changed); unsubscribe(); clearInterval(timer); appState.remove(); };
   }, []);
+  const syncAfterMutation = useCallback(() => remoteWitchWatchEnabled
+    ? syncRemoteWitchWatchState(watches, settingsRef.current.settings).then(() => undefined)
+    : Promise.resolve(), []);
+  useEffect(() => {
+    if (!attractionsReady) return;
+    void mutate(
+      current => filterWaitEligibleAttractionReferences(current, getActiveAttraction),
+      syncAfterMutation,
+    ).catch(() => undefined);
+  }, [attractions, attractionsReady, syncAfterMutation]);
   useEffect(() => {
     if (!remoteWitchWatchEnabled || !ready || !settingsReady || !watches.length) return;
     void syncRemoteWitchWatchState(watches, settings);
   }, [items, ready, settings, settingsReady]);
-  const syncAfterMutation = () => remoteWitchWatchEnabled
-    ? syncRemoteWitchWatchState(watches, settingsRef.current.settings).then(() => undefined)
-    : Promise.resolve();
   return <Context.Provider value={{
     watches: items,
     ready,
-    save: watch => mutate(current => [...current.filter(w => w.attractionId !== watch.attractionId), watch], syncAfterMutation),
+    save: watch => isActiveAttractionWaitEligible(watch.attractionId)
+      ? mutate(current => [...current.filter(w => w.attractionId !== watch.attractionId), watch], syncAfterMutation)
+      : Promise.reject(new Error('wait-reporting-ineligible')),
     remove: id => mutate(current => current.filter(w => w.attractionId !== id), syncAfterMutation),
   }}>{children}</Context.Provider>;
 }

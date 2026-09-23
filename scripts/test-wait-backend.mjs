@@ -16,6 +16,13 @@ try {
   await db.exec(await readFile(new URL('../supabase/migrations/202609110001_wait_report_foundation.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/202609110002_shared_wait_read.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/202609110003_realtime_wait_summaries.sql', import.meta.url), 'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/202609230001_add_salem_witch_village_wait_reporting.sql', import.meta.url), 'utf8'));
+  const reportingAttractions = await db.query('select id, latitude, longitude, enabled from wait_private.reporting_attractions order by id');
+  assert.equal(reportingAttractions.rows.length, 7);
+  assert.deepEqual(
+    reportingAttractions.rows.find(row => row.id === 'salem-witch-village'),
+    { id: 'salem-witch-village', latitude: 42.5204583, longitude: -70.8913991, enabled: true },
+  );
   const identity = async (id = '00000000-0000-0000-0000-000000000001') => {
     await db.query("select set_config('request.jwt.claim.sub', $1, false)", [id]);
   };
@@ -53,6 +60,7 @@ try {
   assert.equal((await db.query("select revision from public.wait_summary_updates where attraction_id='witch-house'")).rows[0].revision,updates.rows[0].revision,'Duplicate does not emit a new update');
   assert.equal((await submit({ wait: 30 })).kind, 'idempotency-conflict');
   assert.equal((await submit({ key: 'second' })).kind, 'cooldown');
+  assert.equal((await submit({ attraction: 'salem-witch-village', key: 'village', lat: 42.5204583, lng: -70.8913991 })).kind, 'success');
   for (const invalid of [{ wait: 5 }, { wait: null }, { crowd: 'fake' }, { crowd: null },
     { tag: 'free text' }, { key: '' }, { key: 'x'.repeat(129) }, { attraction: 'not-allowed' }]) {
     assert.equal((await submit({ key: 'invalid', ...invalid })).kind, 'invalid');
@@ -75,7 +83,7 @@ try {
   assert.deepEqual(firstRapid.map((result) => result.kind), ['success', 'duplicate']);
   assert.equal(firstRapid[0].reportId, firstRapid[1].reportId);
   await db.exec('reset role');
-  assert.equal((await db.query('select count(*)::int as count from wait_private.wait_reports')).rows[0].count, 4);
+  assert.equal((await db.query('select count(*)::int as count from wait_private.wait_reports')).rows[0].count, 5);
   await db.exec('set role anon');
   const summaries = await read();
   const house = summaries.find(row => row.attractionId === 'witch-house');
@@ -96,6 +104,7 @@ try {
   // Remote Witch Watch tables remain private; authenticated users use only scoped RPCs.
   await db.exec('reset role');
   await db.exec(await readFile(new URL('../supabase/migrations/202609110004_remote_witch_watch.sql', import.meta.url), 'utf8'));
+  assert.equal((await db.query("select display_name from wait_private.reporting_attractions where id='salem-witch-village'")).rows[0].display_name, 'Salem Witch Village');
   await db.exec('reset role; set role authenticated');
   await identity();
   await assert.rejects(db.query('select * from wait_private.witch_watch_push_tokens'));

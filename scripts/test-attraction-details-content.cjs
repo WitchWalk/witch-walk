@@ -23,7 +23,10 @@ assert.match(details, /const hoursLabel = attraction\.hours\.trim\(\) !== attrac
 assert.match(details, /\{hoursNotes \? <Text style=\{styles\.hoursNotes\}>/);
 
 assert.match(details, /title="Directions"/);
-assert.match(details, /title=\{supportsWaitReporting \? 'Report Wait' : 'Witch Watch'\}/);
+assert.match(details, /title="Report Wait"/);
+assert.doesNotMatch(details, /supportsWaitReporting \? 'Report Wait' : 'Witch Watch'/);
+assert.match(details, /\{supportsWaitReporting \? <Pressable/);
+assert.match(details, />\{watching \? 'Watching' : 'Witch Watch'\}<\/Text>/);
 assert.match(details, /toggleFavorite\('attractions', attraction\.id\)/);
 assert.match(details, /Watch HOUSE ARAUZ Video/);
 assert.match(details, /getWaitTimeAggregate\(attraction\.id\)/);

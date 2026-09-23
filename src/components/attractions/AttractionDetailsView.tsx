@@ -18,9 +18,9 @@ import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import { useWitchWatch } from '@/components/WitchWatchProvider';
 import type { Attraction } from '@/data/attractions';
 import { crowdPresentation } from '@/data/waitTimes';
-import { getTrustedWaitReportingAttraction } from '@/data/trustedWaitReporting';
 import { getWaitTimeAggregate } from '@/services/waitAggregationService';
 import { subscribeWaitAggregates } from '@/services/waitAggregateEvents';
+import { isAttractionWaitEligible } from '@/services/waitEligibility';
 import { getQuickStatusLabel, type WaitTimeAggregate } from '@/services/waitReportCore';
 import { validateHouseArauzVideoUrl } from '@/services/houseArauzContentCore';
 import { openExternalUrl } from '@/services/supportLinkCore';
@@ -37,8 +37,7 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
   const watching = watches.some(w => w.attractionId === attraction.id && w.enabled);
   const { isFavorite, toggleFavorite } = useFavorites();
   const favorite = isFavorite('attractions', attraction.id);
-  const supportsWaitReporting = attraction.waitReportingEnabled === true
-    && Boolean(getTrustedWaitReportingAttraction(attraction.id));
+  const supportsWaitReporting = isAttractionWaitEligible(attraction);
   const [waitAggregate, setWaitAggregate] = useState<WaitTimeAggregate | null>(null);
   const about = attraction.longDescription.trim();
   const visitorTips = attraction.visitorTips.map((tip) => tip.trim()).filter(Boolean);
@@ -154,15 +153,13 @@ export function AttractionDetailsView({ attraction }: AttractionDetailsViewProps
           ) : (
             <ActionButton icon="information-circle" color="#F17B67" title="Visitor Info" subtitle="Local details" onPress={() => Alert.alert('Visitor information', attraction.hours)} />
           )}
-          <ActionButton
-            icon={supportsWaitReporting ? 'create-outline' : 'notifications-outline'}
+          {supportsWaitReporting ? <ActionButton
+            icon="create-outline"
             color={colors.gold}
-            title={supportsWaitReporting ? 'Report Wait' : 'Witch Watch'}
-            subtitle={supportsWaitReporting ? 'Share now' : watching ? 'Watching' : 'Set an alert'}
-            onPress={() => supportsWaitReporting
-              ? router.push({ pathname: '/report-wait/[id]', params: { id: attraction.id } })
-              : router.push({ pathname: '/witch-watch', params: { id: attraction.id } })}
-          />
+            title="Report Wait"
+            subtitle="Share now"
+            onPress={() => router.push({ pathname: '/report-wait/[id]', params: { id: attraction.id } })}
+          /> : null}
           <ActionButton
             icon={favorite ? 'heart' : 'heart-outline'}
             color="#F18BA3"

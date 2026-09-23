@@ -1,7 +1,6 @@
 import type { ImageSourcePropType } from 'react-native';
 
 import { bundledAttractions, type Attraction } from '@/data/attractions';
-import { getTrustedWaitReportingAttraction } from '@/data/trustedWaitReporting';
 import { bathroomLocations, getBathroomMapDestination, isBathroomVisible, type BathroomLocation } from '@/data/bathrooms';
 import { getBathroomExternalMapUrl, getMappableBathrooms } from '@/services/bathroomContentCore';
 import { bundledParkingLocations, getParkingMapDestination, type ParkingLocation } from '@/data/parking';
@@ -9,6 +8,7 @@ import { bundledRestaurants, type Restaurant } from '@/data/restaurants';
 import { getMappableRestaurants } from '@/services/restaurantContentCore';
 import { getMappableParking } from '@/services/parkingContentCore';
 import type { WaitTimeAggregate } from '@/services/waitReportCore';
+import { isAttractionWaitEligible } from '@/services/waitEligibility';
 
 export type MapCategory = 'attractions' | 'restaurants' | 'parking' | 'bathrooms';
 export type MapFilter = 'all' | MapCategory;
@@ -68,8 +68,7 @@ export function getMapLocations(
         image: location.image,
         directionsDestination: `${location.name}, ${location.address}`,
         crowdLevel: aggregate?.crowdLevel ?? undefined,
-        waitReportingSupported: location.waitReportingEnabled === true
-          && Boolean(getTrustedWaitReportingAttraction(location.id)),
+        waitReportingSupported: isAttractionWaitEligible(location),
         waitEstimateLabel: aggregate?.estimatedWaitLabel,
         waitFreshnessLabel: aggregate?.freshnessLabel,
       };

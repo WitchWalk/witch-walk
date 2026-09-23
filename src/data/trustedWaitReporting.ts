@@ -14,11 +14,8 @@ export const trustedWaitReportingAttractions: readonly TrustedWaitReportingAttra
   { id: 'peabody-essex-museum', latitude: 42.5215925, longitude: -70.8921931 },
   { id: 'witch-dungeon-museum', latitude: 42.5225674, longitude: -70.8971921 },
   { id: 'salem-maritime', latitude: 42.5190589, longitude: -70.8855837 },
+  { id: 'salem-witch-village', latitude: 42.5204583, longitude: -70.8913991 },
 ];
-
-export const trustedWaitReportingAttractionIds = trustedWaitReportingAttractions.map(
-  (attraction) => attraction.id,
-);
 
 export function getTrustedWaitReportingAttraction(id: string | undefined) {
   return trustedWaitReportingAttractions.find((attraction) => attraction.id === id);

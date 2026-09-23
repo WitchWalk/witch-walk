@@ -8,10 +8,10 @@ const originalLoad = Module._load;
 Module._load = function (name, ...args) {
   if (name === '@/data/waitTimes') return {
     getWaitTimeAttraction: id => id === 'witch-house' ? { latitude: 42.5215539, longitude: -70.8988987 } : undefined,
-    waitTimeAttractions: [{ attractionId: 'witch-house' }],
+    getActiveWaitTimeAttractions: () => [{ attractionId: 'witch-house' }],
   };
   if (name === '@/services/attractionContentState') return {
-    isActiveAttractionWaitReportingEnabled: id => id === 'witch-house',
+    isActiveAttractionWaitEligible: id => id === 'witch-house',
   };
   if (name === '@/services/waitReportRepository') return { localWaitReportRepository: {} };
   if (name.startsWith('@/')) name = path.join(__dirname, '../src', name.slice(2));
