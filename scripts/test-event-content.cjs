@@ -51,6 +51,23 @@ Module._extensions['.png'] = (module, filename) => { module.exports = { uri: fil
   assert.equal(result.events[0].image.uri, `https://example.com/${image}`);
   assert.equal(core.getEventTimeLabel(result.events[0]), '5:00 PM – 10:00 PM');
   assert.equal(core.findEventByStableId(result.events, id).id, id);
+  const occurrence = (date, day) => ({
+    id: `00000000-0000-4000-8000-0000000000${day}`, event_id: id,
+    start_date: date, end_date: null, start_time: '17:00:00', end_time: '22:00:00',
+    all_day: false, note: '', starts_at: `${date}T21:00:00Z`, ends_at: `${date}T${date < '2026-11-01' ? '02:00:00' : '03:00:00'}Z`,
+  });
+  const dates = ['2026-10-16', '2026-10-17', '2026-10-23', '2026-10-24'];
+  const multiRow = core.parsePublishedEventRows([{ ...fixture,
+    broomstick_event_occurrences: dates.map((date, index) => {
+      const next = new Date(Date.parse(`${date}T00:00:00Z`) + 86400000).toISOString().slice(0, 10);
+      return { ...occurrence(date, String(index + 1).padStart(2, '0')), ends_at: `${next}T02:00:00Z` };
+    }),
+  }])[0];
+  const multiEvent = core.mapSupabaseEvent(multiRow, 4, () => null);
+  assert.deepEqual(multiEvent.occurrences.map(item => item.startDate), dates);
+  assert.equal(core.getNextUpcomingOccurrence(multiEvent, new Date('2026-10-18T03:00:00Z')).startDate, '2026-10-23');
+  assert.equal(core.getUpcomingEvents([multiEvent], new Date('2026-10-18T03:00:00Z')).length, 1);
+  assert.equal(core.isEventExpired(multiEvent, new Date('2026-10-25T02:00:00Z')), true);
   failure = true;
   assert.equal((await loadEventContent()).source, 'cache', 'Restart should restore valid disk cache');
   failure = false; rows = [];
@@ -71,6 +88,9 @@ Module._extensions['.png'] = (module, filename) => { module.exports = { uri: fil
     ['app/events/index.tsx', /\/events\/\[id\]/],
     ['app/events/[id].tsx', /getEvent\(id\)/],
     ['app/events/[id].tsx', /event\.ticketUrl/],
+    ['app/events/[id].tsx', />Dates</],
+    ['app/events/[id].tsx', /event\.occurrences\.map/],
+    ['app/events/index.tsx', /getNextUpcomingOccurrence/],
     ['app/_layout.tsx', /EventsProvider/],
   ]) assert.match(fs.readFileSync(path.join(root, file), 'utf8'), expected);
   const { getMapLocations } = require('../src/data/mapLocations.ts');

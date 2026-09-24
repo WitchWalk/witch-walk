@@ -5,7 +5,7 @@ import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, View } from '
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText as Text } from '@/components/AppText';
 import { useEvents } from '@/components/events/EventsProvider';
-import { getEventDateLabel, getEventTimeLabel, getUpcomingEvents, type EventLocation } from '@/services/eventContentCore';
+import { getEventDateLabel, getEventTimeLabel, getNextUpcomingOccurrence, getUpcomingEvents, type EventLocation } from '@/services/eventContentCore';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 export default function EventsScreen() {
@@ -33,7 +33,7 @@ export default function EventsScreen() {
       </View>
       <View style={styles.intro}><Text style={styles.title}>Events</Text><Text style={styles.subtitle}>Upcoming events in Salem.</Text></View>
       {!ready ? <View style={styles.empty}><Text style={styles.emptyTitle}>Loading events…</Text></View>
-        : upcoming.length ? <View style={styles.list}>{upcoming.map(event => <EventCard key={event.id} event={event} />)}</View>
+        : upcoming.length ? <View style={styles.list}>{upcoming.map(event => <EventCard key={event.id} event={event} now={new Date(clock)} />)}</View>
         : <View style={styles.empty}><Ionicons color={colors.gold} name="calendar-outline" size={38} />
           <Text style={styles.emptyTitle}>No upcoming events</Text>
           <Text style={styles.emptyText}>Check back for newly published Salem events.</Text>
@@ -41,7 +41,9 @@ export default function EventsScreen() {
     </ScrollView>
   </SafeAreaView>;
 }
-function EventCard({ event }: { event: EventLocation }) {
+function EventCard({ event, now }: { event: EventLocation; now: Date }) {
+  const occurrence = getNextUpcomingOccurrence(event, now);
+  if (!occurrence) return null;
   return <Pressable accessibilityRole="button" accessibilityLabel={`View ${event.title} details`}
     onPress={() => router.push({ pathname: '/events/[id]', params: { id: event.id } })}
     style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
@@ -49,8 +51,8 @@ function EventCard({ event }: { event: EventLocation }) {
     <View style={styles.cardContent}>
       {event.featured ? <Text style={styles.featured}>Featured Event</Text> : null}
       <Text style={styles.cardTitle}>{event.title}</Text>
-      <View style={styles.meta}><Ionicons color={colors.gold} name="calendar-outline" size={15} /><Text style={styles.metaText}>{getEventDateLabel(event)}</Text></View>
-      <View style={styles.meta}><Ionicons color={colors.gold} name="time-outline" size={15} /><Text style={styles.metaText}>{getEventTimeLabel(event)}</Text></View>
+      <View style={styles.meta}><Ionicons color={colors.gold} name="calendar-outline" size={15} /><Text style={styles.metaText}>{getEventDateLabel(occurrence)}</Text></View>
+      <View style={styles.meta}><Ionicons color={colors.gold} name="time-outline" size={15} /><Text style={styles.metaText}>{getEventTimeLabel(occurrence)}</Text></View>
       {event.venue ? <View style={styles.meta}><Ionicons color={colors.orange} name="location-outline" size={15} /><Text style={styles.metaText}>{event.venue}</Text></View> : null}
       <Text style={styles.category}>{event.category}</Text>
       {event.shortDescription ? <Text numberOfLines={3} style={styles.description}>{event.shortDescription}</Text> : null}

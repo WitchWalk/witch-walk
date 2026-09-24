@@ -1,10 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loadEventRows, mapSupabaseEvent, preferCurrentEventContent, type EventContentSource, type EventLocation } from './eventContentCore';
 
-const CACHE_KEY = '@witch-walk/event-content-v1';
+const CACHE_KEY = '@witch-walk/event-content-v2';
 const IMAGE_BUCKET = 'broomstick-event-images';
 const PLACEHOLDER = require('../../assets/images/home/events.png');
-const COLUMNS = 'id,title,address,short_description,full_description,category,venue,cost,audience,recurring_note,timezone,start_date,end_date,start_time,end_time,all_day,expires_at,latitude,longitude,website_url,ticket_url,source_url,image_path,featured,published,sort_order,archived_at,updated_at';
+const COLUMNS = 'id,title,address,short_description,full_description,category,venue,cost,audience,recurring_note,timezone,start_date,end_date,start_time,end_time,all_day,expires_at,latitude,longitude,website_url,ticket_url,source_url,image_path,featured,published,sort_order,archived_at,updated_at,broomstick_event_occurrences(id,event_id,start_date,end_date,start_time,end_time,all_day,note,starts_at,ends_at)';
 export type EventContentResult = { events: EventLocation[]; source: EventContentSource; refreshedAt: number };
 
 export async function loadEventContent(current?: EventContentResult): Promise<EventContentResult> {

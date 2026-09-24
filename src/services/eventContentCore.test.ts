@@ -1,6 +1,6 @@
 import {
   eventCategories, findEventByStableId, formatEventDate, getEventDateLabel, getEventDirectionsUrl, getEventTimeLabel,
-  getUpcomingEvents, loadEventRows, mapSupabaseEvent, parseEventCache, parsePublishedEventRows,
+  getNextUpcomingOccurrence, getUpcomingEvents, isEventExpired, loadEventRows, mapSupabaseEvent, parseEventCache, parsePublishedEventRows,
   preferCurrentEventContent, serializeEventCache, type EventContentSource,
 } from './eventContentCore.ts';
 
@@ -44,6 +44,32 @@ assert.equal(formatEventDate('2026-10-16'), 'October 16, 2026');
 assert.ok(decodeURIComponent(getEventDirectionsUrl(mapped)!).includes(night.address));
 assert.equal(getUpcomingEvents([mapped], new Date('2026-10-17T01:59:59Z')).length, 1);
 assert.equal(getUpcomingEvents([mapped], new Date('2026-10-17T02:00:00Z')).length, 0);
+const nightDates = ['2026-10-16', '2026-10-17', '2026-10-23', '2026-10-24'];
+const multiDateRow = parsePublishedEventRows([{ ...night,
+  broomstick_event_occurrences: nightDates.map((start_date, index) => {
+    const next = new Date(Date.parse(`${start_date}T00:00:00Z`) + 86400000).toISOString().slice(0, 10);
+    return {
+      id: `00000000-0000-4000-8000-0000000000${String(index + 1).padStart(2, '0')}`,
+      event_id: night.id, start_date, end_date: null, start_time: '17:00:00', end_time: '22:00:00',
+      all_day: false, note: '', starts_at: `${start_date}T21:00:00Z`, ends_at: `${next}T02:00:00Z`,
+    };
+  }),
+}])[0];
+const multiDateEvent = mapSupabaseEvent(multiDateRow, 4, () => null);
+assert.deepEqual(multiDateEvent.occurrences.map(item => item.startDate), nightDates);
+assert.equal(getNextUpcomingOccurrence(multiDateEvent, new Date('2026-10-18T03:00:00Z'))?.startDate, '2026-10-23');
+assert.equal(getUpcomingEvents([multiDateEvent], new Date('2026-10-18T03:00:00Z')).length, 1);
+assert.equal(isEventExpired(multiDateEvent, new Date('2026-10-25T02:00:00Z')), true);
+const sameDayEvent = { ...multiDateEvent, id: 'same-day', occurrences: [
+  { ...multiDateEvent.occurrences[0], id: 'past-today', startsAt: '2026-10-16T12:00:00Z', endsAt: '2026-10-16T14:00:00Z' },
+  { ...multiDateEvent.occurrences[1], id: 'later-today', startsAt: '2026-10-16T21:00:00Z', endsAt: '2026-10-17T02:00:00Z' },
+] };
+assert.equal(getNextUpcomingOccurrence(sameDayEvent, new Date('2026-10-16T16:00:00Z'))?.id, 'later-today');
+const laterEvent = { ...multiDateEvent, id: 'later-event', occurrences: multiDateEvent.occurrences.map(item => ({
+  ...item, startsAt: item.startsAt.replace('2026-10-', '2026-11-'), endsAt: item.endsAt.replace('2026-10-', '2026-11-'),
+})) };
+assert.deepEqual(getUpcomingEvents([laterEvent, multiDateEvent], new Date('2026-10-18T03:00:00Z')).map(item => item.id),
+  [multiDateEvent.id, laterEvent.id]);
 // The server expiry is an instant; local calendar labels do not shift across the March DST change.
 const spring = mapSupabaseEvent(parsePublishedEventRows([{ ...night, id: 'spring-dst', start_date: '2026-03-08', end_date: '2026-03-08',
   start_time: '01:00:00', end_time: '03:00:00', expires_at: '2026-03-08T07:00:00Z' }])[0], 4, () => null);
@@ -59,7 +85,7 @@ assert.deepEqual(parsePublishedEventRows([{ ...night, archived_at: '2026-10-18' 
 assert.deepEqual(parsePublishedEventRows([{ ...night, id: '../unsafe' }]), []);
 for (const category of eventCategories) assert.equal(parsePublishedEventRows([{ ...night, category }])[0].category, category);
 assert.equal(parsePublishedEventRows([{ ...night, category: 'Future category' }])[0].category, 'Unknown');
-const revised = mapSupabaseEvent(parsePublishedEventRows([{ ...night, title: 'New Admin title', start_date: '2026-10-18', end_date: '2026-10-18', venue: 'New venue' }])[0], 4, () => null);
+const revised = mapSupabaseEvent(parsePublishedEventRows([{ ...night, title: 'New Admin title', start_date: '2026-10-18', end_date: '2026-10-18', expires_at: '2026-10-19T02:00:00Z', venue: 'New venue' }])[0], 4, () => null);
 assert.equal(revised.id, night.id);
 assert.equal(revised.title, 'New Admin title');
 assert.equal(revised.venue, 'New venue');
