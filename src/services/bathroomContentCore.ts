@@ -3,6 +3,7 @@ import type { BathroomLocation } from '@/data/bathrooms';
 import { ATTRACTION_CACHE_MAX_AGE_MILLISECONDS, parseAttractionHours, type AttractionHours } from './attractionContentCore.ts';
 
 export const BATHROOM_CACHE_MAX_AGE_MILLISECONDS = ATTRACTION_CACHE_MAX_AGE_MILLISECONDS;
+export const BATHROOM_CACHE_VERSION = 2;
 export const bathroomTypes = ['Public Restroom', 'Visitor Center', 'Municipal Building', 'Park / Waterfront', 'Library', 'Museum / Attraction', 'Hotel / Public Access', 'Business / Public Access', 'Transit / Ferry', 'Parking Facility', 'Seasonal Restroom', 'Portable Toilets', 'Other'] as const;
 export type BathroomContentSource = 'supabase' | 'cache' | 'bundled';
 export type SupabaseBathroomRow = {
@@ -18,6 +19,7 @@ export type SupabaseBathroomRow = {
   changing_table: boolean | null; family_restroom: boolean | null;
   advisory_level: NonNullable<BathroomLocation['advisoryLevel']>; advisory_text: string | null;
   official_url: string | null; directions_url: string | null;
+  image_path: string | null;
   featured: boolean; published: true; archived_at: null; sort_order: number; updated_at: string;
 };
 
@@ -36,6 +38,10 @@ function url(value: unknown) {
 }
 function coordinate(value: unknown, limit: number) {
   return typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= limit ? value : null;
+}
+function imagePath(value: unknown, id: string) {
+  const path = text(value);
+  return path && new RegExp(`^bathrooms/${id}/[a-f0-9-]{36}\\.webp$`).test(path) ? path : null;
 }
 
 export function parsePublishedBathroomRows(value: unknown): SupabaseBathroomRow[] {
@@ -59,6 +65,7 @@ export function parsePublishedBathroomRows(value: unknown): SupabaseBathroomRow[
       accessibility_notes: text(row.accessibility_notes), changing_table: triState(row.changing_table), family_restroom: triState(row.family_restroom),
       advisory_level: row.advisory_level === 'Warning' || row.advisory_level === 'Advisory' ? row.advisory_level : 'None',
       advisory_text: text(row.advisory_text), official_url: url(row.official_url), directions_url: url(row.directions_url),
+      image_path: imagePath(row.image_path, id),
       featured: row.featured === true, published: true, archived_at: null,
       sort_order: Number.isInteger(row.sort_order) ? row.sort_order as number : 0,
       updated_at: text(row.updated_at) ?? '',
@@ -66,7 +73,7 @@ export function parsePublishedBathroomRows(value: unknown): SupabaseBathroomRow[
   });
 }
 
-export function mapSupabaseBathroom(row: SupabaseBathroomRow, bundled: BathroomLocation | undefined, placeholder: ImageSourcePropType): BathroomLocation {
+export function mapSupabaseBathroom(row: SupabaseBathroomRow, bundled: BathroomLocation | undefined, placeholder: ImageSourcePropType, publicImageUrl: (path: string) => string | null = () => null): BathroomLocation {
   return {
     id: row.id, name: row.name, mapLabel: row.name, facilityName: row.facility_name ?? undefined,
     address: row.address, latitude: row.latitude, longitude: row.longitude, restroomType: row.restroom_type ?? 'Unknown',
@@ -80,7 +87,7 @@ export function mapSupabaseBathroom(row: SupabaseBathroomRow, bundled: BathroomL
     advisoryLevel: row.advisory_level, advisoryText: row.advisory_text ?? undefined,
     description: row.short_description, notes: row.access_notes ?? '',
     // Only artwork may come from the bundled record, never old hours, access or coordinates.
-    image: bundled?.image ?? placeholder,
+    image: row.image_path && publicImageUrl(row.image_path) ? { uri: publicImageUrl(row.image_path)! } : bundled?.image ?? placeholder,
     directionsDestination: row.address, directionsUrl: row.directions_url ?? undefined, officialUrl: row.official_url ?? undefined,
     sourceReference: row.official_url ?? '', lastVerifiedDate: '', contentUpdatedAt: row.updated_at || undefined,
     downtownRelevance: row.sort_order, featured: row.featured,
@@ -112,12 +119,12 @@ export function getBathroomExternalMapUrl(location: BathroomLocation) {
 }
 
 export function serializeBathroomCache(rows: SupabaseBathroomRow[], savedAt: number) {
-  return JSON.stringify({ version: 1, savedAt, rows });
+  return JSON.stringify({ version: BATHROOM_CACHE_VERSION, savedAt, rows });
 }
 export function parseBathroomCache(serialized: string | null, now = Date.now()) {
   try {
     const value: unknown = JSON.parse(serialized ?? 'null');
-    if (!record(value) || value.version !== 1 || typeof value.savedAt !== 'number' || !Number.isFinite(value.savedAt)
+    if (!record(value) || value.version !== BATHROOM_CACHE_VERSION || typeof value.savedAt !== 'number' || !Number.isFinite(value.savedAt)
       || value.savedAt > now || now - value.savedAt > BATHROOM_CACHE_MAX_AGE_MILLISECONDS || !Array.isArray(value.rows)) return null;
     const rows = parsePublishedBathroomRows(value.rows);
     return rows.length === value.rows.length ? { rows, savedAt: value.savedAt } : null;

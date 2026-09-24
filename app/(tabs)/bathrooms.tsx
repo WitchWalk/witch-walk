@@ -9,6 +9,9 @@ import { AppText as Text } from '@/components/AppText';
 import { BathroomCard } from '@/components/bathrooms/BathroomCard';
 import { useBathrooms } from '@/components/bathrooms/BathroomsProvider';
 import { getBathroomExternalMapUrl } from '@/services/bathroomContentCore';
+import { sortBathroomsByDistance } from '@/services/bathroomDistance';
+import { readCurrentForegroundLocation } from '@/services/location';
+import type { Coordinates } from '@/services/proximity';
 import { RestroomMap } from '@/components/bathrooms/RestroomMap';
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import {
@@ -36,7 +39,16 @@ export default function BathroomsScreen() {
   const { isFavorite, toggleFavorite } = useFavorites();
   const { locations, ready, refresh } = useBathrooms();
   const [refreshing, setRefreshing] = useState(false);
+  const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    void readCurrentForegroundLocation().then((result) => {
+      if (!active) return;
+      setUserLocation(result.kind === 'granted' ? result.location : null);
+    });
+    return () => { active = false; };
+  }, []));
 
   const visibleBathrooms = useMemo(() => {
     const filtered = locations.filter(location => isBathroomVisible(location)).filter((location) => {
@@ -45,8 +57,8 @@ export default function BathroomsScreen() {
       return location.seasonal;
     });
 
-    return sortBathroomsForDiscovery(filtered);
-  }, [filter, locations]);
+    return sortBathroomsByDistance(sortBathroomsForDiscovery(filtered), userLocation);
+  }, [filter, locations, userLocation]);
 
   const openDetails = (id: string) => {
     router.push({ pathname: '/bathrooms/[id]', params: { id } });
@@ -175,7 +187,7 @@ export default function BathroomsScreen() {
             <Ionicons color={colors.gold} name="sparkles" size={17} />
             <Text style={styles.sectionTitle}>Nearby Bathrooms</Text>
             <View style={styles.headingLine} />
-            <Text style={styles.sortText}>Distance</Text>
+            <Text style={styles.sortText}>{userLocation ? 'Nearest first' : 'Default order'}</Text>
           </View>
 
           {visibleBathrooms.length && viewMode === 'list' ? (

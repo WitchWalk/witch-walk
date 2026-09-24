@@ -51,3 +51,29 @@ export async function requestCurrentForegroundLocation(options: { requirePrecise
     return { kind: 'unavailable', message: 'Your current location could not be determined.' };
   }
 }
+
+// Read an already-authorized location without triggering a permission prompt.
+// Discovery screens can improve their order opportunistically while rendering immediately.
+export async function readCurrentForegroundLocation(): Promise<ForegroundLocationResult> {
+  try {
+    const permission = await ExpoLocation.getForegroundPermissionsAsync();
+    if (permission.status !== ExpoLocation.PermissionStatus.GRANTED)
+      return { kind: 'denied', canAskAgain: permission.canAskAgain };
+    const result = await ExpoLocation.getCurrentPositionAsync({
+      accuracy: ExpoLocation.Accuracy.Balanced,
+      mayShowUserSettingsDialog: false,
+    });
+    return {
+      kind: 'granted',
+      location: {
+        latitude: result.coords.latitude,
+        longitude: result.coords.longitude,
+        accuracyMeters: result.coords.accuracy,
+        timestamp: result.timestamp,
+        mocked: result.mocked,
+      },
+    };
+  } catch {
+    return { kind: 'unavailable', message: 'Your current location could not be determined.' };
+  }
+}

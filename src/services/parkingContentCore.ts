@@ -7,7 +7,7 @@ import {
   type AttractionHours,
 } from './attractionContentCore.ts';
 
-export const PARKING_CACHE_VERSION = 1;
+export const PARKING_CACHE_VERSION = 2;
 export const PARKING_CACHE_MAX_AGE_MILLISECONDS = ATTRACTION_CACHE_MAX_AGE_MILLISECONDS;
 export const RILEY_WEST_LOT_DESTINATION = 'Riley Plaza West Lot, 212 Washington St, Salem, MA 01970';
 
@@ -24,7 +24,7 @@ export type SupabaseParkingRow = {
   short_description: string;
   full_description: string;
   parking_type: Exclude<ParkingType, 'Unknown'> | null;
-  capacity: number | null;
+  image_path: string | null;
   rate_notes: string | null;
   accessibility: boolean | null;
   accessibility_notes: string | null;
@@ -70,6 +70,11 @@ function triState(value: unknown) {
   return typeof value === 'boolean' ? value : null;
 }
 
+function imagePath(value: unknown, id: string) {
+  const path = text(value);
+  return path && new RegExp(`^parking/${id}/[a-f0-9-]{36}\\.webp$`).test(path) ? path : null;
+}
+
 function typeValue(value: unknown): SupabaseParkingRow['parking_type'] {
   return supportedTypes.find((candidate) => candidate === value) ?? null;
 }
@@ -94,7 +99,7 @@ export function parsePublishedParkingRows(value: unknown): SupabaseParkingRow[] 
       short_description: typeof candidate.short_description === 'string' ? candidate.short_description.trim() : '',
       full_description: typeof candidate.full_description === 'string' ? candidate.full_description.trim() : '',
       parking_type: parkingType,
-      capacity: Number.isInteger(candidate.capacity) && (candidate.capacity as number) >= 0 ? candidate.capacity as number : null,
+      image_path: imagePath(candidate.image_path, id),
       rate_notes: text(candidate.rate_notes),
       accessibility: triState(candidate.accessibility),
       accessibility_notes: text(candidate.accessibility_notes),
@@ -117,7 +122,7 @@ export function parsePublishedParkingRows(value: unknown): SupabaseParkingRow[] 
   });
 }
 
-export function mapSupabaseParking(row: SupabaseParkingRow, bundled: ParkingLocation | undefined, placeholder: ImageSourcePropType, now = new Date()): ParkingLocation {
+export function mapSupabaseParking(row: SupabaseParkingRow, bundled: ParkingLocation | undefined, placeholder: ImageSourcePropType, now = new Date(), publicImageUrl: (path: string) => string | null = () => null): ParkingLocation {
   const hours = getAttractionHoursPresentation(row.hours, now);
   const schedule: ParkingLocation['schedule'] = hours.status === 'unavailable'
     ? { kind: 'unknown', summary: 'Hours unavailable' }
@@ -132,8 +137,6 @@ export function mapSupabaseParking(row: SupabaseParkingRow, bundled: ParkingLoca
     longitude: row.longitude,
     schedule,
     rateInformation: row.rate_notes ?? 'Rates unavailable',
-    capacity: row.capacity,
-    capacityLabel: row.capacity === null ? undefined : `Capacity: ${row.capacity} spaces`,
     accessible: row.accessibility,
     accessibilityNotes: row.accessibility_notes ?? undefined,
     evCharging: row.ev_charging === true ? 'yes' : row.ev_charging === false ? 'no' : 'unknown',
@@ -143,7 +146,7 @@ export function mapSupabaseParking(row: SupabaseParkingRow, bundled: ParkingLoca
     motorcycleNotes: row.motorcycle_notes ?? undefined,
     description: row.short_description,
     fullDescription: row.full_description || row.short_description,
-    image: bundled?.image ?? placeholder,
+    image: row.image_path && publicImageUrl(row.image_path) ? { uri: publicImageUrl(row.image_path)! } : bundled?.image ?? placeholder,
     websiteUrl: row.website_url ?? undefined,
     directionsUrl: row.directions_url ?? undefined,
     distance: row.latitude === null ? 'Distance unavailable' : bundled?.distance ?? 'Distance unavailable',

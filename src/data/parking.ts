@@ -34,8 +34,6 @@ export type ParkingLocation = {
   longitude: number | null;
   schedule: ParkingSchedule;
   rateInformation: string;
-  capacity: number | null;
-  capacityLabel?: string;
   accessible: boolean | null;
   evCharging: 'yes' | 'no' | 'unknown';
   evChargingNotes?: string;
@@ -82,7 +80,6 @@ export const parkingLocations: ParkingLocation[] = [
     longitude: -70.892199,
     schedule: { kind: 'unknown', summary: 'Check posted operating hours' },
     rateInformation: 'Rates vary; check posted signs or Passport Parking',
-    capacity: 980,
     accessible: true,
     evCharging: 'yes',
     description: 'A large city garage beside the Salem Visitor Center and downtown attractions.',
@@ -103,7 +100,6 @@ export const parkingLocations: ParkingLocation[] = [
     longitude: -70.8903277,
     schedule: { kind: 'unknown', summary: 'Check posted operating hours' },
     rateInformation: 'Rates vary; check posted signs or Passport Parking',
-    capacity: 315,
     accessible: true,
     evCharging: 'yes',
     description: 'A municipal garage near Derby Street, Pickering Wharf, and the waterfront.',
@@ -123,8 +119,6 @@ export const parkingLocations: ParkingLocation[] = [
     longitude: -70.8959527,
     schedule: { kind: 'always', summary: '24-hour parking permitted' },
     rateInformation: '$5 weekdays • $2 weekends; verify before arrival',
-    capacity: 710,
-    capacityLabel: 'Approximately 710 spaces',
     accessible: true,
     evCharging: 'unknown',
     description: 'Commuter rail garage at Salem Station with a short walk into downtown.',
@@ -144,7 +138,6 @@ export const parkingLocations: ParkingLocation[] = [
     longitude: -70.8942869,
     schedule: { kind: 'unknown', summary: 'All-day parking; check posted restrictions' },
     rateInformation: 'Pay with Passport Parking; posted rates apply',
-    capacity: null,
     accessible: true,
     evCharging: 'yes',
     description: 'A central surface lot close to Essex Street and downtown businesses.',
@@ -165,7 +158,6 @@ export const parkingLocations: ParkingLocation[] = [
     longitude: -70.8958988,
     schedule: { kind: 'unknown', summary: 'Check signs for access and permit rules' },
     rateInformation: 'Rates and permit restrictions vary; check posted signs',
-    capacity: null,
     accessible: null,
     evCharging: 'unknown',
     description: 'A downtown surface lot with rules that can vary by permit period and season.',

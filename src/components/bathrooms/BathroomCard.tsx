@@ -3,7 +3,6 @@ import { Image, Pressable, StyleSheet, useWindowDimensions, View } from 'react-n
 
 import { AppText as Text } from '@/components/AppText';
 import type { BathroomLocation } from '@/data/bathrooms';
-import { distanceMilesLabel } from '@/services/displayValues';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 type BathroomCardProps = {
@@ -17,7 +16,11 @@ type BathroomCardProps = {
 export function BathroomCard({ favorite, location, onDirections, onFavoritePress, onPress }: BathroomCardProps) {
   const { width } = useWindowDimensions();
   const narrow = width < 375;
-  const distance = distanceMilesLabel(location.distanceMiles);
+  const distance = typeof location.distanceMiles === 'number' && Number.isFinite(location.distanceMiles) && location.distanceMiles >= 0
+    ? location.distanceMiles < 0.1
+      ? `${Math.round(location.distanceMiles * 5280)} ft`
+      : `${location.distanceMiles.toFixed(1)} mi`
+    : null;
   const seasonalNote = location.seasonal
     ? location.seasonalNotes || 'This restroom is available seasonally.'
     : '';

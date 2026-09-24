@@ -22,7 +22,10 @@ Module._load = function (name, ...args) {
     getItem: async key => storage.get(key) ?? null,
     setItem: async (key, value) => { storage.set(key, value); },
   };
-  if (name === '@/lib/supabase') return { supabase: { from(table) { assert.equal(table, 'broomstick_bathrooms'); queries++; return builder; } } };
+  if (name === '@/lib/supabase') return { supabase: {
+    from(table) { assert.equal(table, 'broomstick_bathrooms'); queries++; return builder; },
+    storage: { from(bucket) { assert.equal(bucket, 'broomstick-location-images'); return { getPublicUrl(pathname) { return { data: { publicUrl: `https://images.example/${pathname}` } }; } }; } },
+  } };
   if (name.startsWith('@/')) name = path.join(root, 'src', name.slice(2));
   return originalLoad.call(this, name, ...args);
 };

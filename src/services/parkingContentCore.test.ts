@@ -30,7 +30,7 @@ const museum: SupabaseParkingRow = {
   short_description: 'Admin summary',
   full_description: 'Admin details',
   parking_type: 'Garage',
-  capacity: 700,
+  image_path: null,
   rate_notes: 'October event rates may differ; check posted signs',
   accessibility: null,
   accessibility_notes: null,
@@ -59,7 +59,6 @@ const riley: SupabaseParkingRow = {
   parking_type: 'Public Lot',
   latitude: 42.5187341,
   longitude: -70.8958988,
-  capacity: null,
   rate_notes: null,
   accessibility: false,
   ev_charging: false,
@@ -88,7 +87,6 @@ async function run() {
   assert.equal(mapped.fullDescription, 'Admin details');
   assert.equal(mapped.schedule.kind, 'structured');
   assert.equal(mapped.rateInformation, museum.rate_notes);
-  assert.equal(mapped.capacityLabel, 'Capacity: 700 spaces');
   assert.equal(mapped.availability.label, 'Live availability not available');
   assert.equal(mapped.accessible, null);
   assert.equal(mapped.evCharging, 'yes');
@@ -108,9 +106,12 @@ async function run() {
   assert.equal(mappedRiley.type, 'Public Lot');
   assert.equal(mappedRiley.mapDestination, RILEY_WEST_LOT_DESTINATION);
   assert.equal(mappedRiley.image, localImage);
+  const customImage = mapSupabaseParking({ ...museum, image_path: 'parking/museum-place-garage/11111111-1111-4111-8111-111111111111.webp' }, undefined, 99, new Date(), () => 'https://images.example/parking.webp');
+  assert.equal((customImage.image as { uri: string }).uri, 'https://images.example/parking.webp');
+  const invalidImage = parsePublishedParkingRows([{ ...museum, image_path: 'bathrooms/museum-place-garage/11111111-1111-4111-8111-111111111111.webp' }])[0];
+  assert.equal(invalidImage.image_path, null);
   assert.equal(mappedRiley.schedule.summary, 'Hours unavailable');
   assert.equal(mappedRiley.rateInformation, 'Rates unavailable');
-  assert.equal(mappedRiley.capacity, null);
   assert.equal(mappedRiley.accessible, false);
   assert.equal(mappedRiley.evCharging, 'no');
   assert.equal(mappedRiley.overnightAllowed, false);
@@ -129,7 +130,7 @@ async function run() {
   assert.equal(getParkingExternalMapUrl({ ...mapped, directionsUrl: 'https://example.com/official-directions' }, 'directions'), 'https://example.com/official-directions');
   assert.ok(decodeURIComponent(getParkingExternalMapUrl({ ...mappedRiley, directionsUrl: 'https://example.com/generic-riley' }, 'directions')).includes(RILEY_WEST_LOT_DESTINATION));
 
-  const noCoordinates = mapSupabaseParking({ ...museum, id: 'new-lot', parking_type: null, latitude: null, longitude: null, hours: {}, rate_notes: null, ev_charging: null, accessibility: null, capacity: null }, undefined, 99);
+  const noCoordinates = mapSupabaseParking({ ...museum, id: 'new-lot', parking_type: null, latitude: null, longitude: null, hours: {}, rate_notes: null, ev_charging: null, accessibility: null }, undefined, 99);
   assert.equal(noCoordinates.type, 'Unknown');
   assert.equal(noCoordinates.distance, 'Distance unavailable');
   assert.equal(noCoordinates.evCharging, 'unknown');
