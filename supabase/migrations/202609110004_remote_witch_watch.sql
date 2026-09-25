@@ -10,6 +10,15 @@ update wait_private.reporting_attractions set display_name = case id
   when 'witch-dungeon-museum' then 'Witch Dungeon Museum'
   when 'salem-maritime' then 'Salem Maritime National Historical Park'
   when 'salem-witch-village' then 'Salem Witch Village'
+  when 'chambers-of-terror' then 'Chambers of Terror'
+  when 'count-orloks' then 'Count Orlok''s Nightmare Gallery'
+  when 'frankensteins-castle' then 'Frankenstein''s Castle'
+  when 'gallows-hill' then 'Gallows Hill Museum/Theatre'
+  when 'halloween-museum-of-salem' then 'Halloween Museum of Salem'
+  when 'haunted-warren-museum' then 'Haunted Warren Museum'
+  when 'new-england-pirate-museum' then 'New England Pirate Museum'
+  when 'real-pirates-salem' then 'Real Pirates Salem'
+  when 'salem-wax-a-halloween-experience' then 'Salem Wax: A Halloween Experience'
 end;
 alter table wait_private.reporting_attractions alter column display_name set not null;
 

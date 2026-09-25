@@ -17,12 +17,35 @@ try {
   await db.exec(await readFile(new URL('../supabase/migrations/202609110002_shared_wait_read.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/202609110003_realtime_wait_summaries.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/202609230001_add_salem_witch_village_wait_reporting.sql', import.meta.url), 'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/202609250001_expand_trusted_wait_reporting.sql', import.meta.url), 'utf8'));
+  const expandedTrusted = [
+    { id: 'chambers-of-terror', latitude: 42.5205259, longitude: -70.8885739 },
+    { id: 'count-orloks', latitude: 42.5213235, longitude: -70.8948752 },
+    { id: 'frankensteins-castle', latitude: 42.5204351, longitude: -70.8916638 },
+    { id: 'gallows-hill', latitude: 42.5221611, longitude: -70.8966158 },
+    { id: 'halloween-museum-of-salem', latitude: 42.5220679, longitude: -70.8913786 },
+    { id: 'haunted-warren-museum', latitude: 42.5212799, longitude: -70.896699 },
+    { id: 'new-england-pirate-museum', latitude: 42.520703, longitude: -70.8907714 },
+    { id: 'real-pirates-salem', latitude: 42.519699, longitude: -70.8912048 },
+    { id: 'salem-wax-a-halloween-experience', latitude: 42.5202787, longitude: -70.8915574 },
+  ];
+  const originalTrusted = [
+    { id: 'house-seven-gables', latitude: 42.5218159, longitude: -70.8838227 },
+    { id: 'peabody-essex-museum', latitude: 42.5215925, longitude: -70.8921931 },
+    { id: 'salem-maritime', latitude: 42.5190589, longitude: -70.8855837 },
+    { id: 'salem-witch-museum', latitude: 42.5237449, longitude: -70.8911625 },
+    { id: 'salem-witch-village', latitude: 42.5204583, longitude: -70.8913991 },
+    { id: 'witch-dungeon-museum', latitude: 42.5225674, longitude: -70.8971921 },
+    { id: 'witch-house', latitude: 42.5215539, longitude: -70.8988987 },
+  ];
   const reportingAttractions = await db.query('select id, latitude, longitude, enabled from wait_private.reporting_attractions order by id');
-  assert.equal(reportingAttractions.rows.length, 7);
-  assert.deepEqual(
-    reportingAttractions.rows.find(row => row.id === 'salem-witch-village'),
-    { id: 'salem-witch-village', latitude: 42.5204583, longitude: -70.8913991, enabled: true },
-  );
+  assert.equal(reportingAttractions.rows.length, 16);
+  for (const expected of originalTrusted) {
+    assert.deepEqual(reportingAttractions.rows.find(row => row.id === expected.id), { ...expected, enabled: true });
+  }
+  for (const expected of expandedTrusted) {
+    assert.deepEqual(reportingAttractions.rows.find(row => row.id === expected.id), { ...expected, enabled: true });
+  }
   const identity = async (id = '00000000-0000-0000-0000-000000000001') => {
     await db.query("select set_config('request.jwt.claim.sub', $1, false)", [id]);
   };
@@ -61,6 +84,14 @@ try {
   assert.equal((await submit({ wait: 30 })).kind, 'idempotency-conflict');
   assert.equal((await submit({ key: 'second' })).kind, 'cooldown');
   assert.equal((await submit({ attraction: 'salem-witch-village', key: 'village', lat: 42.5204583, lng: -70.8913991 })).kind, 'success');
+  for (const attraction of expandedTrusted) {
+    assert.equal((await submit({
+      attraction: attraction.id,
+      key: `expanded-${attraction.id}`,
+      lat: attraction.latitude,
+      lng: attraction.longitude,
+    })).kind, 'success', `${attraction.id} accepts a verified report`);
+  }
   for (const invalid of [{ wait: 5 }, { wait: null }, { crowd: 'fake' }, { crowd: null },
     { tag: 'free text' }, { key: '' }, { key: 'x'.repeat(129) }, { attraction: 'not-allowed' }]) {
     assert.equal((await submit({ key: 'invalid', ...invalid })).kind, 'invalid');
@@ -83,10 +114,22 @@ try {
   assert.deepEqual(firstRapid.map((result) => result.kind), ['success', 'duplicate']);
   assert.equal(firstRapid[0].reportId, firstRapid[1].reportId);
   await db.exec('reset role');
-  assert.equal((await db.query('select count(*)::int as count from wait_private.wait_reports')).rows[0].count, 5);
+  assert.equal((await db.query('select count(*)::int as count from wait_private.wait_reports')).rows[0].count, 14);
   await db.exec('set role anon');
   const summaries = await read();
   const house = summaries.find(row => row.attractionId === 'witch-house');
+  for (const attraction of expandedTrusted) {
+    assert.equal(
+      summaries.find(row => row.attractionId === attraction.id)?.reportCount,
+      1,
+      `${attraction.id} participates in shared aggregation`,
+    );
+    assert.equal(
+      (await db.query('select count(*)::int as count from public.wait_summary_updates where attraction_id=$1', [attraction.id])).rows[0].count,
+      1,
+      `${attraction.id} emits a Realtime summary update`,
+    );
+  }
   assert.equal(house.reportCount, 2, 'Only latest contribution per identity');
   assert.equal(house.estimatedWaitMinutes, 20);
   assert.equal(house.crowdLevel, 'moderate');
