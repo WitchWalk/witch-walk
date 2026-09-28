@@ -1,0 +1,144 @@
+{
+  "generatedAt": "2026-09-28T11:19:42.279Z",
+  "mode": "production-read-only",
+  "publishableClientOnly": true,
+  "writeLoadPerformed": false,
+  "writeLoadReason": "Accepted reports cannot be deleted through the normal mobile/RLS path, so production write load is not safely reversible.",
+  "thresholds": {
+    "maxErrorRate": 0.05,
+    "maxP95Ms": 3000
+  },
+  "baseline": {
+    "counts": {
+      "broomstick_attractions": 44,
+      "broomstick_restaurants": 59,
+      "broomstick_parking": 13,
+      "broomstick_bathrooms": 14,
+      "broomstick_events": 1
+    },
+    "waitSummaryCount": 16,
+    "waitSummaryDigest": "ee4b089e6bcccbb073656f2975e9f608713e5419795e7b7ef5edadfb98f7bce1",
+    "realtimeUpdateCount": 1,
+    "realtimeUpdateDigest": "c560470cba84ffda0ed2ed5fb7abd2726397c13f4e1b2a8e35cc46f47b85c99c",
+    "privateWaitReportsDenied": true
+  },
+  "mixedRead": [
+    {
+      "concurrency": 25,
+      "virtualUserOperations": 250,
+      "elapsedMs": 1324.14375,
+      "totalRequests": 331,
+      "successfulRequests": 331,
+      "failedRequests": 0,
+      "errorRate": 0,
+      "medianMs": 123.35279199999991,
+      "p95Ms": 202.42920900000013,
+      "p99Ms": 217.45354200000008,
+      "throughputRequestsPerSecond": 249.97285981978922,
+      "timeoutCount": 0,
+      "rateLimitCount": 0,
+      "errorTypes": {}
+    },
+    {
+      "concurrency": 50,
+      "virtualUserOperations": 500,
+      "elapsedMs": 1657.3014999999996,
+      "totalRequests": 647,
+      "successfulRequests": 647,
+      "failedRequests": 0,
+      "errorRate": 0,
+      "medianMs": 141.96087499999976,
+      "p95Ms": 315.0335420000001,
+      "p99Ms": 366.46829199999956,
+      "throughputRequestsPerSecond": 390.3936610206412,
+      "timeoutCount": 0,
+      "rateLimitCount": 0,
+      "errorTypes": {}
+    },
+    {
+      "concurrency": 100,
+      "virtualUserOperations": 1000,
+      "elapsedMs": 2395.141917,
+      "totalRequests": 1330,
+      "successfulRequests": 1330,
+      "failedRequests": 0,
+      "errorRate": 0,
+      "medianMs": 189.62879199999952,
+      "p95Ms": 424.80120799999986,
+      "p99Ms": 514.8942500000003,
+      "throughputRequestsPerSecond": 555.2906867689377,
+      "timeoutCount": 0,
+      "rateLimitCount": 0,
+      "errorTypes": {}
+    }
+  ],
+  "realtime": [
+    {
+      "concurrency": 25,
+      "successfulConnections": 25,
+      "failedConnections": 0,
+      "connectionSuccessRate": 1,
+      "connectionSetupMs": 306.79758300000003,
+      "broadcastDelivered": 25,
+      "duplicateDeliveries": 0,
+      "deliveryMedianMs": 578.965416,
+      "deliveryP95Ms": 579.7827499999999,
+      "sendError": null,
+      "reconnectAttempts": 3,
+      "reconnectFailures": 0,
+      "reconnectMs": 53.45983399999977,
+      "channelErrors": 0
+    },
+    {
+      "concurrency": 50,
+      "successfulConnections": 50,
+      "failedConnections": 0,
+      "connectionSuccessRate": 1,
+      "connectionSetupMs": 395.1128749999998,
+      "broadcastDelivered": 50,
+      "duplicateDeliveries": 0,
+      "deliveryMedianMs": 358.33379199999945,
+      "deliveryP95Ms": 359.9642080000003,
+      "sendError": null,
+      "reconnectAttempts": 5,
+      "reconnectFailures": 0,
+      "reconnectMs": 56.19470799999999,
+      "channelErrors": 0
+    },
+    {
+      "concurrency": 100,
+      "successfulConnections": 100,
+      "failedConnections": 0,
+      "connectionSuccessRate": 1,
+      "connectionSetupMs": 514.3009169999996,
+      "broadcastDelivered": 100,
+      "duplicateDeliveries": 0,
+      "deliveryMedianMs": 43.49541700000009,
+      "deliveryP95Ms": 45.14945799999987,
+      "sendError": null,
+      "reconnectAttempts": 10,
+      "reconnectFailures": 0,
+      "reconnectMs": 104.57887500000106,
+      "channelErrors": 0
+    }
+  ],
+  "safetyStop": null,
+  "after": {
+    "counts": {
+      "broomstick_attractions": 44,
+      "broomstick_restaurants": 59,
+      "broomstick_parking": 13,
+      "broomstick_bathrooms": 14,
+      "broomstick_events": 1
+    },
+    "waitSummaryCount": 16,
+    "waitSummaryDigest": "ee4b089e6bcccbb073656f2975e9f608713e5419795e7b7ef5edadfb98f7bce1",
+    "realtimeUpdateCount": 1,
+    "realtimeUpdateDigest": "c560470cba84ffda0ed2ed5fb7abd2726397c13f4e1b2a8e35cc46f47b85c99c",
+    "privateWaitReportsDenied": true
+  },
+  "baselineCountsMatch": true,
+  "waitSummaryCountMatch": true,
+  "privateReadsStillDenied": true,
+  "completedAt": "2026-09-28T11:19:51.614Z"
+}
