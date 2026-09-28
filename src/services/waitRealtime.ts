@@ -15,7 +15,10 @@ const controller = createWaitRealtimeController({
       if (payload.eventType !== 'DELETE') event(payload.new as SafeWaitEvent);
       else void getWaitTimeAggregates();
     }).subscribe(status);
-    return () => { void client.removeChannel(channel); };
+    return async () => {
+      try { await client.removeChannel(channel); }
+      finally { channel.teardown(); } // Also stop local timers if the leave acknowledgement times out.
+    };
   },
 });
 let users = 0;
