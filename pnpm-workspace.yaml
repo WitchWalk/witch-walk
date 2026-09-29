@@ -3,18 +3,18 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - '@expo/cli@57.0.23 || 57.0.24 || 57.0.25 || 57.0.26 || 57.0.27'
   - '@expo/metro-file-map@57.0.3'
-  - '@expo/ui@57.0.17 || 57.0.18 || 57.0.19 || 57.0.20'
+  - '@expo/ui@57.0.17 || 57.0.18 || 57.0.19 || 57.0.20 || 57.0.21'
   - babel-preset-expo@57.0.11 || 57.0.12 || 57.0.13
   - expo-glass-effect@57.0.2 || 57.0.3 || 57.0.4
-  - expo-modules-core@57.0.17 || 57.0.18 || 57.0.19
+  - expo-modules-core@57.0.17 || 57.0.18 || 57.0.19 || 57.0.20
   - expo-modules-jsi@57.1.0 || 57.1.1
-  - expo-router@57.0.20 || 57.0.21 || 57.0.22 || 57.0.23
-  - expo@57.0.21 || 57.0.22 || 57.0.23 || 57.0.24 || 57.0.25
+  - expo-router@57.0.20 || 57.0.21 || 57.0.22 || 57.0.23 || 57.0.24
+  - expo@57.0.21 || 57.0.22 || 57.0.23 || 57.0.24 || 57.0.25 || 57.0.26
   - expo-sqlite@57.0.3
   - '@expo/fingerprint@0.20.13'
   - '@expo/prebuild-config@57.0.16'
   - expo-asset@57.0.17 || 57.0.18
-  - expo-constants@57.0.18 || 57.0.19
+  - expo-constants@57.0.18 || 57.0.19 || 57.0.20
   - expo-file-system@57.0.7
   - expo-font@57.0.4
   - expo-keep-awake@57.0.2
