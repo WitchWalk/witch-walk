@@ -8,6 +8,7 @@ import {
   Platform,
   Pressable,
   StyleSheet,
+  TextInput,
   View,
 } from 'react-native';
 
@@ -72,6 +73,8 @@ export default function BuildMyTourScreen() {
     useState(false);
   const [narrationSource, setNarrationSource] =
     useState<TourNarrationSource | null>(null);
+  const [stopSearch, setStopSearch] =
+    useState('');
 
   const selectable = useMemo(
     () =>
@@ -82,6 +85,25 @@ export default function BuildMyTourScreen() {
       ),
     [attractions],
   );
+
+  const filteredSelectable = useMemo(() => {
+    const query = stopSearch.trim().toLowerCase();
+
+    if (!query) {
+      return selectable;
+    }
+
+    return selectable.filter((attraction) => {
+      const name = attraction.name.toLowerCase();
+      const address =
+        attraction.address?.toLowerCase() ?? '';
+
+      return (
+        name.includes(query) ||
+        address.includes(query)
+      );
+    });
+  }, [selectable, stopSearch]);
 
   const selected = useMemo(
     () =>
@@ -584,6 +606,26 @@ export default function BuildMyTourScreen() {
           </View>
         ) : null}
 
+        <View style={styles.searchShell}>
+          <Ionicons
+            name="search"
+            size={20}
+            color={colors.textMuted}
+          />
+
+          <TextInput
+            accessibilityLabel="Search tour stops"
+            autoCapitalize="none"
+            autoCorrect={false}
+            clearButtonMode="while-editing"
+            onChangeText={setStopSearch}
+            placeholder="Search attractions or addresses"
+            placeholderTextColor={colors.textMuted}
+            style={styles.searchInput}
+            value={stopSearch}
+          />
+        </View>
+
         {!ready ? (
           <View style={styles.emptyCard}>
             <Text style={styles.muted}>
@@ -592,7 +634,7 @@ export default function BuildMyTourScreen() {
           </View>
         ) : (
           <View style={styles.stopList}>
-            {selectable.map((attraction) => {
+            {filteredSelectable.map((attraction) => {
               const isSelected =
                 selectedIds.includes(attraction.id);
 
@@ -655,6 +697,13 @@ export default function BuildMyTourScreen() {
                 </Pressable>
               );
             })}
+            {filteredSelectable.length === 0 ? (
+              <View style={styles.emptyCard}>
+                <Text style={styles.muted}>
+                  No attractions match “{stopSearch}”.
+                </Text>
+              </View>
+            ) : null}
           </View>
         )}
       </View>
@@ -1422,6 +1471,25 @@ const styles = StyleSheet.create({
 
   stopList: {
     gap: spacing.sm,
+  },
+
+  searchShell: {
+    minHeight: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.md,
+  },
+
+  searchInput: {
+    flex: 1,
+    minHeight: 48,
+    color: colors.text,
+    fontSize: 16,
   },
 
   stopCard: {
