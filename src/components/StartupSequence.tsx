@@ -6,7 +6,6 @@ import {
 } from 'react-native';
 
 import { AppText as Text } from '@/components/AppText';
-import { colors } from '@/theme/tokens';
 
 const broomstickLogo =
   require('../../assets/broomstick-app-logo.png');
@@ -24,12 +23,12 @@ export function StartupSequence({
   useEffect(() => {
     const studioTimer = setTimeout(
       () => setStage('broomstick'),
-      1400,
+      1250,
     );
 
     const finishTimer = setTimeout(
       onFinished,
-      2400,
+      2350,
     );
 
     return () => {
@@ -51,19 +50,7 @@ export function StartupSequence({
       {stage === 'studio' ? (
         <FiveFootFourLogo />
       ) : (
-        <View style={styles.broomstickStage}>
-          <Image
-            resizeMode="contain"
-            source={broomstickLogo}
-            style={styles.broomstickLogo}
-          />
-          <Text style={styles.broomstickTitle}>
-            BROOMSTICK
-          </Text>
-          <Text style={styles.broomstickSubtitle}>
-            THE SALEM GUIDEBOOK
-          </Text>
-        </View>
+        <BroomstickSplash />
       )}
     </View>
   );
@@ -71,29 +58,87 @@ export function StartupSequence({
 
 function FiveFootFourLogo() {
   return (
-    <View style={styles.studioLogo}>
+    <View style={styles.studioMark}>
       <View style={styles.ruler}>
-        {Array.from({ length: 12 }, (_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.rulerTick,
-              index % 3 === 0 &&
-                styles.rulerTickLong,
-            ]}
-          />
-        ))}
-        <Text style={styles.rulerFive}>5</Text>
+        <View style={[styles.tick, styles.tickLong]} />
+        <View style={styles.tick} />
+        <View style={styles.tick} />
+        <View style={[styles.tick, styles.tickMedium]} />
+        <View style={styles.tick} />
+        <View style={styles.tick} />
+        <View style={[styles.tick, styles.tickMedium]} />
+        <View style={styles.tick} />
+        <View style={styles.tick} />
+        <View style={[styles.tick, styles.tickLong]} />
+        <Text style={styles.rulerNumber}>5</Text>
       </View>
 
-      <View style={styles.studioWords}>
-        <Text style={styles.studioWord}>FIVE</Text>
-        <Text style={styles.studioWord}>FOOT</Text>
-        <Text style={styles.studioWord}>FOUR</Text>
-        <Text style={styles.creations}>
+      <View style={styles.studioCopy}>
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.8}
+          style={styles.studioWord}
+        >
+          FIVE
+        </Text>
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.8}
+          style={styles.studioWord}
+        >
+          FOOT
+        </Text>
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.8}
+          style={styles.studioWord}
+        >
+          FOUR
+        </Text>
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.75}
+          style={styles.creations}
+        >
           CREATIONS
         </Text>
       </View>
+    </View>
+  );
+}
+
+function BroomstickSplash() {
+  return (
+    <View style={styles.broomstickStage}>
+      <View style={styles.logoGlow}>
+        <Image
+          resizeMode="contain"
+          source={broomstickLogo}
+          style={styles.broomstickLogo}
+        />
+      </View>
+
+      <Text
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
+        style={styles.broomstickTitle}
+      >
+        BROOMSTICK
+      </Text>
+
+      <Text
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
+        style={styles.broomstickSubtitle}
+      >
+        THE SALEM GUIDEBOOK
+      </Text>
     </View>
   );
 }
@@ -107,102 +152,126 @@ const styles = StyleSheet.create({
   },
 
   studioBackground: {
-    backgroundColor: '#F4F0E8',
+    backgroundColor: '#F5F1E8',
   },
 
   broomstickBackground: {
-    backgroundColor: colors.background,
+    backgroundColor: '#09040E',
   },
 
-  studioLogo: {
-    width: '82%',
-    maxWidth: 390,
+  studioMark: {
+    width: '72%',
+    maxWidth: 330,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 24,
+    gap: 20,
   },
 
   ruler: {
-    width: 60,
-    height: 270,
+    width: 54,
+    height: 220,
     justifyContent: 'flex-start',
-    borderWidth: 5,
+    borderWidth: 4,
     borderColor: '#172026',
     paddingTop: 15,
     paddingLeft: 7,
   },
 
-  rulerTick: {
-    width: 20,
-    height: 5,
-    marginBottom: 13,
-    borderRadius: 3,
+  tick: {
+    width: 16,
+    height: 4,
+    marginBottom: 11,
+    borderRadius: 2,
     backgroundColor: '#172026',
   },
 
-  rulerTickLong: {
-    width: 32,
+  tickMedium: {
+    width: 23,
   },
 
-  rulerFive: {
+  tickLong: {
+    width: 30,
+  },
+
+  rulerNumber: {
     position: 'absolute',
-    bottom: 12,
-    left: 14,
+    bottom: 8,
+    left: 11,
     color: '#172026',
-    fontSize: 54,
-    lineHeight: 58,
-    fontWeight: '500',
+    fontSize: 42,
+    lineHeight: 46,
+    fontWeight: '800',
   },
 
-  studioWords: {
+  studioCopy: {
     flex: 1,
-    justifyContent: 'center',
+    minWidth: 0,
   },
 
   studioWord: {
     color: '#172026',
-    fontSize: 52,
-    lineHeight: 58,
-    fontWeight: '800',
-    letterSpacing: -1,
+    fontSize: 43,
+    lineHeight: 47,
+    fontWeight: '900',
+    letterSpacing: -0.6,
   },
 
   creations: {
-    marginTop: 10,
+    marginTop: 7,
     color: '#172026',
-    fontSize: 20,
-    lineHeight: 24,
-    fontWeight: '800',
-    letterSpacing: 4.4,
+    fontSize: 15,
+    lineHeight: 19,
+    fontWeight: '900',
+    letterSpacing: 3.5,
   },
 
   broomstickStage: {
-    width: '82%',
-    maxWidth: 420,
+    width: '88%',
+    maxWidth: 410,
     alignItems: 'center',
-    gap: 10,
+  },
+
+  logoGlow: {
+    width: 230,
+    height: 230,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 52,
+    shadowColor: '#B22BFF',
+    shadowOpacity: 0.42,
+    shadowRadius: 35,
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
   },
 
   broomstickLogo: {
-    width: 180,
-    height: 180,
+    width: 220,
+    height: 220,
   },
 
   broomstickTitle: {
-    color: colors.text,
+    width: '100%',
+    marginTop: 36,
+    color: '#F5C95A',
     fontFamily: 'Georgia',
-    fontSize: 38,
-    lineHeight: 44,
-    fontWeight: '800',
-    letterSpacing: 1.5,
+    fontSize: 50,
+    lineHeight: 56,
+    fontWeight: '700',
+    letterSpacing: -0.4,
+    textAlign: 'center',
   },
 
   broomstickSubtitle: {
-    color: colors.gold,
-    fontSize: 11,
-    lineHeight: 14,
+    width: '100%',
+    marginTop: 14,
+    color: '#F5C95A',
+    fontSize: 12,
+    lineHeight: 16,
     fontWeight: '900',
-    letterSpacing: 3,
+    letterSpacing: 3.5,
+    textAlign: 'center',
   },
 });
