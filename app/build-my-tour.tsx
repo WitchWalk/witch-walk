@@ -13,10 +13,10 @@ import { AppText as Text } from '@/components/AppText';
 import { useAttractions } from '@/components/attractions/AttractionsProvider';
 import { Screen } from '@/components/Screen';
 import {
-  buildTourRoute,
   type TourRouteStrategy,
   type TourTravelMode,
 } from '@/services/tourRouteCore';
+import { buildTravelTimeTourRoute } from '@/services/tourTravelTimeRoute';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 export default function BuildMyTourScreen() {
@@ -132,7 +132,7 @@ export default function BuildMyTourScreen() {
           Boolean(item),
       );
 
-    const plan = buildTourRoute({
+    const plan = await buildTravelTimeTourRoute({
       origin,
       stops: nextStops.map((attraction) => ({
         id: attraction.id,
@@ -142,6 +142,7 @@ export default function BuildMyTourScreen() {
       })),
       completedStopIds: nextCompletedIds,
       strategy,
+      travelMode,
     });
 
     setOrderedIds(plan.remainingStopIds);
