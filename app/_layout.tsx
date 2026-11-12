@@ -19,6 +19,7 @@ import { subscribeRemoteWatchNotifications } from '@/services/witchWatchNotifica
 
 export default function RootLayout() {
   const [showStartup, setShowStartup] = useState(true);
+
   const finishStartup = useCallback(
     () => setShowStartup(false),
     [],
@@ -26,46 +27,73 @@ export default function RootLayout() {
 
   useEffect(() => {
     let unsubscribe: () => void = () => undefined;
-    void subscribeRemoteWatchNotifications((id) => router.push(`/attractions/${id}`)).then((value) => { unsubscribe = value; });
+
+    void subscribeRemoteWatchNotifications((id) =>
+      router.push(`/attractions/${id}`),
+    ).then((value) => {
+      unsubscribe = value;
+    });
+
     return () => unsubscribe();
   }, []);
+
+  if (showStartup) {
+    return (
+      <SafeAreaProvider>
+        <StatusBar hidden />
+        <StartupSequence
+          onFinished={finishStartup}
+        />
+      </SafeAreaProvider>
+    );
+  }
+
   return (
     <SafeAreaProvider>
       <AppSettingsProvider>
         <AttractionsProvider>
           <RestaurantsProvider>
             <ParkingProvider>
-            <BathroomsProvider>
-            <EventsProvider>
-            <FavoritesProvider>
-              <WitchWatchProvider>
-                <WaitRealtimeProvider>
-            <View style={styles.container}>
-              <StatusBar style="light" />
-              <Stack screenOptions={{ headerShown: false, contentStyle: styles.content }}>
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="attractions" />
-                <Stack.Screen name="restaurants" />
-                <Stack.Screen name="parking" />
-                <Stack.Screen name="bathrooms" />
-                <Stack.Screen name="settings" />
-                <Stack.Screen name="house-arauz" />
-                <Stack.Screen name="events" />
-                <Stack.Screen name="live-map" options={{ animation: 'slide_from_right' }} />
-                <Stack.Screen name="wait-times-overview" options={{ animation: 'slide_from_right' }} />
-              </Stack>
-
-              {showStartup ? (
-                <StartupSequence
-                  onFinished={finishStartup}
-                />
-              ) : null}
-            </View>
-                </WaitRealtimeProvider>
-              </WitchWatchProvider>
-            </FavoritesProvider>
-            </EventsProvider>
-            </BathroomsProvider>
+              <BathroomsProvider>
+                <EventsProvider>
+                  <FavoritesProvider>
+                    <WitchWatchProvider>
+                      <WaitRealtimeProvider>
+                        <View style={styles.container}>
+                          <StatusBar style="light" />
+                          <Stack
+                            screenOptions={{
+                              headerShown: false,
+                              contentStyle: styles.content,
+                            }}
+                          >
+                            <Stack.Screen name="(tabs)" />
+                            <Stack.Screen name="attractions" />
+                            <Stack.Screen name="restaurants" />
+                            <Stack.Screen name="parking" />
+                            <Stack.Screen name="bathrooms" />
+                            <Stack.Screen name="settings" />
+                            <Stack.Screen name="house-arauz" />
+                            <Stack.Screen name="events" />
+                            <Stack.Screen
+                              name="live-map"
+                              options={{
+                                animation: 'slide_from_right',
+                              }}
+                            />
+                            <Stack.Screen
+                              name="wait-times-overview"
+                              options={{
+                                animation: 'slide_from_right',
+                              }}
+                            />
+                          </Stack>
+                        </View>
+                      </WaitRealtimeProvider>
+                    </WitchWatchProvider>
+                  </FavoritesProvider>
+                </EventsProvider>
+              </BathroomsProvider>
             </ParkingProvider>
           </RestaurantsProvider>
         </AttractionsProvider>
@@ -79,6 +107,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+
   content: {
     backgroundColor: colors.background,
   },
