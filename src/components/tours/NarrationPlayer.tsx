@@ -1,5 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import {
+  setAudioModeAsync,
+  useAudioPlayer,
+  useAudioPlayerStatus,
+} from 'expo-audio';
+import { useEffect } from 'react';
+import {
   Pressable,
   StyleSheet,
   View,
@@ -13,40 +19,56 @@ import {
   typography,
 } from '@/theme/tokens';
 
-export type NarrationPlaybackState =
-  | 'unavailable'
-  | 'loading'
-  | 'ready'
-  | 'playing'
-  | 'paused'
-  | 'finished'
-  | 'error';
-
 type NarrationPlayerProps = {
   title: string;
-  state: NarrationPlaybackState;
-  durationSeconds?: number | null;
-  positionSeconds?: number;
-  onPlay?: () => void;
-  onPause?: () => void;
-  onStop?: () => void;
+  sourceUri?: string | null;
+  durationHintSeconds?: number | null;
+  loading?: boolean;
+  offlineAvailable?: boolean;
+  unavailableReason?:
+    | 'not-uploaded'
+    | 'not-entitled'
+    | 'service-unavailable'
+    | null;
 };
 
 export function NarrationPlayer({
   title,
-  state,
-  durationSeconds = null,
-  positionSeconds = 0,
-  onPlay,
-  onPause,
-  onStop,
+  sourceUri = null,
+  durationHintSeconds = null,
+  loading = false,
+  offlineAvailable = false,
+  unavailableReason = null,
 }: NarrationPlayerProps) {
-  const hasAudio =
-    state !== 'unavailable' &&
-    state !== 'error';
+  const player = useAudioPlayer(null, {
+    updateInterval: 250,
+  });
+  const status = useAudioPlayerStatus(player);
 
-  const isPlaying = state === 'playing';
+  useEffect(() => {
+    void setAudioModeAsync({
+      playsInSilentMode: true,
+      shouldPlayInBackground: true,
+      interruptionMode: 'doNotMix',
+    });
+  }, []);
 
+  useEffect(() => {
+    player.pause();
+    void player.seekTo(0);
+
+    if (sourceUri) {
+      player.replace(sourceUri);
+    }
+  }, [player, sourceUri]);
+
+  const hasAudio = Boolean(sourceUri);
+  const positionSeconds =
+    status.currentTime ?? 0;
+  const durationSeconds =
+    status.duration > 0
+      ? status.duration
+      : durationHintSeconds;
   const progress =
     durationSeconds && durationSeconds > 0
       ? Math.min(
@@ -57,6 +79,27 @@ export function NarrationPlayer({
           ),
         )
       : 0;
+
+  const play = () => {
+    if (!sourceUri) return;
+
+    player.setActiveForLockScreen(true, {
+      title,
+      artist: 'BROOMSTICK Salem',
+      albumTitle: 'BROOMSTICK Plus Tour',
+    });
+
+    if (status.didJustFinish) {
+      void player.seekTo(0);
+    }
+
+    player.play();
+  };
+
+  const stop = () => {
+    player.pause();
+    void player.seekTo(0);
+  };
 
   return (
     <View style={styles.card}>
@@ -81,15 +124,47 @@ export function NarrationPlayer({
             {title}
           </Text>
         </View>
+
+        {offlineAvailable ? (
+          <View style={styles.offlineBadge}>
+            <Ionicons
+              name="cloud-done"
+              size={15}
+              color={colors.success}
+            />
+            <Text style={styles.offlineBadgeText}>
+              OFFLINE
+            </Text>
+          </View>
+        ) : null}
       </View>
 
-      {!hasAudio ? (
+      {loading ? (
+        <View style={styles.unavailablePanel}>
+          <Ionicons
+            name="hourglass-outline"
+            size={22}
+            color={colors.gold}
+          />
+          <View style={styles.unavailableCopy}>
+            <Text style={styles.unavailableTitle}>
+              Checking narration…
+            </Text>
+            <Text style={styles.caption}>
+              Verifying access and looking for an offline
+              TourSafe copy.
+            </Text>
+          </View>
+        </View>
+      ) : !hasAudio ? (
         <View style={styles.unavailablePanel}>
           <Ionicons
             name={
-              state === 'error'
-                ? 'warning-outline'
-                : 'cloud-offline-outline'
+              unavailableReason === 'not-entitled'
+                ? 'lock-closed-outline'
+                : unavailableReason === 'service-unavailable'
+                  ? 'cloud-offline-outline'
+                  : 'musical-notes-outline'
             }
             size={22}
             color={colors.textMuted}
@@ -97,15 +172,17 @@ export function NarrationPlayer({
 
           <View style={styles.unavailableCopy}>
             <Text style={styles.unavailableTitle}>
-              {state === 'error'
-                ? 'Narration unavailable'
-                : 'Narration not uploaded yet'}
+              {unavailableReason === 'not-entitled'
+                ? 'Narration requires BROOMSTICK Plus'
+                : unavailableReason === 'service-unavailable'
+                  ? 'Narration service unavailable'
+                  : 'Narration not uploaded yet'}
             </Text>
 
             <Text style={styles.caption}>
-              The player is ready. Once audio is attached
-              to this stop, playback controls will activate
-              here automatically.
+              {unavailableReason === 'service-unavailable'
+                ? 'BROOMSTICK could not verify this narration and no offline TourSafe copy is available yet.'
+                : 'The player is ready. Once narrated audio is attached to this stop, playback activates here automatically.'}
             </Text>
           </View>
         </View>
@@ -135,24 +212,24 @@ export function NarrationPlayer({
           <View style={styles.controls}>
             <Pressable
               accessibilityRole="button"
-              disabled={state === 'loading'}
+              disabled={status.isBuffering}
               onPress={
-                isPlaying
-                  ? onPause
-                  : onPlay
+                status.playing
+                  ? () => player.pause()
+                  : play
               }
               style={({ pressed }) => [
                 styles.playButton,
-                state === 'loading' &&
+                status.isBuffering &&
                   styles.disabled,
                 pressed && styles.pressed,
               ]}
             >
               <Ionicons
                 name={
-                  state === 'loading'
+                  status.isBuffering
                     ? 'hourglass-outline'
-                    : isPlaying
+                    : status.playing
                       ? 'pause'
                       : 'play'
                 }
@@ -163,15 +240,11 @@ export function NarrationPlayer({
 
             <Pressable
               accessibilityRole="button"
-              disabled={
-                state === 'loading' ||
-                positionSeconds <= 0
-              }
-              onPress={onStop}
+              disabled={positionSeconds <= 0}
+              onPress={stop}
               style={({ pressed }) => [
                 styles.stopButton,
-                (state === 'loading' ||
-                  positionSeconds <= 0) &&
+                positionSeconds <= 0 &&
                   styles.disabled,
                 pressed && styles.pressed,
               ]}
@@ -181,11 +254,16 @@ export function NarrationPlayer({
                 size={20}
                 color={colors.text}
               />
-
               <Text style={styles.stopText}>
                 Stop
               </Text>
             </Pressable>
+
+            {status.error ? (
+              <Text style={styles.errorText}>
+                Playback error
+              </Text>
+            ) : null}
           </View>
         </>
       )}
@@ -198,9 +276,9 @@ export function NarrationPlayer({
         />
 
         <Text style={styles.offlineText}>
-          Manual playback remains available at every
-          purchased stop. Offline TourSafe caching comes
-          next.
+          {offlineAvailable
+            ? 'TourSafe copy saved on this device. Manual playback remains available without cellular service.'
+            : 'When narration is verified, TourSafe can keep a local copy so manual playback survives weak cellular service.'}
         </Text>
       </View>
     </View>
@@ -265,6 +343,24 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
+  offlineBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderWidth: 1,
+    borderColor: colors.success,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 5,
+  },
+
+  offlineBadgeText: {
+    ...typography.caption,
+    color: colors.success,
+    fontSize: 9,
+    fontWeight: '900',
+  },
+
   unavailablePanel: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -289,7 +385,7 @@ const styles = StyleSheet.create({
   },
 
   progressTrack: {
-    height: 6,
+    height: 7,
     overflow: 'hidden',
     borderRadius: radius.pill,
     backgroundColor: '#3A3044',
@@ -319,8 +415,8 @@ const styles = StyleSheet.create({
   },
 
   playButton: {
-    width: 54,
-    height: 54,
+    width: 58,
+    height: 58,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radius.pill,
@@ -340,6 +436,12 @@ const styles = StyleSheet.create({
 
   stopText: {
     ...typography.body,
+    fontWeight: '800',
+  },
+
+  errorText: {
+    ...typography.caption,
+    color: '#FF7D89',
     fontWeight: '800',
   },
 
