@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   Animated,
   Image,
@@ -19,77 +19,107 @@ type StartupSequenceProps = {
 export function StartupSequence({
   onFinished,
 }: StartupSequenceProps) {
-  const [stage, setStage] =
-    useState<'studio' | 'broomstick'>('studio');
+  const studioOpacity = useRef(
+    new Animated.Value(0),
+  ).current;
 
-  const opacity = useRef(new Animated.Value(0)).current;
+  const broomstickOpacity = useRef(
+    new Animated.Value(0),
+  ).current;
+
+  const wholeSequenceOpacity = useRef(
+    new Animated.Value(1),
+  ).current;
 
   useEffect(() => {
-    const fadeIn = () =>
-      Animated.timing(opacity, {
+    Animated.sequence([
+      Animated.timing(studioOpacity, {
         toValue: 1,
         duration: 280,
         useNativeDriver: true,
-      });
+      }),
 
-    const fadeOut = () =>
-      Animated.timing(opacity, {
+      Animated.delay(850),
+
+      Animated.parallel([
+        Animated.timing(studioOpacity, {
+          toValue: 0,
+          duration: 360,
+          useNativeDriver: true,
+        }),
+        Animated.timing(broomstickOpacity, {
+          toValue: 1,
+          duration: 360,
+          useNativeDriver: true,
+        }),
+      ]),
+
+      Animated.delay(850),
+
+      Animated.timing(wholeSequenceOpacity, {
         toValue: 0,
-        duration: 220,
+        duration: 320,
         useNativeDriver: true,
-      });
-
-    fadeIn().start();
-
-    const studioTimer = setTimeout(() => {
-      fadeOut().start(() => {
-        setStage('broomstick');
-        fadeIn().start();
-      });
-    }, 1150);
-
-    const finishTimer = setTimeout(() => {
-      fadeOut().start(() => {
+      }),
+    ]).start(({ finished }) => {
+      if (finished) {
         onFinished();
-      });
-    }, 2450);
+      }
+    });
 
     return () => {
-      clearTimeout(studioTimer);
-      clearTimeout(finishTimer);
-      opacity.stopAnimation();
+      studioOpacity.stopAnimation();
+      broomstickOpacity.stopAnimation();
+      wholeSequenceOpacity.stopAnimation();
     };
-  }, [onFinished, opacity]);
-
-  const isStudio = stage === 'studio';
+  }, [
+    broomstickOpacity,
+    onFinished,
+    studioOpacity,
+    wholeSequenceOpacity,
+  ]);
 
   return (
-    <View
+    <Animated.View
       pointerEvents="auto"
       style={[
         styles.overlay,
-        isStudio
-          ? styles.studioBackground
-          : styles.broomstickBackground,
+        { opacity: wholeSequenceOpacity },
       ]}
     >
-      <Animated.View
-        style={[
-          styles.imageFrame,
-          { opacity },
-        ]}
+      <View style={styles.studioLayer}>
+        <Animated.View
+          style={[
+            styles.fullScreenLayer,
+            { opacity: studioOpacity },
+          ]}
+        >
+          <Image
+            resizeMode="contain"
+            source={fiveFootFourSplash}
+            style={styles.image}
+          />
+        </Animated.View>
+      </View>
+
+      <View
+        pointerEvents="none"
+        style={styles.broomstickLayer}
       >
-        <Image
-          resizeMode="contain"
-          source={
-            isStudio
-              ? fiveFootFourSplash
-              : broomstickSplash
-          }
-          style={styles.image}
-        />
-      </Animated.View>
-    </View>
+        <Animated.View
+          style={[
+            styles.fullScreenLayer,
+            { opacity: broomstickOpacity },
+          ]}
+        >
+          <Image
+            resizeMode="contain"
+            source={broomstickSplash}
+            style={styles.image}
+          />
+        </Animated.View>
+      </View>
+    </Animated.View>
   );
 }
 
@@ -97,25 +127,25 @@ const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFill,
     zIndex: 9999,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#09040E',
   },
 
-  imageFrame: {
-    width: '100%',
-    height: '100%',
+  fullScreenLayer: {
+    ...StyleSheet.absoluteFill,
+  },
+
+  studioLayer: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: '#F5F1E8',
+  },
+
+  broomstickLayer: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: '#09040E',
   },
 
   image: {
     width: '100%',
     height: '100%',
-  },
-
-  studioBackground: {
-    backgroundColor: '#F5F1E8',
-  },
-
-  broomstickBackground: {
-    backgroundColor: '#09040E',
   },
 });
