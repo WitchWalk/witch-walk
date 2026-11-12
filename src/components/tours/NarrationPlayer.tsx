@@ -59,6 +59,11 @@ export function NarrationPlayer({
 
     if (sourceUri) {
       player.replace(sourceUri);
+      player.loop =
+        __DEV__ &&
+        sourceUri.includes('dev-tour-narration-test.mp3');
+    } else {
+      player.loop = false;
     }
   }, [player, sourceUri]);
 
