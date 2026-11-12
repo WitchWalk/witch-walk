@@ -4,7 +4,7 @@
     "slug": "witch-walk",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./Photos/Broomstick App LOGO.png",
+    "icon": "./assets/broomstick-app-logo.png",
     "scheme": "witchwalk",
     "userInterfaceStyle": "dark",
     "ios": {
@@ -16,7 +16,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./Photos/Broomstick App LOGO.png",
+        "foregroundImage": "./assets/broomstick-app-logo.png",
         "backgroundColor": "#170E24"
       },
       "package": "com.housearauz.witchwalk",
@@ -28,7 +28,7 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./Photos/Broomstick App LOGO.png"
+      "favicon": "./assets/broomstick-app-logo.png"
     },
     "plugins": [
       "expo-router",

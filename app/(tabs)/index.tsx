@@ -1,6 +1,6 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, AppState, Linking, StyleSheet, View } from 'react-native';
+import { Alert, AppState, Linking, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText as Text } from '@/components/AppText';
 import { BrandHeader } from '@/components/BrandHeader';
@@ -109,6 +109,21 @@ export default function HomeScreen() {
             </View>
           ))}
         </View>
+
+        {__DEV__ ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push('/build-my-tour')}
+            style={styles.devTourButton}
+          >
+            <Text style={styles.devTourTitle}>
+              🧹 Build My Tour Prototype
+            </Text>
+            <Text style={styles.devTourText}>
+              Development only
+            </Text>
+          </Pressable>
+        ) : null}
       </View>
     </Screen>
   );
@@ -151,5 +166,22 @@ const styles = StyleSheet.create({
   },
   featuredItem: {
     flex: 1,
+  },
+  devTourButton: {
+    borderWidth: 1,
+    borderColor: colors.gold,
+    borderRadius: 16,
+    backgroundColor: '#211710',
+    padding: spacing.md,
+  },
+  devTourTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: colors.gold,
+  },
+  devTourText: {
+    marginTop: 2,
+    fontSize: 12,
+    color: colors.textMuted,
   },
 });
