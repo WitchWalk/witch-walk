@@ -107,9 +107,20 @@ export function TourRouteMap({
             key={stop.id}
             title={`Stop ${index + 1}`}
           >
-            <View style={styles.stopMarker}>
-              <Text style={styles.stopMarkerText}>
-                {index + 1}
+            <View
+              style={[
+                styles.stopMarker,
+                index === 0 && styles.nextStopMarker,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.stopMarkerText,
+                  index === 0 &&
+                    styles.nextStopMarkerText,
+                ]}
+              >
+                {index === 0 ? 'NEXT' : index + 1}
               </Text>
             </View>
           </Marker>
@@ -170,6 +181,19 @@ const styles = StyleSheet.create({
     color: colors.background,
     fontSize: 14,
     lineHeight: 18,
+  },
+
+  nextStopMarker: {
+    width: 54,
+    borderColor: colors.text,
+    backgroundColor: '#6F3DA8',
+  },
+
+  nextStopMarkerText: {
+    color: colors.text,
+    fontSize: 10,
+    lineHeight: 13,
+    fontWeight: '900',
   },
 
   legend: {
