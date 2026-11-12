@@ -4,6 +4,8 @@ import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
   Alert,
+  Linking,
+  Platform,
   Pressable,
   StyleSheet,
   View,
@@ -14,11 +16,13 @@ import { useAttractions } from '@/components/attractions/AttractionsProvider';
 import { Screen } from '@/components/Screen';
 import { TourRouteMap } from '@/components/tours/TourRouteMap';
 import {
+  distanceMeters,
   type TourRouteStrategy,
   type TourTravelMode,
 } from '@/services/tourRouteCore';
 import {
   buildTravelTimeTourRoute,
+  getTourLegEstimate,
   type TourRouteSource,
 } from '@/services/tourTravelTimeRoute';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
@@ -48,6 +52,12 @@ export default function BuildMyTourScreen() {
     useState<Array<{ latitude: number; longitude: number }>>([]);
   const [routeOrigin, setRouteOrigin] =
     useState<{ latitude: number; longitude: number } | null>(null);
+  const [nextStopState, setNextStopState] =
+    useState<'ready' | 'navigating' | 'arrived'>('ready');
+  const [nextStopDurationSeconds, setNextStopDurationSeconds] =
+    useState<number | null>(null);
+  const [nextStopDistanceMeters, setNextStopDistanceMeters] =
+    useState<number | null>(null);
 
   const selectable = useMemo(
     () =>
@@ -137,6 +147,9 @@ export default function BuildMyTourScreen() {
       setRouteDistanceMeters(null);
       setRouteCoordinates([]);
       setRouteOrigin(null);
+      setNextStopDurationSeconds(null);
+      setNextStopDistanceMeters(null);
+      setNextStopState('ready');
       return;
     }
 
@@ -170,6 +183,33 @@ export default function BuildMyTourScreen() {
     setRouteDurationSeconds(plan.routeDurationSeconds);
     setRouteDistanceMeters(plan.routeDistanceMeters);
     setRouteCoordinates(plan.routeCoordinates);
+
+    const nextStop = plan.orderedStops[0];
+
+    if (nextStop) {
+      const leg = await getTourLegEstimate({
+        origin,
+        destination: nextStop,
+        travelMode,
+      });
+
+      setNextStopDurationSeconds(
+        leg.durationSeconds > 0
+          ? leg.durationSeconds
+          : null,
+      );
+      setNextStopDistanceMeters(leg.distanceMeters);
+
+      setNextStopState(
+        distanceMeters(origin, nextStop) <= 75
+          ? 'arrived'
+          : 'ready',
+      );
+    } else {
+      setNextStopDurationSeconds(null);
+      setNextStopDistanceMeters(null);
+      setNextStopState('ready');
+    }
   };
 
   const buildRoute = async () => {
@@ -242,6 +282,57 @@ export default function BuildMyTourScreen() {
     }
   };
 
+  const startNextStopNavigation = async () => {
+    const nextStop = ordered[0];
+
+    if (!nextStop) {
+      return;
+    }
+
+    setNextStopState('navigating');
+
+    const latitude = nextStop.latitude as number;
+    const longitude = nextStop.longitude as number;
+    const label = encodeURIComponent(nextStop.name);
+
+    const url = Platform.select({
+      ios:
+        `maps://?daddr=${latitude},${longitude}&dirflg=${travelMode === 'walking' ? 'w' : 'd'}&q=${label}`,
+      default:
+        `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&travelmode=${travelMode}`,
+    });
+
+    if (!url) {
+      return;
+    }
+
+    try {
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert(
+        'Unable to open navigation',
+        'You can still use the BROOMSTICK route preview and mark the stop as arrived manually.',
+      );
+    }
+  };
+
+  const markArrived = () => {
+    setNextStopState('arrived');
+  };
+
+  const playNarration = () => {
+    const nextStop = ordered[0];
+
+    if (!nextStop) {
+      return;
+    }
+
+    Alert.alert(
+      'Narration ready point',
+      `This is where BROOMSTICK Plus will play the narration for ${nextStop.name}. Manual playback will remain available even when GPS or cellular service is unreliable.`,
+    );
+  };
+
   const markComplete = async (id: string) => {
     if (completedIds.includes(id)) {
       return;
@@ -285,6 +376,9 @@ export default function BuildMyTourScreen() {
     setRouteDistanceMeters(null);
     setRouteCoordinates([]);
     setRouteOrigin(null);
+    setNextStopDurationSeconds(null);
+    setNextStopDistanceMeters(null);
+    setNextStopState('ready');
     setTourStarted(false);
   };
 
@@ -628,6 +722,172 @@ export default function BuildMyTourScreen() {
               </Text>
             </View>
           </View>
+
+          {ordered[0] ? (
+            <View
+              style={[
+                styles.nextStopCard,
+                nextStopState === 'arrived' &&
+                  styles.nextStopCardArrived,
+              ]}
+            >
+              <View style={styles.nextStopTopRow}>
+                <View style={styles.nextStopBadge}>
+                  <Ionicons
+                    name={
+                      nextStopState === 'arrived'
+                        ? 'location'
+                        : 'navigate'
+                    }
+                    size={16}
+                    color={colors.background}
+                  />
+                  <Text style={styles.nextStopBadgeText}>
+                    {nextStopState === 'arrived'
+                      ? 'ARRIVED'
+                      : 'NEXT STOP'}
+                  </Text>
+                </View>
+
+                <Text style={styles.nextStopProgress}>
+                  {completedIds.length + 1} of {selectedIds.length}
+                </Text>
+              </View>
+
+              <Text style={styles.nextStopName}>
+                {ordered[0].name}
+              </Text>
+
+              <Text style={styles.stopAddress}>
+                {ordered[0].address}
+              </Text>
+
+              <View style={styles.nextStopStats}>
+                {nextStopDurationSeconds !== null ? (
+                  <View style={styles.routeStat}>
+                    <Ionicons
+                      name="time-outline"
+                      size={18}
+                      color={colors.gold}
+                    />
+                    <Text style={styles.routeStatText}>
+                      {formatDuration(nextStopDurationSeconds)}
+                    </Text>
+                  </View>
+                ) : null}
+
+                {nextStopDistanceMeters !== null ? (
+                  <View style={styles.routeStat}>
+                    <Ionicons
+                      name="navigate-outline"
+                      size={18}
+                      color={colors.gold}
+                    />
+                    <Text style={styles.routeStatText}>
+                      {formatDistance(nextStopDistanceMeters)}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+
+              {nextStopState !== 'arrived' ? (
+                <View style={styles.nextStopActions}>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() =>
+                      void startNextStopNavigation()
+                    }
+                    style={styles.primaryNextButton}
+                  >
+                    <Ionicons
+                      name="navigate"
+                      size={18}
+                      color={colors.background}
+                    />
+                    <Text style={styles.primaryNextButtonText}>
+                      {nextStopState === 'navigating'
+                        ? 'Navigation Opened'
+                        : 'Start Navigation'}
+                    </Text>
+                  </Pressable>
+
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={markArrived}
+                    style={styles.arrivedButton}
+                  >
+                    <Ionicons
+                      name="location-outline"
+                      size={18}
+                      color={colors.gold}
+                    />
+                    <Text style={styles.arrivedButtonText}>
+                      I’m Here
+                    </Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <View style={styles.arrivedPanel}>
+                  <Text style={styles.arrivedTitle}>
+                    You’re at the stop
+                  </Text>
+
+                  <Text style={styles.routeStatusText}>
+                    Narration can be started manually here even if GPS or cellular service is unavailable.
+                  </Text>
+
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={playNarration}
+                    style={styles.narrationButton}
+                  >
+                    <Ionicons
+                      name="play-circle"
+                      size={20}
+                      color={colors.background}
+                    />
+                    <Text style={styles.primaryNextButtonText}>
+                      Play Narration
+                    </Text>
+                  </Pressable>
+
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() =>
+                      void markComplete(ordered[0].id)
+                    }
+                    style={styles.completeStopButton}
+                  >
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={20}
+                      color={colors.background}
+                    />
+                    <Text style={styles.primaryNextButtonText}>
+                      Complete Stop
+                    </Text>
+                  </Pressable>
+                </View>
+              )}
+
+              {nextStopState !== 'arrived' ? (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={playNarration}
+                  style={styles.manualNarrationLink}
+                >
+                  <Ionicons
+                    name="play-circle-outline"
+                    size={18}
+                    color={colors.textMuted}
+                  />
+                  <Text style={styles.manualNarrationText}>
+                    Play Narration Manually
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
+          ) : null}
 
           {routeSource ? (
             <View
@@ -1096,6 +1356,147 @@ const styles = StyleSheet.create({
   modeText: {
     ...typography.caption,
     color: colors.gold,
+    fontWeight: '800',
+  },
+
+  nextStopCard: {
+    gap: spacing.sm,
+    borderWidth: 2,
+    borderColor: colors.gold,
+    borderRadius: radius.lg,
+    backgroundColor: '#21172B',
+    padding: spacing.lg,
+  },
+
+  nextStopCardArrived: {
+    borderColor: colors.success,
+    backgroundColor: '#10251E',
+  },
+
+  nextStopTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+
+  nextStopBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.gold,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 7,
+  },
+
+  nextStopBadgeText: {
+    ...typography.caption,
+    color: colors.background,
+    fontWeight: '900',
+  },
+
+  nextStopProgress: {
+    ...typography.caption,
+    color: colors.textMuted,
+    fontWeight: '800',
+  },
+
+  nextStopName: {
+    ...typography.title,
+    fontSize: 24,
+    lineHeight: 29,
+  },
+
+  nextStopStats: {
+    flexDirection: 'row',
+    gap: spacing.lg,
+    paddingVertical: spacing.xs,
+  },
+
+  nextStopActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+
+  primaryNextButton: {
+    flex: 1,
+    minHeight: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: colors.gold,
+    paddingHorizontal: spacing.md,
+  },
+
+  primaryNextButtonText: {
+    ...typography.body,
+    color: colors.background,
+    fontWeight: '900',
+  },
+
+  arrivedButton: {
+    minHeight: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.gold,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+  },
+
+  arrivedButtonText: {
+    ...typography.body,
+    color: colors.gold,
+    fontWeight: '900',
+  },
+
+  arrivedPanel: {
+    gap: spacing.sm,
+    paddingTop: spacing.xs,
+  },
+
+  arrivedTitle: {
+    ...typography.heading,
+    color: colors.success,
+    fontSize: 17,
+  },
+
+  narrationButton: {
+    minHeight: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: colors.gold,
+  },
+
+  completeStopButton: {
+    minHeight: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: colors.success,
+  },
+
+  manualNarrationLink: {
+    minHeight: 42,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+  },
+
+  manualNarrationText: {
+    ...typography.caption,
+    color: colors.textMuted,
     fontWeight: '800',
   },
 
