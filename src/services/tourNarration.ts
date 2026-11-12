@@ -1,9 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystemLegacy from 'expo-file-system/legacy';
 import {
   Directory,
   File,
   Paths,
 } from 'expo-file-system';
+
+import { DEV_TOUR_TEST_AUDIO_BASE64 } from '@/services/devTourNarrationAsset';
 
 const MANIFEST_KEY = '@broomstick/toursafe-narration-v1';
 const TOURSAFE_DIRECTORY = 'broomstick-toursafe';
@@ -117,9 +120,55 @@ export async function getCachedTourNarration(
   };
 }
 
+async function getDevTourNarration(
+  attractionId: string,
+): Promise<TourNarrationCached> {
+  const directory = new Directory(
+    Paths.document,
+    TOURSAFE_DIRECTORY,
+  );
+
+  directory.create({
+    idempotent: true,
+    intermediates: true,
+  });
+
+  const file = new File(
+    directory,
+    'dev-tour-narration-test.mp3',
+  );
+
+  if (!file.exists) {
+    await FileSystemLegacy.writeAsStringAsync(
+      file.uri,
+      DEV_TOUR_TEST_AUDIO_BASE64,
+      {
+        encoding: FileSystemLegacy.EncodingType.Base64,
+      },
+    );
+  }
+
+  return {
+    kind: 'cached',
+    attractionId,
+    title: 'BROOMSTICK TourSafe Test Narration',
+    localUri: file.uri,
+    version: 'dev-test-v1',
+    durationSeconds: 2,
+    mimeType: 'audio/mpeg',
+    transcript:
+      'Developer-only test tone used to verify BROOMSTICK narration playback and offline TourSafe behavior.',
+    cachedAt: Date.now(),
+  };
+}
+
 export async function resolveTourNarration(
   attractionId: string,
 ): Promise<TourNarrationSource> {
+  if (__DEV__) {
+    return getDevTourNarration(attractionId);
+  }
+
   const cached =
     await getCachedTourNarration(attractionId);
 
