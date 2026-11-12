@@ -308,11 +308,17 @@ export default function BuildMyTourScreen() {
       return;
     }
 
-    const nextSelectedIds = selectedIds.includes(id)
+    const wasSelected = selectedIds.includes(id);
+
+    const nextSelectedIds = wasSelected
       ? selectedIds.filter((item) => item !== id)
       : [...selectedIds, id];
 
     setSelectedIds(nextSelectedIds);
+
+    if (!wasSelected && stopSearch.trim()) {
+      setStopSearch('');
+    }
 
     if (tourStarted) {
       await recalculate(
