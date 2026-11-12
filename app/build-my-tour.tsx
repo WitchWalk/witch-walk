@@ -606,24 +606,37 @@ export default function BuildMyTourScreen() {
           </View>
         ) : null}
 
-        <View style={styles.searchShell}>
-          <Ionicons
-            name="search"
-            size={20}
-            color={colors.textMuted}
-          />
+        <View style={styles.searchArea}>
+          <Text style={styles.searchLabel}>
+            SEARCH TOUR STOPS
+          </Text>
 
-          <TextInput
-            accessibilityLabel="Search tour stops"
-            autoCapitalize="none"
-            autoCorrect={false}
-            clearButtonMode="while-editing"
-            onChangeText={setStopSearch}
-            placeholder="Search attractions or addresses"
-            placeholderTextColor={colors.textMuted}
-            style={styles.searchInput}
-            value={stopSearch}
-          />
+          <View style={styles.searchShell}>
+            <View style={styles.searchIconShell}>
+              <Ionicons
+                name="search"
+                size={20}
+                color={colors.background}
+              />
+            </View>
+
+            <TextInput
+              accessibilityLabel="Search tour stops"
+              autoCapitalize="none"
+              autoCorrect={false}
+              clearButtonMode="while-editing"
+              onChangeText={setStopSearch}
+              placeholder="Type Witch House, Essex Street…"
+              placeholderTextColor="#A69DAE"
+              returnKeyType="done"
+              style={styles.searchInput}
+              value={stopSearch}
+            />
+          </View>
+
+          <Text style={styles.searchHelp}>
+            Results update as you type. Tap a result even while the keyboard is open.
+          </Text>
         </View>
 
         {!ready ? (
@@ -1473,23 +1486,53 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
 
+  searchArea: {
+    gap: 7,
+    borderWidth: 1,
+    borderColor: '#6C5327',
+    borderRadius: radius.lg,
+    backgroundColor: '#1D1525',
+    padding: spacing.md,
+  },
+
+  searchLabel: {
+    ...typography.eyebrow,
+    color: colors.gold,
+    fontWeight: '900',
+  },
+
   searchShell: {
-    minHeight: 50,
+    minHeight: 58,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.borderSoft,
+    borderWidth: 2,
+    borderColor: colors.gold,
     borderRadius: radius.md,
-    backgroundColor: colors.surface,
-    paddingHorizontal: spacing.md,
+    backgroundColor: '#100C15',
+    paddingHorizontal: spacing.sm,
+  },
+
+  searchIconShell: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.pill,
+    backgroundColor: colors.gold,
   },
 
   searchInput: {
     flex: 1,
-    minHeight: 48,
+    minHeight: 54,
     color: colors.text,
-    fontSize: 16,
+    fontSize: 17,
+    fontWeight: '700',
+  },
+
+  searchHelp: {
+    ...typography.caption,
+    color: colors.textMuted,
   },
 
   stopCard: {
