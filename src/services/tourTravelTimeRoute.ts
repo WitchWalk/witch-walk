@@ -157,6 +157,118 @@ function buildIndexOrder(
   return ordered;
 }
 
+
+export type TourLegEstimate = {
+  distanceMeters: number;
+  durationSeconds: number;
+  routeCoordinates: TourCoordinate[];
+  source: TourRouteSource;
+};
+
+export async function getTourLegEstimate({
+  origin,
+  destination,
+  travelMode,
+}: {
+  origin: TourCoordinate;
+  destination: TourCoordinate;
+  travelMode: TourTravelMode;
+}): Promise<TourLegEstimate> {
+  if (
+    !MAPBOX_TOKEN ||
+    !isValidCoordinate(origin) ||
+    !isValidCoordinate(destination)
+  ) {
+    const fallbackDistance = buildTourRoute({
+      origin,
+      stops: [
+        {
+          id: 'destination',
+          name: 'Destination',
+          ...destination,
+        },
+      ],
+      strategy: 'keep-order',
+    }).straightLineMeters;
+
+    return {
+      distanceMeters: fallbackDistance,
+      durationSeconds: 0,
+      routeCoordinates: [origin, destination],
+      source: 'straight-line-fallback',
+    };
+  }
+
+  const profile =
+    travelMode === 'walking'
+      ? 'mapbox/walking'
+      : 'mapbox/driving';
+
+  const coordinates =
+    `${origin.longitude},${origin.latitude};${destination.longitude},${destination.latitude}`;
+
+  const url =
+    `https://api.mapbox.com/directions/v5/${profile}/${coordinates}?overview=full&geometries=geojson&access_token=${encodeURIComponent(MAPBOX_TOKEN)}`;
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error('directions-request-failed');
+    }
+
+    const data =
+      (await response.json()) as DirectionsResponse;
+
+    const route = data.routes?.[0];
+    const geometry = route?.geometry?.coordinates;
+
+    if (
+      data.code !== 'Ok' ||
+      !route ||
+      typeof route.distance !== 'number' ||
+      typeof route.duration !== 'number'
+    ) {
+      throw new Error('directions-route-missing');
+    }
+
+    return {
+      distanceMeters: route.distance,
+      durationSeconds: route.duration,
+      routeCoordinates:
+        Array.isArray(geometry) &&
+        geometry.length >= 2
+          ? geometry.map(
+              ([longitude, latitude]) => ({
+                latitude,
+                longitude,
+              }),
+            )
+          : [origin, destination],
+      source: 'mapbox',
+    };
+  } catch {
+    const fallbackDistance = buildTourRoute({
+      origin,
+      stops: [
+        {
+          id: 'destination',
+          name: 'Destination',
+          ...destination,
+        },
+      ],
+      strategy: 'keep-order',
+    }).straightLineMeters;
+
+    return {
+      distanceMeters: fallbackDistance,
+      durationSeconds: 0,
+      routeCoordinates: [origin, destination],
+      source: 'straight-line-fallback',
+    };
+  }
+}
+
 export async function buildTravelTimeTourRoute({
   origin,
   stops,
