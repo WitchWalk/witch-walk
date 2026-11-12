@@ -11,10 +11,16 @@ export type TourRouteSource =
   | 'mapbox'
   | 'straight-line-fallback';
 
+export type TourRouteGeometrySource =
+  | 'mapbox'
+  | 'straight-line';
+
 export type TravelTimeTourRoutePlan =
   TourRoutePlan & {
     routeDistanceMeters: number;
     routeDurationSeconds: number | null;
+    routeCoordinates: TourCoordinate[];
+    routeGeometrySource: TourRouteGeometrySource;
     source: TourRouteSource;
   };
 
@@ -31,6 +37,19 @@ type MatrixResponse = {
   message?: string;
   durations?: Array<Array<number | null>>;
   distances?: Array<Array<number | null>>;
+};
+
+type DirectionsResponse = {
+  code?: string;
+  message?: string;
+  routes?: Array<{
+    distance?: number;
+    duration?: number;
+    geometry?: {
+      type?: string;
+      coordinates?: Array<[number, number]>;
+    };
+  }>;
 };
 
 const MAPBOX_TOKEN =
@@ -64,6 +83,11 @@ function fallbackPlan(
     routeDistanceMeters:
       fallback.straightLineMeters,
     routeDurationSeconds: null,
+    routeCoordinates: [
+      input.origin,
+      ...fallback.orderedStops,
+    ],
+    routeGeometrySource: 'straight-line',
     source: 'straight-line-fallback',
   };
 }
@@ -259,6 +283,71 @@ export async function buildTravelTimeTourRoute({
       currentMatrixIndex = nextMatrixIndex;
     }
 
+    let routeCoordinates: TourCoordinate[] = [
+      origin,
+      ...orderedStops,
+    ];
+    let routeGeometrySource: TourRouteGeometrySource =
+      'straight-line';
+
+    const orderedCoordinates = [
+      origin,
+      ...orderedStops,
+    ]
+      .map(
+        (coordinate) =>
+          `${coordinate.longitude},${coordinate.latitude}`,
+      )
+      .join(';');
+
+    const directionsUrl =
+      `https://api.mapbox.com/directions/v5/${profile}/${orderedCoordinates}?overview=full&geometries=geojson&access_token=${encodeURIComponent(MAPBOX_TOKEN)}`;
+
+    try {
+      const directionsResponse =
+        await fetch(directionsUrl);
+
+      if (directionsResponse.ok) {
+        const directionsData =
+          (await directionsResponse.json()) as DirectionsResponse;
+
+        const route = directionsData.routes?.[0];
+        const geometry =
+          route?.geometry?.coordinates;
+
+        if (
+          directionsData.code === 'Ok' &&
+          Array.isArray(geometry) &&
+          geometry.length >= 2
+        ) {
+          routeCoordinates = geometry.map(
+            ([longitude, latitude]) => ({
+              latitude,
+              longitude,
+            }),
+          );
+          routeGeometrySource = 'mapbox';
+
+          if (
+            typeof route.distance === 'number' &&
+            Number.isFinite(route.distance)
+          ) {
+            routeDistanceMeters = route.distance;
+          }
+
+          if (
+            typeof route.duration === 'number' &&
+            Number.isFinite(route.duration)
+          ) {
+            routeDurationSeconds = route.duration;
+          }
+        }
+      }
+    } catch {
+      // Matrix routing is still valid; keep a simple
+      // point-to-point line if route geometry is unavailable.
+    }
+
     return {
       orderedStops,
       completedStopIds: [
@@ -276,6 +365,8 @@ export async function buildTravelTimeTourRoute({
         }).straightLineMeters,
       routeDistanceMeters,
       routeDurationSeconds,
+      routeCoordinates,
+      routeGeometrySource,
       source: 'mapbox',
     };
   } catch {
