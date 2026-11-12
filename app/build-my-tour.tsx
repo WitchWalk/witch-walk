@@ -16,7 +16,10 @@ import {
   type TourRouteStrategy,
   type TourTravelMode,
 } from '@/services/tourRouteCore';
-import { buildTravelTimeTourRoute } from '@/services/tourTravelTimeRoute';
+import {
+  buildTravelTimeTourRoute,
+  type TourRouteSource,
+} from '@/services/tourTravelTimeRoute';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 export default function BuildMyTourScreen() {
@@ -34,6 +37,12 @@ export default function BuildMyTourScreen() {
 
   const [building, setBuilding] = useState(false);
   const [tourStarted, setTourStarted] = useState(false);
+  const [routeSource, setRouteSource] =
+    useState<TourRouteSource | null>(null);
+  const [routeDurationSeconds, setRouteDurationSeconds] =
+    useState<number | null>(null);
+  const [routeDistanceMeters, setRouteDistanceMeters] =
+    useState<number | null>(null);
 
   const selectable = useMemo(
     () =>
@@ -118,6 +127,9 @@ export default function BuildMyTourScreen() {
 
     if (remainingIds.length === 0) {
       setOrderedIds([]);
+      setRouteSource(null);
+      setRouteDurationSeconds(null);
+      setRouteDistanceMeters(null);
       return;
     }
 
@@ -146,6 +158,9 @@ export default function BuildMyTourScreen() {
     });
 
     setOrderedIds(plan.remainingStopIds);
+    setRouteSource(plan.source);
+    setRouteDurationSeconds(plan.routeDurationSeconds);
+    setRouteDistanceMeters(plan.routeDistanceMeters);
   };
 
   const buildRoute = async () => {
@@ -256,6 +271,9 @@ export default function BuildMyTourScreen() {
     setSelectedIds([]);
     setCompletedIds([]);
     setOrderedIds([]);
+    setRouteSource(null);
+    setRouteDurationSeconds(null);
+    setRouteDistanceMeters(null);
     setTourStarted(false);
   };
 
@@ -600,6 +618,73 @@ export default function BuildMyTourScreen() {
             </View>
           </View>
 
+          {routeSource ? (
+            <View
+              style={[
+                styles.routeStatusCard,
+                routeSource === 'mapbox'
+                  ? styles.routeStatusCardLive
+                  : styles.routeStatusCardFallback,
+              ]}
+            >
+              <View style={styles.routeStatusHeading}>
+                <Ionicons
+                  name={
+                    routeSource === 'mapbox'
+                      ? 'git-network-outline'
+                      : 'warning-outline'
+                  }
+                  size={20}
+                  color={
+                    routeSource === 'mapbox'
+                      ? colors.success
+                      : colors.gold
+                  }
+                />
+
+                <Text style={styles.routeStatusTitle}>
+                  {routeSource === 'mapbox'
+                    ? 'Real travel routing active'
+                    : 'Straight-line fallback active'}
+                </Text>
+              </View>
+
+              <Text style={styles.routeStatusText}>
+                {routeSource === 'mapbox'
+                  ? `${travelMode === 'walking' ? 'Walking' : 'Driving'} travel times are being used to optimize the remaining stops.`
+                  : 'Mapbox routing is not active yet, so BROOMSTICK is temporarily ordering stops by geographic distance.'}
+              </Text>
+
+              {routeSource === 'mapbox' &&
+              routeDurationSeconds !== null &&
+              routeDistanceMeters !== null ? (
+                <View style={styles.routeStats}>
+                  <View style={styles.routeStat}>
+                    <Ionicons
+                      name="time-outline"
+                      size={18}
+                      color={colors.gold}
+                    />
+                    <Text style={styles.routeStatText}>
+                      {formatDuration(routeDurationSeconds)}
+                    </Text>
+                  </View>
+
+                  <View style={styles.routeStat}>
+                    <Ionicons
+                      name="navigate-outline"
+                      size={18}
+                      color={colors.gold}
+                    />
+                    <Text style={styles.routeStatText}>
+                      {formatDistance(routeDistanceMeters)}
+                    </Text>
+                  </View>
+                </View>
+              ) : null}
+            </View>
+          ) : null}
+
           <View style={styles.routeList}>
             {ordered.map((attraction, index) => (
               <View
@@ -676,6 +761,29 @@ export default function BuildMyTourScreen() {
       ) : null}
     </Screen>
   );
+}
+
+function formatDuration(seconds: number) {
+  const minutes = Math.max(1, Math.round(seconds / 60));
+
+  if (minutes < 60) {
+    return `${minutes} min`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  return remainingMinutes > 0
+    ? `${hours} hr ${remainingMinutes} min`
+    : `${hours} hr`;
+}
+
+function formatDistance(meters: number) {
+  const miles = meters / 1609.344;
+
+  return miles < 0.1
+    ? `${Math.round(meters * 3.28084)} ft`
+    : `${miles.toFixed(miles < 10 ? 1 : 0)} mi`;
 }
 
 function ChoiceButton({
@@ -965,6 +1073,56 @@ const styles = StyleSheet.create({
 
   modeText: {
     ...typography.caption,
+    color: colors.gold,
+    fontWeight: '800',
+  },
+
+  routeStatusCard: {
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    padding: spacing.md,
+  },
+
+  routeStatusCardLive: {
+    borderColor: colors.success,
+    backgroundColor: '#10251E',
+  },
+
+  routeStatusCardFallback: {
+    borderColor: '#6B4D27',
+    backgroundColor: '#211710',
+  },
+
+  routeStatusHeading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+
+  routeStatusTitle: {
+    ...typography.heading,
+    fontSize: 15,
+    lineHeight: 20,
+  },
+
+  routeStatusText: {
+    ...typography.caption,
+  },
+
+  routeStats: {
+    flexDirection: 'row',
+    gap: spacing.lg,
+  },
+
+  routeStat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+
+  routeStatText: {
+    ...typography.body,
     color: colors.gold,
     fontWeight: '800',
   },
