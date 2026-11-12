@@ -87,19 +87,17 @@ export function StartupSequence({
         { opacity: wholeSequenceOpacity },
       ]}
     >
-      <View style={styles.studioLayer}>
-        <Animated.View
-          style={[
-            styles.fullScreenLayer,
-            { opacity: studioOpacity },
-          ]}
-        >
-          <Image
-            resizeMode="contain"
-            source={fiveFootFourSplash}
-            style={styles.image}
-          />
-        </View>
+      <Animated.View
+        style={[
+          styles.studioLayer,
+          { opacity: studioOpacity },
+        ]}
+      >
+        <Image
+          resizeMode="contain"
+          source={fiveFootFourSplash}
+          style={styles.image}
+        />
       </Animated.View>
 
       <Animated.View
@@ -109,14 +107,12 @@ export function StartupSequence({
           { opacity: broomstickOpacity },
         ]}
       >
-        <View style={styles.fullScreenLayer}>
-          <Image
-            resizeMode="contain"
-            source={broomstickSplash}
-            style={styles.image}
-          />
-        </Animated.View>
-      </View>
+        <Image
+          resizeMode="contain"
+          source={broomstickSplash}
+          style={styles.image}
+        />
+      </Animated.View>
     </Animated.View>
   );
 }
@@ -126,10 +122,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFill,
     zIndex: 9999,
     backgroundColor: '#09040E',
-  },
-
-  fullScreenLayer: {
-    ...StyleSheet.absoluteFill,
   },
 
   studioLayer: {
