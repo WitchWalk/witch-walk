@@ -28,6 +28,11 @@ import {
   getTourLegEstimate,
   type TourRouteSource,
 } from '@/services/tourTravelTimeRoute';
+import {
+  cacheTourNarration,
+  resolveTourNarration,
+  type TourNarrationSource,
+} from '@/services/tourNarration';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 export default function BuildMyTourScreen() {
@@ -63,6 +68,10 @@ export default function BuildMyTourScreen() {
     useState<number | null>(null);
   const [narrationPlayerVisible, setNarrationPlayerVisible] =
     useState(false);
+  const [narrationLoading, setNarrationLoading] =
+    useState(false);
+  const [narrationSource, setNarrationSource] =
+    useState<TourNarrationSource | null>(null);
 
   const selectable = useMemo(
     () =>
@@ -156,11 +165,16 @@ export default function BuildMyTourScreen() {
       setNextStopDistanceMeters(null);
       setNextStopState('ready');
       setNarrationPlayerVisible(false);
+      setNarrationSource(null);
+      setNarrationLoading(false);
       return;
     }
 
     const origin = await getCurrentOrigin();
     setRouteOrigin(origin);
+    setNarrationPlayerVisible(false);
+    setNarrationSource(null);
+    setNarrationLoading(false);
 
     const nextStops = remainingIds
       .map((id) =>
@@ -326,12 +340,40 @@ export default function BuildMyTourScreen() {
     setNextStopState('arrived');
   };
 
-  const playNarration = () => {
-    if (!ordered[0]) {
+  const playNarration = async () => {
+    const nextStop = ordered[0];
+
+    if (!nextStop) {
       return;
     }
 
     setNarrationPlayerVisible(true);
+    setNarrationLoading(true);
+
+    try {
+      const resolved =
+        await resolveTourNarration(nextStop.id);
+
+      if (resolved.kind === 'remote') {
+        try {
+          const cached =
+            await cacheTourNarration(resolved);
+          setNarrationSource(cached);
+        } catch {
+          setNarrationSource(resolved);
+        }
+      } else {
+        setNarrationSource(resolved);
+      }
+    } catch {
+      setNarrationSource({
+        kind: 'unavailable',
+        attractionId: nextStop.id,
+        reason: 'service-unavailable',
+      });
+    } finally {
+      setNarrationLoading(false);
+    }
   };
 
   const markComplete = async (id: string) => {
@@ -381,6 +423,8 @@ export default function BuildMyTourScreen() {
     setNextStopDistanceMeters(null);
     setNextStopState('ready');
     setNarrationPlayerVisible(false);
+    setNarrationSource(null);
+    setNarrationLoading(false);
     setTourStarted(false);
   };
 
@@ -874,7 +918,7 @@ export default function BuildMyTourScreen() {
 
                   <Pressable
                     accessibilityRole="button"
-                    onPress={playNarration}
+                    onPress={() => void playNarration()}
                     style={({ pressed }) => [
                       styles.narrationButton,
                       pressed && styles.pressed,
@@ -926,7 +970,7 @@ export default function BuildMyTourScreen() {
               {nextStopState !== 'arrived' ? (
                 <Pressable
                   accessibilityRole="button"
-                  onPress={playNarration}
+                  onPress={() => void playNarration()}
                   style={({ pressed }) => [
                     styles.manualNarrationLink,
                     pressed && styles.pressed,
@@ -956,7 +1000,28 @@ export default function BuildMyTourScreen() {
               {narrationPlayerVisible ? (
                 <NarrationPlayer
                   title={ordered[0].name}
-                  state="unavailable"
+                  loading={narrationLoading}
+                  sourceUri={
+                    narrationSource?.kind === 'cached'
+                      ? narrationSource.localUri
+                      : narrationSource?.kind === 'remote'
+                        ? narrationSource.audioUrl
+                        : null
+                  }
+                  durationHintSeconds={
+                    narrationSource?.kind === 'cached' ||
+                    narrationSource?.kind === 'remote'
+                      ? narrationSource.durationSeconds
+                      : null
+                  }
+                  offlineAvailable={
+                    narrationSource?.kind === 'cached'
+                  }
+                  unavailableReason={
+                    narrationSource?.kind === 'unavailable'
+                      ? narrationSource.reason
+                      : null
+                  }
                 />
               ) : null}
             </View>
