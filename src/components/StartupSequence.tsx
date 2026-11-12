@@ -99,19 +99,17 @@ export function StartupSequence({
             source={fiveFootFourSplash}
             style={styles.image}
           />
-        </Animated.View>
-      </View>
+        </View>
+      </Animated.View>
 
-      <View
+      <Animated.View
         pointerEvents="none"
-        style={styles.broomstickLayer}
+        style={[
+          styles.broomstickLayer,
+          { opacity: broomstickOpacity },
+        ]}
       >
-        <Animated.View
-          style={[
-            styles.fullScreenLayer,
-            { opacity: broomstickOpacity },
-          ]}
-        >
+        <View style={styles.fullScreenLayer}>
           <Image
             resizeMode="contain"
             source={broomstickSplash}
