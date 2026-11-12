@@ -841,16 +841,33 @@ export default function BuildMyTourScreen() {
                   <Pressable
                     accessibilityRole="button"
                     onPress={playNarration}
-                    style={styles.narrationButton}
+                    style={({ pressed }) => [
+                      styles.narrationButton,
+                      pressed && styles.pressed,
+                    ]}
                   >
+                    <View style={styles.narrationIconShell}>
+                      <Ionicons
+                        name="play"
+                        size={22}
+                        color={colors.background}
+                      />
+                    </View>
+
+                    <View style={styles.narrationButtonCopy}>
+                      <Text style={styles.narrationButtonTitle}>
+                        Play Narration
+                      </Text>
+                      <Text style={styles.narrationButtonSubtitle}>
+                        Hear the story for this stop
+                      </Text>
+                    </View>
+
                     <Ionicons
-                      name="play-circle"
+                      name="chevron-forward"
                       size={20}
                       color={colors.background}
                     />
-                    <Text style={styles.primaryNextButtonText}>
-                      Play Narration
-                    </Text>
                   </Pressable>
 
                   <Pressable
@@ -876,16 +893,29 @@ export default function BuildMyTourScreen() {
                 <Pressable
                   accessibilityRole="button"
                   onPress={playNarration}
-                  style={styles.manualNarrationLink}
+                  style={({ pressed }) => [
+                    styles.manualNarrationLink,
+                    pressed && styles.pressed,
+                  ]}
                 >
                   <Ionicons
-                    name="play-circle-outline"
-                    size={18}
-                    color={colors.textMuted}
+                    name="headset"
+                    size={20}
+                    color={colors.gold}
                   />
-                  <Text style={styles.manualNarrationText}>
-                    Play Narration Manually
-                  </Text>
+                  <View style={styles.manualNarrationCopy}>
+                    <Text style={styles.manualNarrationTitle}>
+                      Play Narration
+                    </Text>
+                    <Text style={styles.manualNarrationText}>
+                      Manual playback is always available
+                    </Text>
+                  </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={18}
+                    color={colors.gold}
+                  />
                 </Pressable>
               ) : null}
 
@@ -1476,13 +1506,45 @@ const styles = StyleSheet.create({
   },
 
   narrationButton: {
-    minHeight: 50,
+    minHeight: 68,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    borderRadius: radius.md,
+    gap: spacing.md,
+    borderWidth: 2,
+    borderColor: '#FFE7A3',
+    borderRadius: radius.lg,
     backgroundColor: colors.gold,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+
+  narrationIconShell: {
+    width: 42,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(15, 8, 20, 0.16)',
+  },
+
+  narrationButtonCopy: {
+    flex: 1,
+    gap: 1,
+  },
+
+  narrationButtonTitle: {
+    ...typography.heading,
+    color: colors.background,
+    fontSize: 18,
+    lineHeight: 22,
+    fontWeight: '900',
+  },
+
+  narrationButtonSubtitle: {
+    ...typography.caption,
+    color: colors.background,
+    fontWeight: '700',
+    opacity: 0.78,
   },
 
   completeStopButton: {
@@ -1496,17 +1558,35 @@ const styles = StyleSheet.create({
   },
 
   manualNarrationLink: {
-    minHeight: 42,
+    minHeight: 58,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
+    gap: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.gold,
+    borderRadius: radius.md,
+    backgroundColor: '#2A1C38',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+
+  manualNarrationCopy: {
+    flex: 1,
+    gap: 1,
+  },
+
+  manualNarrationTitle: {
+    ...typography.heading,
+    color: colors.gold,
+    fontSize: 16,
+    lineHeight: 20,
+    fontWeight: '900',
   },
 
   manualNarrationText: {
     ...typography.caption,
     color: colors.textMuted,
-    fontWeight: '800',
+    fontWeight: '700',
   },
 
   routeStatusCard: {
