@@ -14,6 +14,9 @@ import {
 import { AppText as Text } from '@/components/AppText';
 import { useAttractions } from '@/components/attractions/AttractionsProvider';
 import { Screen } from '@/components/Screen';
+import {
+  NarrationPlayer,
+} from '@/components/tours/NarrationPlayer';
 import { TourRouteMap } from '@/components/tours/TourRouteMap';
 import {
   distanceMeters,
@@ -58,6 +61,8 @@ export default function BuildMyTourScreen() {
     useState<number | null>(null);
   const [nextStopDistanceMeters, setNextStopDistanceMeters] =
     useState<number | null>(null);
+  const [narrationPlayerVisible, setNarrationPlayerVisible] =
+    useState(false);
 
   const selectable = useMemo(
     () =>
@@ -150,6 +155,7 @@ export default function BuildMyTourScreen() {
       setNextStopDurationSeconds(null);
       setNextStopDistanceMeters(null);
       setNextStopState('ready');
+      setNarrationPlayerVisible(false);
       return;
     }
 
@@ -321,16 +327,11 @@ export default function BuildMyTourScreen() {
   };
 
   const playNarration = () => {
-    const nextStop = ordered[0];
-
-    if (!nextStop) {
+    if (!ordered[0]) {
       return;
     }
 
-    Alert.alert(
-      'Narration ready point',
-      `This is where BROOMSTICK Plus will play the narration for ${nextStop.name}. Manual playback will remain available even when GPS or cellular service is unreliable.`,
-    );
+    setNarrationPlayerVisible(true);
   };
 
   const markComplete = async (id: string) => {
@@ -379,6 +380,7 @@ export default function BuildMyTourScreen() {
     setNextStopDurationSeconds(null);
     setNextStopDistanceMeters(null);
     setNextStopState('ready');
+    setNarrationPlayerVisible(false);
     setTourStarted(false);
   };
 
@@ -885,6 +887,13 @@ export default function BuildMyTourScreen() {
                     Play Narration Manually
                   </Text>
                 </Pressable>
+              ) : null}
+
+              {narrationPlayerVisible ? (
+                <NarrationPlayer
+                  title={ordered[0].name}
+                  state="unavailable"
+                />
               ) : null}
             </View>
           ) : null}
