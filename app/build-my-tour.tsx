@@ -12,6 +12,7 @@ import {
 import { AppText as Text } from '@/components/AppText';
 import { useAttractions } from '@/components/attractions/AttractionsProvider';
 import { Screen } from '@/components/Screen';
+import { TourRouteMap } from '@/components/tours/TourRouteMap';
 import {
   type TourRouteStrategy,
   type TourTravelMode,
@@ -43,6 +44,10 @@ export default function BuildMyTourScreen() {
     useState<number | null>(null);
   const [routeDistanceMeters, setRouteDistanceMeters] =
     useState<number | null>(null);
+  const [routeCoordinates, setRouteCoordinates] =
+    useState<Array<{ latitude: number; longitude: number }>>([]);
+  const [routeOrigin, setRouteOrigin] =
+    useState<{ latitude: number; longitude: number } | null>(null);
 
   const selectable = useMemo(
     () =>
@@ -130,10 +135,13 @@ export default function BuildMyTourScreen() {
       setRouteSource(null);
       setRouteDurationSeconds(null);
       setRouteDistanceMeters(null);
+      setRouteCoordinates([]);
+      setRouteOrigin(null);
       return;
     }
 
     const origin = await getCurrentOrigin();
+    setRouteOrigin(origin);
 
     const nextStops = remainingIds
       .map((id) =>
@@ -161,6 +169,7 @@ export default function BuildMyTourScreen() {
     setRouteSource(plan.source);
     setRouteDurationSeconds(plan.routeDurationSeconds);
     setRouteDistanceMeters(plan.routeDistanceMeters);
+    setRouteCoordinates(plan.routeCoordinates);
   };
 
   const buildRoute = async () => {
@@ -274,6 +283,8 @@ export default function BuildMyTourScreen() {
     setRouteSource(null);
     setRouteDurationSeconds(null);
     setRouteDistanceMeters(null);
+    setRouteCoordinates([]);
+    setRouteOrigin(null);
     setTourStarted(false);
   };
 
@@ -684,6 +695,17 @@ export default function BuildMyTourScreen() {
               ) : null}
             </View>
           ) : null}
+
+          <TourRouteMap
+            origin={routeOrigin}
+            routeCoordinates={routeCoordinates}
+            stops={ordered.map((attraction) => ({
+              id: attraction.id,
+              name: attraction.name,
+              latitude: attraction.latitude as number,
+              longitude: attraction.longitude as number,
+            }))}
+          />
 
           <View style={styles.routeList}>
             {ordered.map((attraction, index) => (
