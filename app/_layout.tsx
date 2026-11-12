@@ -1,10 +1,11 @@
 import { router, Stack } from 'expo-router';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { FavoritesProvider } from '@/components/favorites/FavoritesProvider';
+import { StartupSequence } from '@/components/StartupSequence';
 import { AttractionsProvider } from '@/components/attractions/AttractionsProvider';
 import { RestaurantsProvider } from '@/components/restaurants/RestaurantsProvider';
 import { ParkingProvider } from '@/components/parking/ParkingProvider';
@@ -17,6 +18,12 @@ import { colors } from '@/theme/tokens';
 import { subscribeRemoteWatchNotifications } from '@/services/witchWatchNotifications';
 
 export default function RootLayout() {
+  const [showStartup, setShowStartup] = useState(true);
+  const finishStartup = useCallback(
+    () => setShowStartup(false),
+    [],
+  );
+
   useEffect(() => {
     let unsubscribe: () => void = () => undefined;
     void subscribeRemoteWatchNotifications((id) => router.push(`/attractions/${id}`)).then((value) => { unsubscribe = value; });
@@ -47,6 +54,12 @@ export default function RootLayout() {
                 <Stack.Screen name="live-map" options={{ animation: 'slide_from_right' }} />
                 <Stack.Screen name="wait-times-overview" options={{ animation: 'slide_from_right' }} />
               </Stack>
+
+              {showStartup ? (
+                <StartupSequence
+                  onFinished={finishStartup}
+                />
+              ) : null}
             </View>
                 </WaitRealtimeProvider>
               </WitchWatchProvider>
