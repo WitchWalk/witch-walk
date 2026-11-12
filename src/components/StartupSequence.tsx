@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   Image,
   StyleSheet,
   View,
@@ -21,22 +22,44 @@ export function StartupSequence({
   const [stage, setStage] =
     useState<'studio' | 'broomstick'>('studio');
 
-  useEffect(() => {
-    const studioTimer = setTimeout(
-      () => setStage('broomstick'),
-      1250,
-    );
+  const opacity = useRef(new Animated.Value(0)).current;
 
-    const finishTimer = setTimeout(
-      onFinished,
-      2500,
-    );
+  useEffect(() => {
+    const fadeIn = () =>
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 280,
+        useNativeDriver: true,
+      });
+
+    const fadeOut = () =>
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: 220,
+        useNativeDriver: true,
+      });
+
+    fadeIn().start();
+
+    const studioTimer = setTimeout(() => {
+      fadeOut().start(() => {
+        setStage('broomstick');
+        fadeIn().start();
+      });
+    }, 1150);
+
+    const finishTimer = setTimeout(() => {
+      fadeOut().start(() => {
+        onFinished();
+      });
+    }, 2450);
 
     return () => {
       clearTimeout(studioTimer);
       clearTimeout(finishTimer);
+      opacity.stopAnimation();
     };
-  }, [onFinished]);
+  }, [onFinished, opacity]);
 
   const isStudio = stage === 'studio';
 
@@ -50,15 +73,22 @@ export function StartupSequence({
           : styles.broomstickBackground,
       ]}
     >
-      <Image
-        resizeMode="contain"
-        source={
-          isStudio
-            ? fiveFootFourSplash
-            : broomstickSplash
-        }
-        style={styles.image}
-      />
+      <Animated.View
+        style={[
+          styles.imageFrame,
+          { opacity },
+        ]}
+      >
+        <Image
+          resizeMode="contain"
+          source={
+            isStudio
+              ? fiveFootFourSplash
+              : broomstickSplash
+          }
+          style={styles.image}
+        />
+      </Animated.View>
     </View>
   );
 }
@@ -69,6 +99,11 @@ const styles = StyleSheet.create({
     zIndex: 9999,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  imageFrame: {
+    width: '100%',
+    height: '100%',
   },
 
   image: {
