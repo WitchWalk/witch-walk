@@ -5,21 +5,24 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     process.env.APP_VARIANT === 'development';
 
   const existingPlugins = config.plugins ?? [];
-  const plugins = existingPlugins.some((plugin) =>
-    Array.isArray(plugin)
-      ? plugin[0] === 'expo-audio'
-      : plugin === 'expo-audio',
-  )
-    ? existingPlugins
-    : [
-        ...existingPlugins,
-        [
-          'expo-audio',
-          {
-            enableBackgroundPlayback: true,
-          },
-        ],
-      ];
+  const audioPlugin: [string, Record<string, unknown>] = [
+    'expo-audio',
+    {
+      enableBackgroundPlayback: true,
+    },
+  ];
+
+  const plugins: ExpoConfig['plugins'] =
+    existingPlugins.some((plugin) =>
+      Array.isArray(plugin)
+        ? plugin[0] === 'expo-audio'
+        : plugin === 'expo-audio',
+    )
+      ? existingPlugins
+      : [
+          ...existingPlugins,
+          audioPlugin,
+        ];
 
   return {
     ...config,
