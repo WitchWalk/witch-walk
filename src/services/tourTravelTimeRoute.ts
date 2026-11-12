@@ -317,6 +317,7 @@ export async function buildTravelTimeTourRoute({
 
         if (
           directionsData.code === 'Ok' &&
+          route &&
           Array.isArray(geometry) &&
           geometry.length >= 2
         ) {
