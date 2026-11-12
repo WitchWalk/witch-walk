@@ -1,5 +1,10 @@
 import type { PropsWithChildren } from 'react';
-import { ScrollView, StyleSheet, View, type ScrollViewProps } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  View,
+  type ScrollViewProps,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors, spacing } from '@/theme/tokens';
@@ -9,14 +14,27 @@ type ScreenProps = PropsWithChildren<{
   contentContainerStyle?: ScrollViewProps['contentContainerStyle'];
 }>;
 
-export function Screen({ children, scroll = false, contentContainerStyle }: ScreenProps) {
+export function Screen({
+  children,
+  scroll = false,
+  contentContainerStyle,
+}: ScreenProps) {
   if (scroll) {
     return (
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <SafeAreaView
+        style={styles.safeArea}
+        edges={['top']}
+      >
         <ScrollView
-          contentContainerStyle={[styles.scrollContent, contentContainerStyle]}
-          showsVerticalScrollIndicator={false}
+          automaticallyAdjustKeyboardInsets
+          contentContainerStyle={[
+            styles.scrollContent,
+            contentContainerStyle,
+          ]}
           contentInsetAdjustmentBehavior="automatic"
+          keyboardDismissMode="interactive"
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
           {children}
         </ScrollView>
@@ -25,8 +43,13 @@ export function Screen({ children, scroll = false, contentContainerStyle }: Scre
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <View style={styles.content}>{children}</View>
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={['top']}
+    >
+      <View style={styles.content}>
+        {children}
+      </View>
     </SafeAreaView>
   );
 }
@@ -36,10 +59,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+
   content: {
     flex: 1,
     padding: spacing.lg,
   },
+
   scrollContent: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
