@@ -431,6 +431,27 @@ export default function BuildMyTourScreen() {
         </Text>
       </View>
 
+      {!tourStarted ? (
+        <View style={styles.buildGuide}>
+          <View style={styles.buildGuideIcon}>
+            <Ionicons
+              name="arrow-down"
+              size={22}
+              color={colors.background}
+            />
+          </View>
+
+          <View style={styles.buildGuideCopy}>
+            <Text style={styles.buildGuideTitle}>
+              Build My Route is at the bottom
+            </Text>
+            <Text style={styles.buildGuideText}>
+              Choose your travel mode and stops, then scroll to the bottom and tap the gold Build My Route button.
+            </Text>
+          </View>
+        </View>
+      ) : null}
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>
           How are you exploring?
@@ -505,6 +526,19 @@ export default function BuildMyTourScreen() {
             {selectedIds.length} selected
           </Text>
         </View>
+
+        {!tourStarted ? (
+          <View style={styles.bottomReminder}>
+            <Ionicons
+              name="arrow-down-circle-outline"
+              size={20}
+              color={colors.gold}
+            />
+            <Text style={styles.bottomReminderText}>
+              After choosing your locations, keep scrolling. The Build My Route button is below the location list.
+            </Text>
+          </View>
+        ) : null}
 
         {!ready ? (
           <View style={styles.emptyCard}>
@@ -1208,6 +1242,60 @@ const styles = StyleSheet.create({
     ...typography.caption,
     flex: 1,
     color: '#EED8AC',
+  },
+
+  buildGuide: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    borderWidth: 2,
+    borderColor: colors.gold,
+    borderRadius: radius.lg,
+    backgroundColor: '#2A1C38',
+    padding: spacing.md,
+  },
+
+  buildGuideIcon: {
+    width: 42,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.pill,
+    backgroundColor: colors.gold,
+  },
+
+  buildGuideCopy: {
+    flex: 1,
+    gap: 2,
+  },
+
+  buildGuideTitle: {
+    ...typography.heading,
+    color: colors.gold,
+    fontSize: 16,
+    lineHeight: 20,
+    fontWeight: '900',
+  },
+
+  buildGuideText: {
+    ...typography.caption,
+    color: colors.text,
+  },
+
+  bottomReminder: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: '#21172B',
+    padding: spacing.md,
+  },
+
+  bottomReminderText: {
+    ...typography.caption,
+    flex: 1,
+    color: colors.textMuted,
+    fontWeight: '700',
   },
 
   section: {
