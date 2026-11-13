@@ -14,6 +14,7 @@ import {
 
 import { AppText as Text } from '@/components/AppText';
 import { useAttractions } from '@/components/attractions/AttractionsProvider';
+import { usePlus } from '@/components/plus/PlusProvider';
 import { Screen } from '@/components/Screen';
 import {
   NarrationPlayer,
@@ -60,6 +61,13 @@ export default function BuildMyTourScreen() {
       addedStops?: string;
     }>();
   const { attractions, ready } = useAttractions();
+  const { hasPlus, ready: plusReady } = usePlus();
+
+  useEffect(() => {
+    if (plusReady && !hasPlus) {
+      router.replace('/broomstick-plus');
+    }
+  }, [hasPlus, plusReady]);
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [completedIds, setCompletedIds] = useState<string[]>([]);
