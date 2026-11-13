@@ -68,7 +68,7 @@ export function BathroomCard({ favorite, location, onDirections, onFavoritePress
           ) : null}
           <View style={styles.metaRow}>
             <Ionicons color={colors.orange} name="location" size={14} />
-            <Text numberOfLines={3} style={styles.metaText}>{location.address}</Text>
+            <Text style={styles.metaText}>{location.address}</Text>
           </View>
           {distance ? <View style={styles.distanceRow}>
             <Ionicons color="#8DBDFF" name="navigate" size={14} />
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   seasonalCard: { borderColor: '#8B5A34' },
-  summary: { minHeight: 174, flexDirection: 'row' },
+  summary: { minHeight: 174, flexDirection: 'row', alignItems: 'stretch' },
   summaryNarrow: { minHeight: 184 },
   pressed: { opacity: 0.78, transform: [{ scale: 0.99 }] },
   imageFrame: { width: '38%', alignSelf: 'stretch', overflow: 'hidden' },
@@ -178,8 +178,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(9, 7, 13, 0.84)',
   },
   favoriteButton: { position: 'absolute', right: spacing.sm, bottom: spacing.sm, width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill, backgroundColor: 'rgba(9,7,13,0.84)' },
-  info: { flex: 1, minWidth: 0, justifyContent: 'center', padding: spacing.md, paddingLeft: 10 },
-  name: { ...typography.title, fontSize: 18, lineHeight: 21 },
+  info: { flex: 1, minWidth: 0, justifyContent: 'flex-start', padding: spacing.md, paddingLeft: 10 },
+  name: { ...typography.title, flexShrink: 1, fontSize: 18, lineHeight: 21 },
   nameNarrow: { fontSize: 15.5, lineHeight: 18.5 },
   typeLabel: { color: '#A9B8DC', fontSize: 9.5, fontWeight: '900', marginTop: spacing.xs, textTransform: 'uppercase' },
   metaRow: { minWidth: 0, flexDirection: 'row', alignItems: 'flex-start', gap: 3, marginTop: spacing.sm },
