@@ -296,29 +296,7 @@ export default function TourDetailScreen() {
 
 
 
-          <Pressable
-            accessibilityRole="button"
-            onPress={() =>
-              router.push({
-                pathname: '/build-my-tour',
-                params: {
-                  tourId: tour.id,
-                  customize: '1',
-                  addedStops,
-                },
-              })
-            }
-            style={styles.addStopsButton}
-          >
-            <Ionicons
-              name="add-circle-outline"
-              size={20}
-              color={colors.gold}
-            />
-            <Text style={styles.addStopsButtonText}>
-              CUSTOMIZE TOUR STOPS
-            </Text>
-          </Pressable>
+
 
           <View style={styles.prepHeader}>
             <Text style={styles.eyebrow}>
@@ -335,7 +313,7 @@ export default function TourDetailScreen() {
           <Pressable
             accessibilityRole="button"
             disabled={downloading}
-            onPress={() => void downloadOffline()
+            onPress={() => void downloadOffline()}
             style={[
               styles.offlineButton,
               offlineReady && styles.offlineButtonReady,
@@ -387,6 +365,30 @@ export default function TourDetailScreen() {
           <Text style={styles.tourSafeNote}>
             TourSafe keeps downloaded narration available even when cellular service is weak or unavailable.
           </Text>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={() =>
+              router.push({
+                pathname: '/build-my-tour',
+                params: {
+                  tourId: tour.id,
+                  customize: '1',
+                  addedStops,
+                },
+              })
+            }
+            style={styles.addStopsButton}
+          >
+            <Ionicons
+              name="add-circle-outline"
+              size={20}
+              color={colors.gold}
+            />
+            <Text style={styles.addStopsButtonText}>
+              CUSTOMIZE TOUR STOPS
+            </Text>
+          </Pressable>
 
           <Pressable
             accessibilityRole="button"
