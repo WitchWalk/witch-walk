@@ -13,6 +13,7 @@ export type HomeAction = {
   accent: string;
   image?: ImageSourcePropType;
   href: Href;
+  visualVariant?: 'default' | 'hotel';
 };
 
 export const homeActions: HomeAction[] = [
@@ -72,6 +73,7 @@ export const homeActions: HomeAction[] = [
     accent: '#D7B3FF',
     image: require('../../Photos/Pickering Wharf.png'),
     href: '/hotels',
+    visualVariant: 'hotel',
   },
   {
     title: 'SALEM VIDEOS',
