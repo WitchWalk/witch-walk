@@ -61,48 +61,56 @@ export default function TourDetailScreen() {
     setLoading(true);
     setError('');
 
-    void getPublishedCuratedTour(id)
-      .then(async (result) => {
-        if (!active) return;
+    void (async () => {
+      const cached = await getCachedCuratedTour(id);
 
-        if (result) {
-          setTour(result);
+      if (!active) {
+        return;
+      }
+
+      if (cached) {
+        setTour(cached);
+        setOfflineMessage(
+          'TourSafe offline copy loaded.',
+        );
+        setLoading(false);
+
+        void getPublishedCuratedTour(id)
+          .then((fresh) => {
+            if (!active || !fresh) return;
+            setTour(fresh);
+          })
+          .catch(() => {
+            // Cached copy remains active.
+          });
+
+        return;
+      }
+
+      try {
+        const fresh = await getPublishedCuratedTour(id);
+
+        if (!active) {
           return;
         }
 
-        const cached = await getCachedCuratedTour(id);
-
-        if (!active) return;
-
-        if (cached) {
-          setTour(cached);
-          setOfflineMessage(
-            'TourSafe offline copy loaded.',
-          );
-          return;
-        }
-
-        setError('Tour unavailable.');
-      })
-      .catch(async () => {
-        const cached = await getCachedCuratedTour(id);
-
-        if (!active) return;
-
-        if (cached) {
-          setTour(cached);
-          setOfflineMessage(
-            'TourSafe offline copy loaded.',
-          );
+        if (fresh) {
+          setTour(fresh);
         } else {
-          setError('BROOMSTICK could not load this tour.');
+          setError('Tour unavailable.');
         }
-      })
-      .finally(() => {
+      } catch {
+        if (active) {
+          setError(
+            'BROOMSTICK could not load this tour.',
+          );
+        }
+      } finally {
         if (active) {
           setLoading(false);
         }
-      });
+      }
+    })();
 
     return () => {
       active = false;
