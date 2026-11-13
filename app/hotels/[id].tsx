@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText as Text } from '@/components/AppText';
+import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import {
   loadPublishedHotel,
   type Hotel,
@@ -22,6 +23,7 @@ export default function HotelDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [ready, setReady] = useState(false);
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   useEffect(() => {
     let active = true;
@@ -112,14 +114,41 @@ export default function HotelDetailsScreen() {
 
           <Text style={styles.brand}>BROOMSTICK</Text>
 
-          <Pressable
-            accessibilityLabel="Open live map"
-            accessibilityRole="button"
-            onPress={() => router.push('/map')}
-            style={styles.circleButton}
-          >
-            <Ionicons name="map-outline" size={22} color={colors.gold} />
-          </Pressable>
+          <View style={styles.topActions}>
+            <Pressable
+              accessibilityLabel={
+                isFavorite('hotels', hotel.id)
+                  ? `Remove ${hotel.name} from favorites`
+                  : `Save ${hotel.name} to favorites`
+              }
+              accessibilityRole="button"
+              onPress={() => toggleFavorite('hotels', hotel.id)}
+              style={styles.circleButton}
+            >
+              <Ionicons
+                name={
+                  isFavorite('hotels', hotel.id)
+                    ? 'heart'
+                    : 'heart-outline'
+                }
+                size={22}
+                color={
+                  isFavorite('hotels', hotel.id)
+                    ? '#FF5C68'
+                    : colors.gold
+                }
+              />
+            </Pressable>
+
+            <Pressable
+              accessibilityLabel="Open live map"
+              accessibilityRole="button"
+              onPress={() => router.push('/map')}
+              style={styles.circleButton}
+            >
+              <Ionicons name="map-outline" size={22} color={colors.gold} />
+            </Pressable>
+          </View>
         </View>
 
         {hotel.imageUrl ? (
@@ -287,6 +316,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  topActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
   },
   circleButton: {
     width: 44,
