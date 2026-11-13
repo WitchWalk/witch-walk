@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 
 import { AppText as Text } from '@/components/AppText';
+import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import { Screen } from '@/components/Screen';
 import {
   getPublishedCuratedTour,
@@ -46,6 +47,7 @@ export default function TourDetailScreen() {
     useState(false);
   const [offlineCoverage, setOfflineCoverage] =
     useState<{ cached: number; total: number } | null>(null);
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   useEffect(() => {
     let active = true;
@@ -207,6 +209,33 @@ export default function TourDetailScreen() {
             {tour?.name ?? 'Tour'}
           </Text>
         </View>
+
+        {tour ? (
+          <Pressable
+            accessibilityLabel={
+              isFavorite('tours', tour.id)
+                ? `Remove ${tour.name} from favorites`
+                : `Save ${tour.name} to favorites`
+            }
+            accessibilityRole="button"
+            onPress={() => toggleFavorite('tours', tour.id)}
+            style={styles.favoriteButton}
+          >
+            <Ionicons
+              name={
+                isFavorite('tours', tour.id)
+                  ? 'heart'
+                  : 'heart-outline'
+              }
+              size={24}
+              color={
+                isFavorite('tours', tour.id)
+                  ? '#FF5C68'
+                  : colors.gold
+              }
+            />
+          </Pressable>
+        ) : null}
       </View>
 
       {loading ? (
@@ -505,6 +534,17 @@ const styles = StyleSheet.create({
 
   headerCopy: {
     flex: 1,
+  },
+
+  favoriteButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
   },
 
   eyebrow: {
