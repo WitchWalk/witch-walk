@@ -5,7 +5,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText as Text } from '@/components/AppText';
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
-import type { BathroomLocation } from '@/data/bathrooms';
+import {
+  getBathroomHours,
+  getBathroomOperatingStatus,
+  type BathroomLocation,
+} from '@/data/bathrooms';
 import { getBathroomExternalMapUrl } from '@/services/bathroomContentCore';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
@@ -14,6 +18,8 @@ type BathroomDetailsViewProps = { location: BathroomLocation };
 export function BathroomDetailsView({ location }: BathroomDetailsViewProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const favorite = isFavorite('bathrooms', location.id);
+  const operatingStatus = getBathroomOperatingStatus(location);
+  const hours = getBathroomHours(location);
   const seasonalNote = location.seasonal
     ? location.seasonalNotes || 'This restroom is available seasonally.'
     : null;
@@ -69,6 +75,62 @@ export function BathroomDetailsView({ location }: BathroomDetailsViewProps) {
           </View>
         </View>
 
+        <View style={styles.infoCard}>
+          <InfoRow
+            color={
+              operatingStatus.kind === 'open'
+                ? '#78E567'
+                : operatingStatus.kind === 'closed'
+                  ? '#F58A96'
+                  : colors.gold
+            }
+            icon="time-outline"
+            label={operatingStatus.label}
+            value={hours}
+          />
+          {location.accessible !== null ? (
+            <>
+              <View style={styles.rule} />
+              <InfoRow
+                color="#70AEFF"
+                icon="accessibility-outline"
+                label="Accessibility"
+                value={location.accessible ? 'Accessible restroom' : 'Accessibility not confirmed'}
+              />
+            </>
+          ) : null}
+          {location.publicAccess ? (
+            <>
+              <View style={styles.rule} />
+              <InfoRow
+                color={colors.gold}
+                icon="people-outline"
+                label="Public access"
+                value={location.publicAccess}
+              />
+            </>
+          ) : null}
+        </View>
+
+        {location.advisoryText ? (
+          <View style={[
+            styles.advisoryCard,
+            location.advisoryLevel === 'Warning' && styles.warningCard,
+          ]}>
+            <Ionicons
+              color={location.advisoryLevel === 'Warning' ? '#FF8A8A' : colors.gold}
+              name="warning-outline"
+              size={22}
+            />
+            <View style={styles.advisoryCopy}>
+              <Text style={styles.advisoryTitle}>
+                {location.advisoryLevel === 'Warning' ? 'Important restroom note' : 'Restroom advisory'}
+              </Text>
+              <Text style={styles.advisoryText}>{location.advisoryText}</Text>
+            </View>
+          </View>
+        ) : null}
+
         {seasonalNote || accessNote ? (
           <View style={styles.notesCard}>
             {seasonalNote ? <NoteRow icon="calendar-outline" text={seasonalNote} /> : null}
@@ -80,8 +142,40 @@ export function BathroomDetailsView({ location }: BathroomDetailsViewProps) {
           <ActionButton icon="navigate" label="Directions" onPress={openDirections} primary />
           <ActionButton icon="map-outline" label="View on Map" onPress={openDirections} />
         </View>
+
+        {location.officialUrl ? (
+          <Pressable
+            accessibilityLabel={`Open official restroom information for ${location.name}`}
+            accessibilityRole="button"
+            onPress={() => void Linking.openURL(location.officialUrl!)}
+            style={({ pressed }) => [styles.officialButton, pressed && styles.pressed]}
+          >
+            <Ionicons color={colors.gold} name="information-circle-outline" size={20} />
+            <Text style={styles.officialText}>Official restroom information</Text>
+            <Ionicons color={colors.textMuted} name="open-outline" size={17} />
+          </Pressable>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+type InfoRowProps = {
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  color: string;
+  label: string;
+  value: string;
+};
+
+function InfoRow({ icon, color, label, value }: InfoRowProps) {
+  return (
+    <View style={styles.infoRow}>
+      <Ionicons color={color} name={icon} size={21} />
+      <View style={styles.infoCopy}>
+        <Text style={[styles.infoLabel, { color }]}>{label}</Text>
+        <Text style={styles.infoValue}>{value}</Text>
+      </View>
+    </View>
   );
 }
 
@@ -133,10 +227,23 @@ const styles = StyleSheet.create({
   facilityName: { color: colors.textMuted, fontSize: 15, lineHeight: 21 },
   addressRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs, marginTop: spacing.xs },
   address: { color: colors.text, fontSize: 16, lineHeight: 22, flex: 1 },
+  infoCard: { marginHorizontal: spacing.lg, padding: spacing.md, borderRadius: radius.lg, borderWidth: 1, borderColor: '#43516B', backgroundColor: '#0D111A' },
+  infoRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
+  infoCopy: { flex: 1 },
+  infoLabel: { fontSize: 12, fontWeight: '900' },
+  infoValue: { color: colors.text, fontSize: 13, lineHeight: 18, marginTop: 2 },
+  rule: { height: 1, backgroundColor: colors.borderSoft, marginVertical: spacing.md },
+  advisoryCard: { marginHorizontal: spacing.lg, flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, borderWidth: 1, borderColor: '#7C6330', borderRadius: radius.lg, backgroundColor: '#221C12', padding: spacing.md },
+  warningCard: { borderColor: '#8B3D45', backgroundColor: '#2A1519' },
+  advisoryCopy: { flex: 1 },
+  advisoryTitle: { color: colors.gold, fontSize: 12, fontWeight: '900', textTransform: 'uppercase' },
+  advisoryText: { color: colors.text, fontSize: 13, lineHeight: 19, marginTop: 2 },
   notesCard: { marginHorizontal: spacing.lg, padding: spacing.md, gap: spacing.sm, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
   noteRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   noteText: { color: colors.textMuted, fontSize: 14, lineHeight: 20, flex: 1 },
   actionsRow: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.lg, marginTop: spacing.xs },
+  officialButton: { minHeight: 48, marginHorizontal: spacing.lg, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, backgroundColor: colors.surface, paddingHorizontal: spacing.md },
+  officialText: { flex: 1, color: colors.text, fontSize: 13, fontWeight: '800' },
   actionButton: { minWidth: 0, minHeight: 52, flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs, borderRadius: radius.md, borderWidth: 1, borderColor: colors.gold, backgroundColor: colors.surface },
   primaryAction: { backgroundColor: colors.gold },
   actionText: { color: colors.gold, fontSize: 15, fontWeight: '900' },
