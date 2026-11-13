@@ -8,6 +8,7 @@ export const PUBLIC_SETTING_KEYS = [
   'support_url',
   'support_email',
   'about_broomstick_text',
+  'downtown_salem_crowd_level',
 ] as const;
 
 export type PublicSettingKey = (typeof PUBLIC_SETTING_KEYS)[number];
@@ -19,6 +20,7 @@ export type PublicSettings = {
   supportUrl: string | null;
   supportEmail: string | null;
   aboutBroomstickText: string | null;
+  downtownSalemCrowdLevel: 'light' | 'moderate' | 'busy' | null;
 };
 
 export const EMPTY_PUBLIC_SETTINGS: PublicSettings = {
@@ -28,6 +30,7 @@ export const EMPTY_PUBLIC_SETTINGS: PublicSettings = {
   supportUrl: null,
   supportEmail: null,
   aboutBroomstickText: null,
+  downtownSalemCrowdLevel: null,
 };
 
 export function validatePublicHttpsUrl(value: unknown) {
@@ -57,6 +60,12 @@ function plainText(value: unknown) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function crowdLevel(value: unknown): 'light' | 'moderate' | 'busy' | null {
+  return value === 'light' || value === 'moderate' || value === 'busy'
+    ? value
+    : null;
+}
+
 export function mapPublicSettings(rows: unknown): PublicSettings {
   if (!Array.isArray(rows)) throw new Error('Invalid public settings response');
   const values = new Map<PublicSettingKey, unknown>();
@@ -74,6 +83,7 @@ export function mapPublicSettings(rows: unknown): PublicSettings {
     supportUrl: validatePublicHttpsUrl(values.get('support_url')),
     supportEmail: validateSupportEmail(values.get('support_email')),
     aboutBroomstickText: plainText(values.get('about_broomstick_text')),
+    downtownSalemCrowdLevel: crowdLevel(values.get('downtown_salem_crowd_level')),
   };
 }
 
@@ -99,6 +109,7 @@ export function parsePublicSettingsCache(value: string | null, now = Date.now())
         supportUrl: validatePublicHttpsUrl(settings.supportUrl),
         supportEmail: validateSupportEmail(settings.supportEmail),
         aboutBroomstickText: plainText(settings.aboutBroomstickText),
+        downtownSalemCrowdLevel: crowdLevel(settings.downtownSalemCrowdLevel),
       } satisfies PublicSettings,
     };
   } catch {
