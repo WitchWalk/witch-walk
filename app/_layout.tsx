@@ -70,6 +70,7 @@ export default function RootLayout() {
                             <Stack.Screen name="(tabs)" />
                             <Stack.Screen name="attractions" />
                             <Stack.Screen name="restaurants" />
+                            <Stack.Screen name="hotels" />
                             <Stack.Screen name="parking" />
                             <Stack.Screen name="bathrooms" />
                             <Stack.Screen name="settings" />
