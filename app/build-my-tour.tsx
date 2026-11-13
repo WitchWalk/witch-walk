@@ -113,7 +113,7 @@ export default function BuildMyTourScreen() {
     useState(false);
   const [curatedLoadedFromCache, setCuratedLoadedFromCache] =
     useState(false);
-  const [tourSafeOfflineMode, setTourSafeOfflineMode] =
+  const [tourSafeCachedMode, setTourSafeCachedMode] =
     useState(false);
   const [resumeChecked, setResumeChecked] =
     useState(false);
@@ -552,7 +552,7 @@ export default function BuildMyTourScreen() {
     try {
       setCompletedIds([]);
       await calculateRoute(selectedIds, []);
-      setTourSafeOfflineMode(false);
+      setTourSafeCachedMode(false);
       setTourStarted(true);
     } catch (error) {
       Alert.alert(
@@ -583,7 +583,7 @@ export default function BuildMyTourScreen() {
 
     if (curatedLoadedFromCache) {
       setCompletedIds([]);
-      setTourSafeOfflineMode(true);
+      setTourSafeCachedMode(true);
       setTourStarted(true);
 
       void calculateRoute(selectedIds, [])
@@ -617,6 +617,7 @@ export default function BuildMyTourScreen() {
     nextCompletedIds = completedIds,
     nextStrategy: TourRouteStrategy = strategy,
   ) => {
+    setTourUpdateMessage('');
     setBuilding(true);
 
     try {
@@ -860,7 +861,7 @@ export default function BuildMyTourScreen() {
     setCuratedTourName(null);
     setCuratedFallbackStops([]);
     setCuratedLoadedFromCache(false);
-    setTourSafeOfflineMode(false);
+    setTourSafeCachedMode(false);
     void clearSavedTourProgress();
   };
 
@@ -1349,7 +1350,7 @@ export default function BuildMyTourScreen() {
         </View>
       ) : null}
 
-      {tourStarted && completed.length > 0 ? (
+      {tourStarted && completed.length > 0 && !tourComplete ? (
         <View style={styles.section}>
           <View style={styles.completedHeader}>
             <Text style={styles.sectionTitle}>
@@ -1383,7 +1384,7 @@ export default function BuildMyTourScreen() {
 
       {tourStarted && ordered.length > 0 ? (
         <View style={styles.section}>
-          {tourSafeOfflineMode ? (
+          {tourSafeCachedMode ? (
             <View style={styles.tourSafeModeBanner}>
               <Ionicons
                 name="shield-checkmark"
@@ -1392,10 +1393,10 @@ export default function BuildMyTourScreen() {
               />
               <View style={styles.tourSafeModeCopy}>
                 <Text style={styles.tourSafeModeTitle}>
-                  TOURSAFE OFFLINE MODE
+                  TOURSAFE PROTECTED
                 </Text>
                 <Text style={styles.tourSafeModeText}>
-                  This tour is running from the copy saved on your phone. Narration remains available without cellular service.
+                  This tour started from the copy saved on your phone. Downloaded narration remains available even if service drops.
                 </Text>
               </View>
             </View>
