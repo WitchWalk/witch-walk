@@ -150,9 +150,9 @@ export default function ParkingScreen() {
             <Ionicons color={colors.gold} name="information-circle" size={25} />
           </View>
           <View style={styles.noticeCopy}>
-            <Text style={styles.noticeTitle}>Plan ahead</Text>
+            <Text style={styles.noticeTitle}>Parking information</Text>
             <Text style={styles.noticeText}>
-              Rates and restrictions can change during October, events, and snow emergencies. Check posted signs when you arrive.
+              Live parking availability is not available. Rates, access, and restrictions can change during October, events, and snow emergencies. Always check posted signs when you arrive.
             </Text>
           </View>
         </View>
