@@ -137,10 +137,7 @@ export default function ToursScreen() {
               key={tour.id}
               onPress={() =>
                 router.push(
-                  {
-                    pathname: '/tours/[id]',
-                    params: { id: tour.id },
-                  } as Href,
+                  `/tours/${encodeURIComponent(tour.id)}` as Href,
                 )
               }
               style={styles.tourCard}
