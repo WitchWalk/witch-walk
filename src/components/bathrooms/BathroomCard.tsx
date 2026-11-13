@@ -2,7 +2,10 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { AppText as Text } from '@/components/AppText';
-import type { BathroomLocation } from '@/data/bathrooms';
+import {
+  getBathroomOperatingStatus,
+  type BathroomLocation,
+} from '@/data/bathrooms';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 type BathroomCardProps = {
@@ -21,6 +24,7 @@ export function BathroomCard({ favorite, location, onDirections, onFavoritePress
       ? `${Math.round(location.distanceMiles * 5280)} ft`
       : `${location.distanceMiles.toFixed(1)} mi`
     : null;
+  const operatingStatus = getBathroomOperatingStatus(location);
   const seasonalNote = location.seasonal
     ? location.seasonalNotes || 'This restroom is available seasonally.'
     : '';
@@ -70,8 +74,46 @@ export function BathroomCard({ favorite, location, onDirections, onFavoritePress
             <Ionicons color="#8DBDFF" name="navigate" size={14} />
             <Text style={styles.distanceText}>{distance}</Text>
           </View> : null}
+          <View style={styles.statusRow}>
+            <View
+              style={[
+                styles.statusDot,
+                operatingStatus.kind === 'open'
+                  ? styles.openDot
+                  : operatingStatus.kind === 'closed'
+                    ? styles.closedDot
+                    : styles.unknownDot,
+              ]}
+            />
+            <Text
+              style={[
+                styles.statusText,
+                operatingStatus.kind === 'open' && styles.openText,
+                operatingStatus.kind === 'closed' && styles.closedText,
+              ]}
+            >
+              {operatingStatus.label}
+            </Text>
+          </View>
         </View>
       </Pressable>
+
+      {location.advisoryText ? (
+        <View style={[
+          styles.noteRow,
+          styles.advisoryRow,
+          location.advisoryLevel === 'Warning' && styles.warningRow,
+        ]}>
+          <Ionicons
+            color={location.advisoryLevel === 'Warning' ? '#FF8A8A' : colors.gold}
+            name="warning-outline"
+            size={16}
+          />
+          <Text numberOfLines={2} style={styles.advisoryText}>
+            {location.advisoryText}
+          </Text>
+        </View>
+      ) : null}
 
       {essentialNote ? (
         <View style={[styles.noteRow, location.seasonal && styles.seasonalRow]}>
@@ -144,6 +186,14 @@ const styles = StyleSheet.create({
   metaText: { ...typography.caption, flex: 1, minWidth: 0, fontSize: 10.5, lineHeight: 14 },
   distanceRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: spacing.sm },
   distanceText: { color: '#D4D9E7', fontSize: 10, fontWeight: '800' },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: spacing.sm },
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  openDot: { backgroundColor: '#75E55E' },
+  closedDot: { backgroundColor: '#F26B7A' },
+  unknownDot: { backgroundColor: colors.gold },
+  statusText: { color: colors.gold, fontSize: 10.5, fontWeight: '900' },
+  openText: { color: '#8CEB72' },
+  closedText: { color: '#F58A96' },
   noteRow: {
     minHeight: 30,
     flexDirection: 'row',
@@ -157,6 +207,9 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   seasonalRow: { backgroundColor: '#291C13' },
+  advisoryRow: { borderWidth: 1, borderColor: '#7C6330', backgroundColor: '#221C12' },
+  warningRow: { borderColor: '#8B3D45', backgroundColor: '#2A1519' },
+  advisoryText: { flex: 1, color: colors.text, fontSize: 10.5, lineHeight: 14, fontWeight: '800' },
   noteText: { flex: 1, color: colors.textMuted, fontSize: 10.5, fontWeight: '800' },
   seasonalText: { color: '#F0A35C', letterSpacing: 0.2 },
   actionsRow: { flexDirection: 'row', gap: spacing.sm, marginHorizontal: spacing.sm, marginTop: spacing.sm },
