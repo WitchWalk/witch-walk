@@ -355,6 +355,7 @@ export default function BuildMyTourScreen() {
   const calculateRoute = async (
     nextSelectedIds: string[],
     nextCompletedIds: string[],
+    nextStrategy: TourRouteStrategy = strategy,
   ) => {
     const remainingIds = nextSelectedIds.filter(
       (id) => !nextCompletedIds.includes(id),
@@ -400,7 +401,7 @@ export default function BuildMyTourScreen() {
         longitude: attraction.longitude as number,
       })),
       completedStopIds: nextCompletedIds,
-      strategy,
+      strategy: nextStrategy,
       travelMode,
     });
 
@@ -492,6 +493,7 @@ export default function BuildMyTourScreen() {
   const recalculate = async (
     nextSelectedIds = selectedIds,
     nextCompletedIds = completedIds,
+    nextStrategy: TourRouteStrategy = strategy,
   ) => {
     setBuilding(true);
 
@@ -499,6 +501,7 @@ export default function BuildMyTourScreen() {
       await calculateRoute(
         nextSelectedIds,
         nextCompletedIds,
+        nextStrategy,
       );
     } catch {
       Alert.alert(
@@ -528,9 +531,11 @@ export default function BuildMyTourScreen() {
     }
 
     if (tourStarted) {
+      setStrategy('optimize');
       await recalculate(
         nextSelectedIds,
         completedIds,
+        'optimize',
       );
     } else {
       setOrderedIds([]);
@@ -639,9 +644,11 @@ export default function BuildMyTourScreen() {
 
     setSelectedIds(nextSelectedIds);
 
+    setStrategy('optimize');
     await recalculate(
       nextSelectedIds,
       completedIds,
+      'optimize',
     );
   };
 
@@ -853,54 +860,71 @@ export default function BuildMyTourScreen() {
         </>
       ) : null}
 
-      {(!curatedTourName || customize === '1') ? (
+      {(!curatedTourName || customize === '1' || tourStarted) ? (
       <View style={styles.section}>
         {curatedTourName ? (
           <View style={styles.curatedStopsHeading}>
             <Text style={styles.curatedStopsTitle}>
-              ADD MORE STOPS TO THIS TOUR
+              {tourStarted
+                ? 'ADD OR REMOVE STOPS WHILE TOURING'
+                : 'ADD MORE STOPS TO THIS TOUR'}
             </Text>
 
             <Text style={styles.counter}>
-              {addedStopCount} new stop{addedStopCount === 1 ? '' : 's'} selected
+              {tourStarted
+                ? 'Changes reroute the remaining tour from your current location.'
+                : `${addedStopCount} new stop${addedStopCount === 1 ? '' : 's'} selected`}
             </Text>
 
-            <Pressable
-              accessibilityRole="button"
-              disabled={addedStopCount === 0}
-              onPress={() => {
-                if (!tourId) return;
+            {!tourStarted ? (
+              <Pressable
+                accessibilityRole="button"
+                disabled={addedStopCount === 0}
+                onPress={() => {
+                  if (!tourId) return;
 
-                const extras = selectedIds.filter(
-                  (id) => !curatedBaseIds.includes(id),
-                );
+                  const extras = selectedIds.filter(
+                    (id) => !curatedBaseIds.includes(id),
+                  );
 
-                router.replace({
-                  pathname: '/tours/[id]',
-                  params: {
-                    id: tourId,
-                    addedStops: extras.join(','),
-                  },
-                });
-              }}
-              style={({ pressed }) => [
-                styles.applyStopsButton,
-                addedStopCount === 0 &&
-                  styles.buildButtonDisabled,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Ionicons
-                name="add-circle"
-                size={20}
-                color={colors.background}
-              />
-              <Text style={styles.applyStopsButtonText}>
-                {addedStopCount > 0
-                  ? `ADD ${addedStopCount} SELECTED STOP${addedStopCount === 1 ? '' : 'S'}`
-                  : 'SELECT EXTRA STOPS BELOW'}
-              </Text>
-            </Pressable>
+                  router.replace({
+                    pathname: '/tours/[id]',
+                    params: {
+                      id: tourId,
+                      addedStops: extras.join(','),
+                    },
+                  });
+                }}
+                style={({ pressed }) => [
+                  styles.applyStopsButton,
+                  addedStopCount === 0 &&
+                    styles.buildButtonDisabled,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Ionicons
+                  name="add-circle"
+                  size={20}
+                  color={colors.background}
+                />
+                <Text style={styles.applyStopsButtonText}>
+                  {addedStopCount > 0
+                    ? `ADD ${addedStopCount} SELECTED STOP${addedStopCount === 1 ? '' : 'S'}`
+                    : 'SELECT EXTRA STOPS BELOW'}
+                </Text>
+              </Pressable>
+            ) : (
+              <View style={styles.liveEditNotice}>
+                <Ionicons
+                  name="flash"
+                  size={18}
+                  color={colors.gold}
+                />
+                <Text style={styles.liveEditNoticeText}>
+                  Tap any stop below to add or remove it. BROOMSTICK will optimize the remaining route automatically.
+                </Text>
+              </View>
+            )}
           </View>
         ) : (
           <View style={styles.sectionHeading}>
@@ -1934,6 +1958,24 @@ const styles = StyleSheet.create({
     color: colors.background,
     fontWeight: '900',
     textAlign: 'center',
+  },
+
+  liveEditNotice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.gold,
+    borderRadius: radius.md,
+    backgroundColor: '#21172B',
+    padding: spacing.md,
+  },
+
+  liveEditNoticeText: {
+    ...typography.caption,
+    flex: 1,
+    color: colors.text,
+    fontWeight: '700',
   },
 
   searchArea: {
