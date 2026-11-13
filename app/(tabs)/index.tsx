@@ -94,32 +94,39 @@ export default function HomeScreen() {
         </View>
 
         {__DEV__ ? (
-          <View style={styles.devTourStack}>
-            <Pressable
-              accessibilityRole="button"
-              onPress={() =>
-                router.push('/tours' as Href)
-              }
-              style={styles.devTourButton}
-            >
-              <Text style={styles.devTourTitle}>
-                🧹 BROOMSTICK Plus Tours
-              </Text>
-              <Text style={styles.devTourText}>
-                Curated tours + Build My Own Tour
-              </Text>
-            </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="BROOMSTICK Plus Tours. Curated narrated tours and Build My Own Tour."
+            onPress={() => router.push('/tours' as Href)}
+            style={({ pressed }) => [
+              styles.plusTourCard,
+              pressed && styles.plusTourCardPressed,
+            ]}
+          >
+            <View style={styles.plusTourIconShell}>
+              <Text style={styles.plusTourEmoji}>🧹</Text>
+            </View>
 
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => router.push('/build-my-tour')}
-              style={styles.devTourSecondary}
-            >
-              <Text style={styles.devTourSecondaryText}>
-                Open route builder directly
+            <View style={styles.plusTourCopy}>
+              <Text style={styles.plusTourEyebrow}>
+                BROOMSTICK PLUS
               </Text>
-            </Pressable>
-          </View>
+              <Text style={styles.plusTourTitle}>
+                Salem Tours
+              </Text>
+              <Text style={styles.plusTourText}>
+                Curated narrated tours + build your own adventure
+              </Text>
+            </View>
+
+            <View style={styles.plusTourArrow}>
+              <Ionicons
+                name="chevron-forward"
+                size={24}
+                color={colors.gold}
+              />
+            </View>
+          </Pressable>
         ) : null}
       </View>
     </Screen>
@@ -156,36 +163,64 @@ const styles = StyleSheet.create({
   gridItem: {
     flex: 1,
   },
-  devTourStack: {
-    gap: spacing.sm,
-  },
-
-  devTourButton: {
-    borderWidth: 1,
-    borderColor: colors.gold,
-    borderRadius: 16,
-    backgroundColor: '#211710',
+  plusTourCard: {
+    minHeight: 106,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: '#D4A94A',
+    borderRadius: 18,
+    backgroundColor: '#27163A',
     padding: spacing.md,
   },
-  devTourTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: colors.gold,
+  plusTourCardPressed: {
+    opacity: 0.82,
+    transform: [{ scale: 0.99 }],
   },
-  devTourText: {
-    marginTop: 2,
-    fontSize: 12,
-    color: colors.textMuted,
-  },
-
-  devTourSecondary: {
+  plusTourIconShell: {
+    width: 58,
+    height: 58,
     alignItems: 'center',
-    paddingVertical: spacing.sm,
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 214, 122, 0.52)',
+    borderRadius: 29,
+    backgroundColor: '#3B2455',
   },
-
-  devTourSecondaryText: {
+  plusTourEmoji: {
+    fontSize: 30,
+    lineHeight: 34,
+  },
+  plusTourCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  plusTourEyebrow: {
+    ...typography.eyebrow,
+    color: colors.gold,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+  },
+  plusTourTitle: {
+    ...typography.title,
+    color: colors.text,
+    fontSize: 21,
+    lineHeight: 26,
+  },
+  plusTourText: {
+    ...typography.caption,
+    color: '#E6DDF0',
     fontSize: 12,
-    fontWeight: '700',
-    color: colors.textMuted,
+    lineHeight: 17,
+  },
+  plusTourArrow: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 215, 128, 0.08)',
   },
 });
