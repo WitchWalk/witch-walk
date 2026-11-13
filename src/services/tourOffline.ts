@@ -127,3 +127,41 @@ export async function getTourSafeOfflineStatus(
     ready: total > 0 && missing === 0,
   };
 }
+
+
+export async function listCachedCuratedTours(): Promise<
+  CuratedTourDetail[]
+> {
+  try {
+    const keys = await AsyncStorage.getAllKeys();
+    const tourKeys = keys.filter((key) =>
+      key.startsWith(OFFLINE_TOUR_PREFIX),
+    );
+
+    if (!tourKeys.length) {
+      return [];
+    }
+
+    const entries = await AsyncStorage.multiGet(tourKeys);
+
+    return entries
+      .map(([, raw]) => {
+        if (!raw) return null;
+
+        try {
+          const parsed =
+            JSON.parse(raw) as CuratedTourDetail;
+
+          return parsed?.id ? parsed : null;
+        } catch {
+          return null;
+        }
+      })
+      .filter(
+        (tour): tour is CuratedTourDetail =>
+          Boolean(tour),
+      );
+  } catch {
+    return [];
+  }
+}
