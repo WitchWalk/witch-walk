@@ -90,6 +90,8 @@ export default function BuildMyTourScreen() {
     useState('');
   const [liveStopEditorOpen, setLiveStopEditorOpen] =
     useState(false);
+  const [liveRouteDraftIds, setLiveRouteDraftIds] =
+    useState<string[]>([]);
   const [curatedTourName, setCuratedTourName] =
     useState<string | null>(null);
   const [curatedBaseIds, setCuratedBaseIds] =
@@ -654,6 +656,36 @@ export default function BuildMyTourScreen() {
     );
   };
 
+  const openLiveRouteEditor = () => {
+    setLiveRouteDraftIds(orderedIds);
+    setLiveStopEditorOpen(true);
+  };
+
+  const toggleLiveRouteDraftStop = (id: string) => {
+    setLiveRouteDraftIds((current) =>
+      current.includes(id)
+        ? current.filter((item) => item !== id)
+        : [...current, id],
+    );
+  };
+
+  const applyLiveRouteDraft = async () => {
+    const nextSelectedIds = [
+      ...completedIds,
+      ...liveRouteDraftIds,
+    ];
+
+    setSelectedIds(nextSelectedIds);
+    setStrategy('optimize');
+    setLiveStopEditorOpen(false);
+
+    await recalculate(
+      nextSelectedIds,
+      completedIds,
+      'optimize',
+    );
+  };
+
   const resetTour = () => {
     setSelectedIds([]);
     setCompletedIds([]);
@@ -671,6 +703,7 @@ export default function BuildMyTourScreen() {
     setNarrationLoading(false);
     setTourStarted(false);
     setLiveStopEditorOpen(false);
+    setLiveRouteDraftIds([]);
     setCuratedTourName(null);
     void clearSavedTourProgress();
   };
@@ -864,8 +897,7 @@ export default function BuildMyTourScreen() {
       ) : null}
 
       {(!curatedTourName ||
-        customize === '1' ||
-        (tourStarted && liveStopEditorOpen)) ? (
+        customize === '1') ? (
       <View style={styles.section}>
         {curatedTourName ? (
           <View style={styles.curatedStopsHeading}>
@@ -1208,8 +1240,11 @@ export default function BuildMyTourScreen() {
               <Pressable
                 accessibilityRole="button"
                 onPress={() => {
-                  setLiveStopEditorOpen((open) => !open);
-                  setStopSearch('');
+                  if (liveStopEditorOpen) {
+                    setLiveStopEditorOpen(false);
+                  } else {
+                    openLiveRouteEditor();
+                  }
                 }}
                 style={styles.secondaryButton}
               >
@@ -1241,6 +1276,108 @@ export default function BuildMyTourScreen() {
               </Text>
             </Pressable>
           </View>
+
+          {liveStopEditorOpen && curatedTourName ? (
+            <View style={styles.liveRouteEditor}>
+              <View style={styles.liveRouteEditorHeader}>
+                <View>
+                  <Text style={styles.eyebrow}>
+                    UPDATE THIS TOUR
+                  </Text>
+                  <Text style={styles.liveRouteEditorTitle}>
+                    Stops on your current route
+                  </Text>
+                </View>
+
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => setLiveStopEditorOpen(false)}
+                  style={styles.liveRouteEditorClose}
+                >
+                  <Ionicons
+                    name="close"
+                    size={20}
+                    color={colors.textMuted}
+                  />
+                </Pressable>
+              </View>
+
+              <Text style={styles.liveRouteEditorText}>
+                Uncheck any stop you want to skip. Re-check it before updating if you change your mind.
+              </Text>
+
+              <View style={styles.stopList}>
+                {ordered.map((attraction) => {
+                  const isIncluded =
+                    liveRouteDraftIds.includes(attraction.id);
+
+                  return (
+                    <Pressable
+                      key={attraction.id}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: isIncluded }}
+                      onPress={() =>
+                        toggleLiveRouteDraftStop(attraction.id)
+                      }
+                      style={[
+                        styles.stopCard,
+                        isIncluded && styles.stopCardSelected,
+                      ]}
+                    >
+                      <View style={styles.stopCopy}>
+                        <Text style={styles.stopName}>
+                          {attraction.name}
+                        </Text>
+                        <Text style={styles.stopAddress}>
+                          {attraction.address}
+                        </Text>
+                      </View>
+
+                      <Ionicons
+                        name={
+                          isIncluded
+                            ? 'checkmark-circle'
+                            : 'ellipse-outline'
+                        }
+                        size={26}
+                        color={
+                          isIncluded
+                            ? colors.gold
+                            : colors.textMuted
+                        }
+                      />
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              <Pressable
+                accessibilityRole="button"
+                disabled={
+                  building ||
+                  liveRouteDraftIds.length === 0
+                }
+                onPress={() => void applyLiveRouteDraft()}
+                style={[
+                  styles.applyStopsButton,
+                  (building ||
+                    liveRouteDraftIds.length === 0) &&
+                    styles.buildButtonDisabled,
+                ]}
+              >
+                <Ionicons
+                  name="refresh-circle"
+                  size={21}
+                  color={colors.background}
+                />
+                <Text style={styles.applyStopsButtonText}>
+                  {building
+                    ? 'UPDATING TOUR…'
+                    : 'UPDATE TOUR & RETURN'}
+                </Text>
+              </Pressable>
+            </View>
+          ) : null}
 
           {ordered[0] ? (
             <View
@@ -2202,6 +2339,45 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.gold,
     fontWeight: '800',
+  },
+
+  liveRouteEditor: {
+    gap: spacing.md,
+    borderWidth: 2,
+    borderColor: colors.gold,
+    borderRadius: radius.lg,
+    backgroundColor: '#21172B',
+    padding: spacing.md,
+  },
+
+  liveRouteEditorHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+
+  liveRouteEditorTitle: {
+    ...typography.title,
+    fontSize: 18,
+    lineHeight: 23,
+  },
+
+  liveRouteEditorText: {
+    ...typography.caption,
+    color: colors.textMuted,
+    fontWeight: '700',
+  },
+
+  liveRouteEditorClose: {
+    width: 38,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
   },
 
   nextStopCard: {
