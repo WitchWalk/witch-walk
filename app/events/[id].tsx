@@ -4,7 +4,7 @@ import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, View } from '
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText as Text } from '@/components/AppText';
 import { useEvents } from '@/components/events/EventsProvider';
-import { getEventDateLabel, getEventDirectionsUrl, getEventTimeLabel, type EventLocation } from '@/services/eventContentCore';
+import { getEventDateLabel, getEventDirectionsUrl, getEventTimeLabel, getUpcomingOccurrences, type EventLocation } from '@/services/eventContentCore';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 export default function EventDetailsRoute() {
@@ -26,6 +26,7 @@ export function EventDetailsView({ event }: { event: EventLocation }) {
   };
   const goBack = () => router.canGoBack() ? router.back() : router.replace('/events');
   const directions = getEventDirectionsUrl(event);
+  const upcomingOccurrences = getUpcomingOccurrences(event);
   return <SafeAreaView edges={['top']} style={styles.safeArea}><ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
     <View style={styles.header}><Pressable accessibilityRole="button" accessibilityLabel="Back to Events" onPress={goBack} style={styles.back}>
       <Ionicons color={colors.text} name="chevron-back" size={25} /><Text style={styles.backText}>Back</Text>
@@ -38,8 +39,8 @@ export function EventDetailsView({ event }: { event: EventLocation }) {
       {event.address ? <DetailRow icon="navigate-outline" value={event.address} /> : null}
       {event.cost ? <DetailRow icon="pricetag-outline" value={event.cost} /> : null}
     </View>
-    <View style={styles.panel}><Text style={styles.panelTitle}>Dates</Text>
-      {event.occurrences.map((occurrence) => <View key={occurrence.id} style={styles.occurrence}>
+    <View style={styles.panel}><Text style={styles.panelTitle}>Upcoming dates</Text>
+      {upcomingOccurrences.map((occurrence) => <View key={occurrence.id} style={styles.occurrence}>
         <DetailRow icon="calendar-outline" value={getEventDateLabel(occurrence)} />
         <DetailRow icon="time-outline" value={getEventTimeLabel(occurrence)} />
         {occurrence.note ? <Text style={styles.occurrenceNote}>{occurrence.note}</Text> : null}
@@ -51,6 +52,7 @@ export function EventDetailsView({ event }: { event: EventLocation }) {
     <View style={styles.actions}>
       {event.ticketUrl ? <EventAction label="Get Tickets" primary onPress={() => void openUrl(event.ticketUrl, 'ticket page')} /> : null}
       {event.websiteUrl ? <EventAction label="Event Website" onPress={() => void openUrl(event.websiteUrl, 'event website')} /> : null}
+      {event.sourceUrl && event.sourceUrl !== event.websiteUrl ? <EventAction label="Official Event Info" onPress={() => void openUrl(event.sourceUrl, 'official event information')} /> : null}
       {directions ? <EventAction label="Directions" onPress={() => void openUrl(directions, 'maps')} /> : null}
     </View>
   </ScrollView></SafeAreaView>;
