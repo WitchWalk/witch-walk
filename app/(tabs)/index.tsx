@@ -63,7 +63,7 @@ export default function HomeScreen() {
   );
 
   const openAction = async (action: (typeof homeActions)[number]) => {
-    if (action.title !== 'HOUSE ARAUZ Videos') {
+    if (action.href !== '/house-arauz') {
       router.push(action.href);
       return;
     }
