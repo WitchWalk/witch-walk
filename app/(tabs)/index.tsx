@@ -22,8 +22,11 @@ export default function HomeScreen() {
   const [houseArauzChannelUrl, setHouseArauzChannelUrl] = useState<string | null>(null);
   const [downtownCrowdLevel, setDowntownCrowdLevel] =
     useState<'light' | 'moderate' | 'busy' | null>(null);
-  const shortcutRows = [homeActions.slice(0, 3), homeActions.slice(3, 6)];
-  const featuredActions = homeActions.slice(6, 8);
+  const shortcutRows = [
+    homeActions.slice(0, 3),
+    homeActions.slice(3, 6),
+    homeActions.slice(6, 9),
+  ];
 
   const refreshHouseArauzChannel = useCallback(async () => {
     const result = await loadHouseArauzChannelUrl();
@@ -83,17 +86,9 @@ export default function HomeScreen() {
             <View key={row[0].title} style={styles.gridRow}>
               {row.map((action) => (
                 <View key={action.title} style={styles.gridItem}>
-                  <HomeShortcutCard {...action} onPress={() => router.push(action.href)} />
+                  <HomeShortcutCard {...action} onPress={() => void openAction(action)} />
                 </View>
               ))}
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.featuredRow}>
-          {featuredActions.map((action) => (
-            <View key={action.title} style={styles.featuredItem}>
-              <HomeShortcutCard {...action} wide onPress={() => void openAction(action)} />
             </View>
           ))}
         </View>
@@ -159,14 +154,6 @@ const styles = StyleSheet.create({
     columnGap: spacing.sm,
   },
   gridItem: {
-    flex: 1,
-  },
-  featuredRow: {
-    minHeight: 112,
-    flexDirection: 'row',
-    columnGap: spacing.sm,
-  },
-  featuredItem: {
     flex: 1,
   },
   devTourStack: {
