@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { CuratedTourDetail } from '@/services/curatedTours';
 import {
   cacheTourNarration,
+  getCachedTourNarration,
   resolveTourNarration,
 } from '@/services/tourNarration';
 
@@ -12,6 +13,13 @@ export type OfflineTourDownloadResult = {
   total: number;
   cached: number;
   unavailable: number;
+};
+
+export type TourSafeOfflineStatus = {
+  total: number;
+  cached: number;
+  missing: number;
+  ready: boolean;
 };
 
 export async function cacheCuratedTourForOffline(
@@ -76,4 +84,30 @@ export async function getCachedCuratedTour(
   } catch {
     return null;
   }
+}
+
+
+export async function getTourSafeOfflineStatus(
+  tour: CuratedTourDetail,
+): Promise<TourSafeOfflineStatus> {
+  let cached = 0;
+
+  for (const stop of tour.stops) {
+    const narration =
+      await getCachedTourNarration(stop.attractionId);
+
+    if (narration) {
+      cached += 1;
+    }
+  }
+
+  const total = tour.stops.length;
+  const missing = Math.max(0, total - cached);
+
+  return {
+    total,
+    cached,
+    missing,
+    ready: total > 0 && missing === 0,
+  };
 }
