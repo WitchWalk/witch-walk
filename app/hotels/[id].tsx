@@ -168,7 +168,7 @@ export default function HotelDetailsScreen() {
               accessibilityRole="button"
               onPress={() =>
                 void openUrl(
-                  'tel:' + hotel.phone!.replace(/[^+\\d]/g, ''),
+                  'tel:' + hotel.phone!.replace(/[^+\d]/g, ''),
                 )
               }
               style={styles.secondaryButton}
