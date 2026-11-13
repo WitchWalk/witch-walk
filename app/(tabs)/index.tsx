@@ -111,18 +111,30 @@ export default function HomeScreen() {
         </View>
 
         {__DEV__ ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => router.push('/build-my-tour')}
-            style={styles.devTourButton}
-          >
-            <Text style={styles.devTourTitle}>
-              🧹 Build My Tour Prototype
-            </Text>
-            <Text style={styles.devTourText}>
-              Development only
-            </Text>
-          </Pressable>
+          <View style={styles.devTourStack}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push('/tours')}
+              style={styles.devTourButton}
+            >
+              <Text style={styles.devTourTitle}>
+                🧹 BROOMSTICK Plus Tours
+              </Text>
+              <Text style={styles.devTourText}>
+                Curated tours + Build My Own Tour
+              </Text>
+            </Pressable>
+
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push('/build-my-tour')}
+              style={styles.devTourSecondary}
+            >
+              <Text style={styles.devTourSecondaryText}>
+                Open route builder directly
+              </Text>
+            </Pressable>
+          </View>
         ) : null}
       </View>
     </Screen>
@@ -167,6 +179,10 @@ const styles = StyleSheet.create({
   featuredItem: {
     flex: 1,
   },
+  devTourStack: {
+    gap: spacing.sm,
+  },
+
   devTourButton: {
     borderWidth: 1,
     borderColor: colors.gold,
@@ -182,6 +198,17 @@ const styles = StyleSheet.create({
   devTourText: {
     marginTop: 2,
     fontSize: 12,
+    color: colors.textMuted,
+  },
+
+  devTourSecondary: {
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+  },
+
+  devTourSecondaryText: {
+    fontSize: 12,
+    fontWeight: '700',
     color: colors.textMuted,
   },
 });
