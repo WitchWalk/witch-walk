@@ -40,6 +40,7 @@ import {
   type TourNarrationSource,
 } from '@/services/tourNarration';
 import { getPublishedCuratedTour } from '@/services/curatedTours';
+import { getCachedCuratedTour } from '@/services/tourOffline';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 export default function BuildMyTourScreen() {
@@ -144,12 +145,15 @@ export default function BuildMyTourScreen() {
     }
 
     void getPublishedCuratedTour(tourId)
-      .then((tour) => {
-        if (!active || !tour) {
+      .then(async (tour) => {
+        const resolvedTour =
+          tour ?? (await getCachedCuratedTour(tourId));
+
+        if (!active || !resolvedTour) {
           return;
         }
 
-        const ids = tour.stops
+        const ids = resolvedTour.stops
           .map((stop) => stop.attractionId)
           .filter((id) =>
             selectable.some((item) => item.id === id),
@@ -170,10 +174,47 @@ export default function BuildMyTourScreen() {
         setSelectedIds(combinedIds);
         setOrderedIds(combinedIds);
         setCuratedBaseIds(ids);
-        setCuratedTourName(tour.name);
+        setCuratedTourName(resolvedTour.name);
         setStrategy('keep-order');
 
-        if (tour.tourMode === 'driving') {
+        if (resolvedTour.tourMode === 'driving') {
+          setTravelMode('driving');
+        } else {
+          setTravelMode('walking');
+        }
+      })
+      .catch(async () => {
+        const cached = await getCachedCuratedTour(tourId);
+
+        if (!active || !cached) {
+          return;
+        }
+
+        const ids = cached.stops
+          .map((stop) => stop.attractionId)
+          .filter((id) =>
+            selectable.some((item) => item.id === id),
+          );
+
+        const extras = addedStops
+          ? addedStops
+              .split(',')
+              .filter((id) =>
+                selectable.some((item) => item.id === id),
+              )
+          : [];
+
+        const combinedIds = Array.from(
+          new Set([...ids, ...extras]),
+        );
+
+        setSelectedIds(combinedIds);
+        setOrderedIds(combinedIds);
+        setCuratedBaseIds(ids);
+        setCuratedTourName(cached.name);
+        setStrategy('keep-order');
+
+        if (cached.tourMode === 'driving') {
           setTravelMode('driving');
         } else {
           setTravelMode('walking');
