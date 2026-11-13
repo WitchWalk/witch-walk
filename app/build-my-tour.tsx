@@ -1824,15 +1824,15 @@ export default function BuildMyTourScreen() {
 
                 <Text style={styles.routeStatusTitle}>
                   {routeSource === 'mapbox'
-                    ? 'Real travel routing active'
-                    : 'Straight-line fallback active'}
+                    ? 'Route guidance ready'
+                    : 'Basic route guidance active'}
                 </Text>
               </View>
 
               <Text style={styles.routeStatusText}>
                 {routeSource === 'mapbox'
-                  ? `${travelMode === 'walking' ? 'Walking' : 'Driving'} travel times are being used to optimize the remaining stops.`
-                  : 'Mapbox routing is not active yet, so BROOMSTICK is temporarily ordering stops by geographic distance.'}
+                  ? `BROOMSTICK is using ${travelMode === 'walking' ? 'walking' : 'driving'} travel times for your remaining stops.`
+                  : 'BROOMSTICK is using the best available offline-friendly stop order until full routing is available again.'}
               </Text>
 
               {routeSource === 'mapbox' &&
@@ -1865,6 +1865,20 @@ export default function BuildMyTourScreen() {
             </View>
           ) : null}
 
+          <View style={styles.routeSectionHeader}>
+            <View>
+              <Text style={styles.eyebrow}>
+                ROUTE OVERVIEW
+              </Text>
+              <Text style={styles.routeSectionTitle}>
+                Your Tour Map
+              </Text>
+            </View>
+            <Text style={styles.routeSectionMeta}>
+              {ordered.length} stop{ordered.length === 1 ? '' : 's'} left
+            </Text>
+          </View>
+
           <TourRouteMap
             origin={routeOrigin}
             routeCoordinates={routeCoordinates}
@@ -1875,6 +1889,17 @@ export default function BuildMyTourScreen() {
               longitude: attraction.longitude as number,
             }))}
           />
+
+          <View style={styles.routeSectionHeader}>
+            <View>
+              <Text style={styles.eyebrow}>
+                COMING UP
+              </Text>
+              <Text style={styles.routeSectionTitle}>
+                Remaining Stops
+              </Text>
+            </View>
+          </View>
 
           <View style={styles.routeList}>
             {ordered.map((attraction, index) => (
@@ -1960,9 +1985,7 @@ export default function BuildMyTourScreen() {
           </View>
 
           <Text style={styles.routeFootnote}>
-            Adding, removing, completing, or manually
-            recalculating a stop rebuilds the remaining
-            route from your current GPS position.
+            BROOMSTICK refreshes the remaining route from your current location whenever you edit, complete, or refresh a stop.
           </Text>
         </View>
 
@@ -2849,6 +2872,7 @@ const styles = StyleSheet.create({
 
   routeStatusText: {
     ...typography.caption,
+    color: colors.textMuted,
   },
 
   routeStats: {
@@ -2866,6 +2890,26 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.gold,
     fontWeight: '800',
+  },
+
+  routeSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+    marginTop: spacing.sm,
+  },
+
+  routeSectionTitle: {
+    ...typography.title,
+    fontSize: 20,
+    lineHeight: 25,
+  },
+
+  routeSectionMeta: {
+    ...typography.caption,
+    color: colors.gold,
+    fontWeight: '900',
   },
 
   routeList: {
