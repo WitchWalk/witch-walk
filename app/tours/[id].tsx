@@ -14,6 +14,10 @@ import {
   type CuratedTourDetail,
 } from '@/services/curatedTours';
 import {
+  cacheCuratedTourForOffline,
+  getCachedCuratedTour,
+} from '@/services/tourOffline';
+import {
   colors,
   radius,
   spacing,
@@ -26,6 +30,9 @@ export default function TourDetailScreen() {
     useState<CuratedTourDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [downloading, setDownloading] = useState(false);
+  const [offlineMessage, setOfflineMessage] =
+    useState('');
 
   useEffect(() => {
     let active = true;
@@ -42,18 +49,39 @@ export default function TourDetailScreen() {
     setError('');
 
     void getPublishedCuratedTour(id)
-      .then((result) => {
+      .then(async (result) => {
         if (!active) return;
 
-        if (!result) {
-          setError('Tour unavailable.');
+        if (result) {
+          setTour(result);
           return;
         }
 
-        setTour(result);
+        const cached = await getCachedCuratedTour(id);
+
+        if (!active) return;
+
+        if (cached) {
+          setTour(cached);
+          setOfflineMessage(
+            'TourSafe offline copy loaded.',
+          );
+          return;
+        }
+
+        setError('Tour unavailable.');
       })
-      .catch(() => {
-        if (active) {
+      .catch(async () => {
+        const cached = await getCachedCuratedTour(id);
+
+        if (!active) return;
+
+        if (cached) {
+          setTour(cached);
+          setOfflineMessage(
+            'TourSafe offline copy loaded.',
+          );
+        } else {
           setError('BROOMSTICK could not load this tour.');
         }
       })
@@ -67,6 +95,32 @@ export default function TourDetailScreen() {
       active = false;
     };
   }, [id]);
+
+  const downloadOffline = async () => {
+    if (!tour || downloading) {
+      return;
+    }
+
+    setDownloading(true);
+    setOfflineMessage('');
+
+    try {
+      const result =
+        await cacheCuratedTourForOffline(tour);
+
+      setOfflineMessage(
+        result.unavailable === 0
+          ? `✓ TourSafe ready: ${result.cached} of ${result.total} narrations saved offline.`
+          : `TourSafe saved ${result.cached} of ${result.total} narrations. ${result.unavailable} stop(s) are not ready yet.`,
+      );
+    } catch {
+      setOfflineMessage(
+        'TourSafe could not finish the offline download.',
+      );
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   return (
     <Screen scroll contentContainerStyle={styles.content}>
@@ -210,6 +264,35 @@ export default function TourDetailScreen() {
               ))}
             </View>
           </View>
+
+          <Pressable
+            accessibilityRole="button"
+            disabled={downloading}
+            onPress={() => void downloadOffline()}
+            style={[
+              styles.offlineButton,
+              downloading && styles.startButtonDisabled,
+            ]}
+          >
+            <Ionicons
+              name="download-outline"
+              size={20}
+              color={colors.gold}
+            />
+            <Text style={styles.offlineButtonText}>
+              {downloading
+                ? 'Downloading TourSafe…'
+                : 'Download Tour for Offline'}
+            </Text>
+          </Pressable>
+
+          {offlineMessage ? (
+            <View style={styles.offlineStatus}>
+              <Text style={styles.offlineStatusText}>
+                {offlineMessage}
+              </Text>
+            </View>
+          ) : null}
 
           <Pressable
             accessibilityRole="button"
@@ -400,6 +483,40 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.gold,
     fontWeight: '800',
+  },
+
+  offlineButton: {
+    minHeight: 54,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    borderWidth: 2,
+    borderColor: colors.gold,
+    borderRadius: radius.md,
+    backgroundColor: '#21172B',
+    paddingHorizontal: spacing.lg,
+  },
+
+  offlineButtonText: {
+    ...typography.body,
+    color: colors.gold,
+    fontWeight: '900',
+  },
+
+  offlineStatus: {
+    borderWidth: 1,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+  },
+
+  offlineStatusText: {
+    ...typography.caption,
+    color: colors.text,
+    textAlign: 'center',
+    fontWeight: '700',
   },
 
   startButton: {
