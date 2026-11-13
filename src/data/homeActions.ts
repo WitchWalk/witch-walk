@@ -11,7 +11,7 @@ export type HomeAction = {
   icon: ComponentProps<typeof Ionicons>['name'] | ComponentProps<typeof MaterialCommunityIcons>['name'];
   iconFamily?: 'ionicons' | 'material-community';
   accent: string;
-  image: ImageSourcePropType;
+  image?: ImageSourcePropType;
   href: Href;
 };
 
@@ -64,6 +64,13 @@ export const homeActions: HomeAction[] = [
     accent: '#F4D46C',
     image: require('../../assets/images/home/bathrooms.png'),
     href: '/bathrooms',
+  },
+  {
+    title: 'Hotels',
+    subtitle: 'Places to stay',
+    icon: 'bed',
+    accent: '#D7B3FF',
+    href: '/hotels',
   },
   {
     title: 'HOUSE ARAUZ Videos',
