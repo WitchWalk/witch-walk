@@ -239,7 +239,10 @@ export default function TourDetailScreen() {
             onPress={() =>
               router.push({
                 pathname: '/build-my-tour',
-                params: { tourId: tour.id },
+                params: {
+                  tourId: tour.id,
+                  autoStart: '1',
+                },
               })
             }
             style={[
@@ -255,6 +258,29 @@ export default function TourDetailScreen() {
             />
             <Text style={styles.startButtonText}>
               START TOUR
+            </Text>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={() =>
+              router.push({
+                pathname: '/build-my-tour',
+                params: {
+                  tourId: tour.id,
+                  customize: '1',
+                },
+              })
+            }
+            style={styles.addStopsButton}
+          >
+            <Ionicons
+              name="add-circle-outline"
+              size={20}
+              color={colors.gold}
+            />
+            <Text style={styles.addStopsButtonText}>
+              ADD MORE STOPS
             </Text>
           </Pressable>
 
@@ -487,6 +513,25 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.gold,
     fontWeight: '800',
+  },
+
+  addStopsButton: {
+    minHeight: 54,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.gold,
+    borderRadius: radius.md,
+    backgroundColor: '#21172B',
+    paddingHorizontal: spacing.lg,
+  },
+
+  addStopsButtonText: {
+    ...typography.body,
+    color: colors.gold,
+    fontWeight: '900',
   },
 
   offlineButton: {
