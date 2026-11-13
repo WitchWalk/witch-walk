@@ -2518,8 +2518,9 @@ const styles = StyleSheet.create({
 
   resultHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
     gap: spacing.md,
   },
 
@@ -2538,6 +2539,7 @@ const styles = StyleSheet.create({
   },
 
   modePill: {
+    flexShrink: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
