@@ -1,5 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, type Href } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { ImageBackground, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -116,7 +116,9 @@ export default function FavoritesScreen() {
     else if (location.category === 'parking') router.push({ pathname: '/parking/[id]', params: { id: location.id } });
     else if (location.category === 'bathrooms') router.push({ pathname: '/bathrooms/[id]', params: { id: location.id } });
     else if (location.category === 'hotels') router.push({ pathname: '/hotels/[id]', params: { id: location.id } });
-    else router.push(`/tours/${encodeURIComponent(location.id)}` as never);
+    else router.push(
+      `/tours/${encodeURIComponent(location.id)}` as Href,
+    );
   };
 
   return (
