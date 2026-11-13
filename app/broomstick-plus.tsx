@@ -15,7 +15,7 @@ import { AppText as Text } from '@/components/AppText';
 import { usePlus } from '@/components/plus/PlusProvider';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
-const plusHero = require('../Photos/Broomstick Header.png');
+const plusHero = require('../assets/images/home/live-map.png');
 
 const benefits = [
   {
@@ -107,6 +107,10 @@ export default function BroomstickPlusScreen() {
             </View>
           </View>
 
+          <View style={styles.plusWatermarkWrap} pointerEvents="none">
+            <Text style={styles.plusWatermark}>PLUS</Text>
+          </View>
+
           <View style={styles.heroCopy}>
             <Text style={styles.heroKicker}>YOUR SALEM ADVENTURE, UPGRADED</Text>
             <Text style={styles.title}>Unlock Salem Tours</Text>
@@ -126,6 +130,30 @@ export default function BroomstickPlusScreen() {
             </View>
           </View>
         </ImageBackground>
+
+        <View style={styles.choiceRow}>
+          <View style={styles.choiceCard}>
+            <View style={styles.choiceIcon}>
+              <Ionicons name="map" size={26} color={colors.gold} />
+            </View>
+            <Text style={styles.choiceKicker}>PICK ONE</Text>
+            <Text style={styles.choiceTitle}>Ready-Made Tours</Text>
+            <Text style={styles.choiceText}>
+              Choose a curated Salem route and start exploring.
+            </Text>
+          </View>
+
+          <View style={styles.choiceCard}>
+            <View style={styles.choiceIcon}>
+              <Ionicons name="options" size={26} color={colors.gold} />
+            </View>
+            <Text style={styles.choiceKicker}>MAKE YOUR OWN</Text>
+            <Text style={styles.choiceTitle}>Build a Tour</Text>
+            <Text style={styles.choiceText}>
+              Pick the Salem stops you want and let BROOMSTICK route them.
+            </Text>
+          </View>
+        </View>
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionEyebrow}>INCLUDED WITH PLUS</Text>
@@ -352,6 +380,20 @@ const styles = StyleSheet.create({
   },
   heroCopy: {
     alignItems: 'flex-start',
+    zIndex: 2,
+  },
+  plusWatermarkWrap: {
+    position: 'absolute',
+    right: -10,
+    bottom: 112,
+    zIndex: 1,
+  },
+  plusWatermark: {
+    color: 'rgba(255, 216, 137, 0.14)',
+    fontSize: 84,
+    lineHeight: 88,
+    fontWeight: '900',
+    letterSpacing: -4,
   },
   plusBadge: {
     flexDirection: 'row',
@@ -445,6 +487,47 @@ const styles = StyleSheet.create({
     color: '#CFE7D4',
     fontSize: 11,
     fontWeight: '800',
+  },
+  choiceRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  choiceCard: {
+    flex: 1,
+    minHeight: 178,
+    borderWidth: 1,
+    borderColor: '#6A557D',
+    borderRadius: radius.lg,
+    backgroundColor: '#191120',
+    padding: spacing.md,
+  },
+  choiceIcon: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.pill,
+    backgroundColor: '#2D1E3E',
+    marginBottom: spacing.md,
+  },
+  choiceKicker: {
+    color: colors.gold,
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+  choiceTitle: {
+    ...typography.title,
+    fontSize: 17,
+    lineHeight: 21,
+    marginTop: 3,
+  },
+  choiceText: {
+    ...typography.caption,
+    color: colors.textMuted,
+    fontSize: 11.5,
+    lineHeight: 16,
+    marginTop: spacing.xs,
   },
   sectionHeader: {
     gap: 3,
