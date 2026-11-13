@@ -662,7 +662,38 @@ export default function BuildMyTourScreen() {
         </Text>
       </View>
 
-      {!tourStarted ? (
+      {!tourStarted && curatedTourName ? (
+        <Pressable
+          accessibilityRole="button"
+          disabled={building || selected.length < 2}
+          onPress={() => void buildRoute()}
+          style={({ pressed }) => [
+            styles.curatedStartButton,
+            (building || selected.length < 2) &&
+              styles.buildButtonDisabled,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Ionicons
+            name="navigate"
+            size={23}
+            color={colors.background}
+          />
+
+          <View style={styles.curatedStartCopy}>
+            <Text style={styles.curatedStartTitle}>
+              {building
+                ? 'Starting Tour…'
+                : 'START TOUR'}
+            </Text>
+            <Text style={styles.curatedStartText}>
+              {curatedTourName}
+            </Text>
+          </View>
+        </Pressable>
+      ) : null}
+
+      {!tourStarted && !curatedTourName ? (
         <View style={styles.buildGuide}>
           <View style={styles.buildGuideIcon}>
             <Ionicons
@@ -683,74 +714,80 @@ export default function BuildMyTourScreen() {
         </View>
       ) : null}
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
-          How are you exploring?
-        </Text>
+      {!curatedTourName ? (
+        <>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              How are you exploring?
+            </Text>
 
-        <View style={styles.buttonRow}>
-          <ChoiceButton
-            icon="walk"
-            label="Walking"
-            selected={travelMode === 'walking'}
-            onPress={() =>
-              setTravelMode('walking')
-            }
-          />
+            <View style={styles.buttonRow}>
+              <ChoiceButton
+                icon="walk"
+                label="Walking"
+                selected={travelMode === 'walking'}
+                onPress={() =>
+                  setTravelMode('walking')
+                }
+              />
 
-          <ChoiceButton
-            icon="car"
-            label="Driving"
-            selected={travelMode === 'driving'}
-            onPress={() =>
-              setTravelMode('driving')
-            }
-          />
-        </View>
-      </View>
+              <ChoiceButton
+                icon="car"
+                label="Driving"
+                selected={travelMode === 'driving'}
+                onPress={() =>
+                  setTravelMode('driving')
+                }
+              />
+            </View>
+          </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
-          Route preference
-        </Text>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              Route preference
+            </Text>
 
-        <View style={styles.buttonRow}>
-          <ChoiceButton
-            icon="flash"
-            label="Optimize"
-            selected={strategy === 'optimize'}
-            onPress={() => {
-              setStrategy('optimize');
+            <View style={styles.buttonRow}>
+              <ChoiceButton
+                icon="flash"
+                label="Optimize"
+                selected={strategy === 'optimize'}
+                onPress={() => {
+                  setStrategy('optimize');
 
-              if (tourStarted) {
-                void recalculate();
-              } else {
-                setOrderedIds([]);
-              }
-            }}
-          />
+                  if (tourStarted) {
+                    void recalculate();
+                  } else {
+                    setOrderedIds([]);
+                  }
+                }}
+              />
 
-          <ChoiceButton
-            icon="reorder-three"
-            label="Keep My Order"
-            selected={strategy === 'keep-order'}
-            onPress={() => {
-              setStrategy('keep-order');
+              <ChoiceButton
+                icon="reorder-three"
+                label="Keep My Order"
+                selected={strategy === 'keep-order'}
+                onPress={() => {
+                  setStrategy('keep-order');
 
-              if (tourStarted) {
-                void recalculate();
-              } else {
-                setOrderedIds([]);
-              }
-            }}
-          />
-        </View>
-      </View>
+                  if (tourStarted) {
+                    void recalculate();
+                  } else {
+                    setOrderedIds([]);
+                  }
+                }}
+              />
+            </View>
+          </View>
+        </>
+      ) : null}
 
       <View style={styles.section}>
         <View style={styles.sectionHeading}>
           <Text style={styles.sectionTitle}>
-            Choose your stops
+            {curatedTourName
+              ? 'ADD MORE TO THIS TOUR'
+              : 'Choose your stops'}
           </Text>
 
           <Text style={styles.counter}>
@@ -758,7 +795,7 @@ export default function BuildMyTourScreen() {
           </Text>
         </View>
 
-        {!tourStarted ? (
+        {!tourStarted && !curatedTourName ? (
           <View style={styles.bottomReminder}>
             <Ionicons
               name="arrow-down-circle-outline"
@@ -886,7 +923,7 @@ export default function BuildMyTourScreen() {
         )}
       </View>
 
-      {!tourStarted ? (
+      {!tourStarted && !curatedTourName ? (
         <Pressable
           accessibilityRole="button"
           disabled={
@@ -1251,6 +1288,7 @@ export default function BuildMyTourScreen() {
                       ? narrationSource.reason
                       : null
                   }
+                  autoPlay
                 />
               ) : null}
             </View>
@@ -1563,6 +1601,38 @@ const styles = StyleSheet.create({
     ...typography.caption,
     flex: 1,
     color: '#EED8AC',
+  },
+
+  curatedStartButton: {
+    minHeight: 72,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.md,
+    borderRadius: radius.lg,
+    backgroundColor: colors.gold,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+
+  curatedStartCopy: {
+    alignItems: 'center',
+    gap: 2,
+  },
+
+  curatedStartTitle: {
+    ...typography.heading,
+    color: colors.background,
+    fontSize: 21,
+    lineHeight: 25,
+    fontWeight: '900',
+  },
+
+  curatedStartText: {
+    ...typography.caption,
+    color: colors.background,
+    fontWeight: '800',
+    opacity: 0.8,
   },
 
   buildGuide: {
