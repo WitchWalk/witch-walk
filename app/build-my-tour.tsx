@@ -786,7 +786,7 @@ export default function BuildMyTourScreen() {
         {curatedTourName ? (
           <View style={styles.curatedStopsHeading}>
             <Text style={styles.sectionTitle}>
-              ADD MORE TO THIS TOUR
+              ADD MORE STOPS TO THIS TOUR
             </Text>
 
             <Text style={styles.counter}>
