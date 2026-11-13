@@ -43,11 +43,12 @@ import { getPublishedCuratedTour } from '@/services/curatedTours';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 export default function BuildMyTourScreen() {
-  const { tourId, autoStart, customize } =
+  const { tourId, autoStart, customize, addedStops } =
     useLocalSearchParams<{
       tourId?: string;
       autoStart?: string;
       customize?: string;
+      addedStops?: string;
     }>();
   const { attractions, ready } = useAttractions();
 
@@ -148,8 +149,20 @@ export default function BuildMyTourScreen() {
             selectable.some((item) => item.id === id),
           );
 
-        setSelectedIds(ids);
-        setOrderedIds(ids);
+        const extras = addedStops
+          ? addedStops
+              .split(',')
+              .filter((id) =>
+                selectable.some((item) => item.id === id),
+              )
+          : [];
+
+        const combinedIds = Array.from(
+          new Set([...ids, ...extras]),
+        );
+
+        setSelectedIds(combinedIds);
+        setOrderedIds(combinedIds);
         setCuratedBaseIds(ids);
         setCuratedTourName(tour.name);
         setStrategy('keep-order');
@@ -174,6 +187,7 @@ export default function BuildMyTourScreen() {
     ready,
     selectable,
     tourId,
+    addedStops,
   ]);
 
   useEffect(() => {
@@ -853,11 +867,25 @@ export default function BuildMyTourScreen() {
 
             <Pressable
               accessibilityRole="button"
-              disabled={addedStopCount === 0 || building}
-              onPress={() => void buildRoute()}
+              disabled={addedStopCount === 0}
+              onPress={() => {
+                if (!tourId) return;
+
+                const extras = selectedIds.filter(
+                  (id) => !curatedBaseIds.includes(id),
+                );
+
+                router.replace({
+                  pathname: '/tours/[id]',
+                  params: {
+                    id: tourId,
+                    addedStops: extras.join(','),
+                  },
+                });
+              }}
               style={({ pressed }) => [
                 styles.applyStopsButton,
-                (addedStopCount === 0 || building) &&
+                addedStopCount === 0 &&
                   styles.buildButtonDisabled,
                 pressed && styles.pressed,
               ]}
@@ -868,11 +896,9 @@ export default function BuildMyTourScreen() {
                 color={colors.background}
               />
               <Text style={styles.applyStopsButtonText}>
-                {building
-                  ? 'Updating Tour…'
-                  : addedStopCount > 0
-                    ? `ADD ${addedStopCount} SELECTED STOP${addedStopCount === 1 ? '' : 'S'}`
-                    : 'SELECT EXTRA STOPS BELOW'}
+                {addedStopCount > 0
+                  ? `ADD ${addedStopCount} SELECTED STOP${addedStopCount === 1 ? '' : 'S'}`
+                  : 'SELECT EXTRA STOPS BELOW'}
               </Text>
             </Pressable>
           </View>
