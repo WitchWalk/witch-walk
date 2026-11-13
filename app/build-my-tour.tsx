@@ -783,17 +783,27 @@ export default function BuildMyTourScreen() {
       ) : null}
 
       <View style={styles.section}>
-        <View style={styles.sectionHeading}>
-          <Text style={styles.sectionTitle}>
-            {curatedTourName
-              ? 'ADD MORE TO THIS TOUR'
-              : 'Choose your stops'}
-          </Text>
+        {curatedTourName ? (
+          <View style={styles.curatedStopsHeading}>
+            <Text style={styles.sectionTitle}>
+              ADD MORE TO THIS TOUR
+            </Text>
 
-          <Text style={styles.counter}>
-            {selectedIds.length} selected
-          </Text>
-        </View>
+            <Text style={styles.counter}>
+              {selectedIds.length} selected
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.sectionHeading}>
+            <Text style={styles.sectionTitle}>
+              Choose your stops
+            </Text>
+
+            <Text style={styles.counter}>
+              {selectedIds.length} selected
+            </Text>
+          </View>
+        )}
 
         {!tourStarted && !curatedTourName ? (
           <View style={styles.bottomReminder}>
@@ -1698,6 +1708,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing.sm,
+  },
+
+  curatedStopsHeading: {
+    gap: 4,
   },
 
   sectionTitle: {
