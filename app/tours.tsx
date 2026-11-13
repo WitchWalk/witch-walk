@@ -30,7 +30,7 @@ import {
   typography,
 } from '@/theme/tokens';
 
-const toursHero = require('../Photos/Broomstick Header.png');
+const toursHero = require('../assets/images/home/attractions.png');
 
 export default function ToursScreen() {
   const [tours, setTours] = useState<CuratedTourSummary[]>([]);
@@ -137,6 +137,14 @@ export default function ToursScreen() {
             Pick a curated narrated tour or build your own.
           </Text>
         </View>
+      </View>
+
+      <View style={styles.readyMadeHeader}>
+        <Text style={styles.readyMadeEyebrow}>READY-MADE TOURS</Text>
+        <Text style={styles.readyMadeTitle}>Choose a Salem tour</Text>
+        <Text style={styles.readyMadeText}>
+          Pick one of our curated narrated tours below, or build your own route.
+        </Text>
       </View>
 
       <Pressable
@@ -367,6 +375,33 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textMuted,
     marginTop: 3,
+  },
+
+  readyMadeHeader: {
+    gap: 3,
+    borderWidth: 1,
+    borderColor: '#5C486C',
+    borderRadius: radius.md,
+    backgroundColor: '#17111F',
+    padding: spacing.md,
+  },
+
+  readyMadeEyebrow: {
+    ...typography.eyebrow,
+    color: colors.gold,
+  },
+
+  readyMadeTitle: {
+    ...typography.title,
+    fontSize: 22,
+    lineHeight: 27,
+  },
+
+  readyMadeText: {
+    ...typography.caption,
+    color: colors.textMuted,
+    fontSize: 12.5,
+    lineHeight: 17,
   },
 
   builderCard: {
