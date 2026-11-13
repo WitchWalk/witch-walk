@@ -89,6 +89,8 @@ export default function BuildMyTourScreen() {
     useState('');
   const [curatedTourName, setCuratedTourName] =
     useState<string | null>(null);
+  const [curatedBaseIds, setCuratedBaseIds] =
+    useState<string[]>([]);
   const [curatedTourLoaded, setCuratedTourLoaded] =
     useState(false);
   const [resumeChecked, setResumeChecked] =
@@ -148,6 +150,7 @@ export default function BuildMyTourScreen() {
 
         setSelectedIds(ids);
         setOrderedIds(ids);
+        setCuratedBaseIds(ids);
         setCuratedTourName(tour.name);
         setStrategy('keep-order');
 
@@ -249,6 +252,28 @@ export default function BuildMyTourScreen() {
     tourStarted,
     travelMode,
   ]);
+
+  const extraSelectable = useMemo(
+    () =>
+      customize === '1'
+        ? filteredSelectable.filter(
+            (item) => !curatedBaseIds.includes(item.id),
+          )
+        : filteredSelectable,
+    [
+      curatedBaseIds,
+      customize,
+      filteredSelectable,
+    ],
+  );
+
+  const addedStopCount = useMemo(
+    () =>
+      selectedIds.filter(
+        (id) => !curatedBaseIds.includes(id),
+      ).length,
+    [curatedBaseIds, selectedIds],
+  );
 
   const selected = useMemo(
     () =>
@@ -823,8 +848,33 @@ export default function BuildMyTourScreen() {
             </Text>
 
             <Text style={styles.counter}>
-              {selectedIds.length} selected
+              {addedStopCount} new stop{addedStopCount === 1 ? '' : 's'} selected
             </Text>
+
+            <Pressable
+              accessibilityRole="button"
+              disabled={addedStopCount === 0 || building}
+              onPress={() => void buildRoute()}
+              style={({ pressed }) => [
+                styles.applyStopsButton,
+                (addedStopCount === 0 || building) &&
+                  styles.buildButtonDisabled,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Ionicons
+                name="add-circle"
+                size={20}
+                color={colors.background}
+              />
+              <Text style={styles.applyStopsButtonText}>
+                {building
+                  ? 'Updating Tour…'
+                  : addedStopCount > 0
+                    ? `ADD ${addedStopCount} SELECTED STOP${addedStopCount === 1 ? '' : 'S'}`
+                    : 'SELECT EXTRA STOPS BELOW'}
+              </Text>
+            </Pressable>
           </View>
         ) : (
           <View style={styles.sectionHeading}>
@@ -892,7 +942,7 @@ export default function BuildMyTourScreen() {
           </View>
         ) : (
           <View style={styles.stopList}>
-            {filteredSelectable.map((attraction) => {
+            {extraSelectable.map((attraction) => {
               const isSelected =
                 selectedIds.includes(attraction.id);
 
@@ -955,7 +1005,7 @@ export default function BuildMyTourScreen() {
                 </Pressable>
               );
             })}
-            {filteredSelectable.length === 0 ? (
+            {extraSelectable.length === 0 ? (
               <View style={styles.emptyCard}>
                 <Text style={styles.muted}>
                   No attractions match “{stopSearch}”.
@@ -1803,6 +1853,24 @@ const styles = StyleSheet.create({
 
   stopList: {
     gap: spacing.sm,
+  },
+
+  applyStopsButton: {
+    minHeight: 54,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: colors.gold,
+    paddingHorizontal: spacing.md,
+  },
+
+  applyStopsButtonText: {
+    ...typography.caption,
+    color: colors.background,
+    fontWeight: '900',
+    textAlign: 'center',
   },
 
   searchArea: {
