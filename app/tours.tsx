@@ -19,6 +19,9 @@ import {
   type CuratedTourSummary,
 } from '@/services/curatedTours';
 import {
+  listCachedCuratedTours,
+} from '@/services/tourOffline';
+import {
   colors,
   radius,
   spacing,
@@ -39,24 +42,55 @@ export default function ToursScreen() {
       setLoading(true);
       setError('');
 
-      void listPublishedCuratedTours()
-        .then((result) => {
-          if (active) {
-            setTours(result);
+      void (async () => {
+        const cached =
+          await listCachedCuratedTours();
+
+        if (!active) {
+          return;
+        }
+
+        if (cached.length) {
+          setTours(cached);
+          setLoading(false);
+        }
+
+        try {
+          const live =
+            await listPublishedCuratedTours();
+
+          if (!active) {
+            return;
           }
-        })
-        .catch(() => {
-          if (active) {
+
+          if (live.length) {
+            const merged = new Map(
+              cached.map((tour) => [
+                tour.id,
+                tour as CuratedTourSummary,
+              ]),
+            );
+
+            for (const tour of live) {
+              merged.set(tour.id, tour);
+            }
+
+            setTours(Array.from(merged.values()));
+          } else if (!cached.length) {
+            setTours([]);
+          }
+        } catch {
+          if (active && !cached.length) {
             setError(
               'BROOMSTICK could not load the tour library.',
             );
           }
-        })
-        .finally(() => {
+        } finally {
           if (active) {
             setLoading(false);
           }
-        });
+        }
+      })();
 
       return () => {
         active = false;
