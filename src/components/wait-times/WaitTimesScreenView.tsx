@@ -8,7 +8,7 @@ import { AppText as Text } from '@/components/AppText';
 import { WaitTimeCard } from '@/components/wait-times/WaitTimeCard';
 import { WaitTimesHeader } from '@/components/wait-times/WaitTimesHeader';
 import { useAttractions } from '@/components/attractions/AttractionsProvider';
-import { crowdPresentation, getWaitTimeAttractionsForContent } from '@/data/waitTimes';
+import { getWaitTimeAttractionsForContent } from '@/data/waitTimes';
 import { getWaitTimeAggregates } from '@/services/waitAggregationService';
 import { subscribeWaitAggregates } from '@/services/waitAggregateEvents';
 import { aggregateWaitReports, type WaitTimeAggregate } from '@/services/waitReportCore';
@@ -72,21 +72,6 @@ export function WaitTimesScreenView() {
           })}
         </ScrollView>
 
-        <View style={styles.snapshot}>
-          <View style={styles.snapshotLead}>
-            <Ionicons name="people" size={31} color={colors.gold} />
-            <View><Text style={styles.snapshotTitle}>Downtown Salem</Text><Text style={styles.snapshotSubtitle}>Recent local reports</Text></View>
-          </View>
-          <View style={styles.snapshotCounts}>
-            {(['light', 'moderate', 'busy'] as const).map((level) => (
-              <View key={level} style={styles.snapshotItem}>
-                <Text style={[styles.snapshotNumber, { color: crowdPresentation[level].color }]}>{Object.values(aggregates).filter((item) => item.crowdLevel === level).length}</Text>
-                <Text style={styles.snapshotLabel}>{crowdPresentation[level].label}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
         <View style={styles.sectionHeading}>
           <Ionicons name="sparkles" size={17} color={colors.gold} />
           <Text style={styles.sectionTitle}>Reported Wait Times</Text>
@@ -117,14 +102,6 @@ const styles = StyleSheet.create({
   filterSelected: { borderColor: colors.gold, backgroundColor: colors.gold },
   filterText: { color: colors.textMuted, fontSize: 12, fontWeight: '800' },
   filterTextSelected: { color: colors.black },
-  snapshot: { gap: spacing.md, borderWidth: 1, borderColor: '#4A6695', borderRadius: radius.md, backgroundColor: '#0D1625', padding: spacing.md },
-  snapshotLead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  snapshotTitle: { ...typography.heading, fontSize: 17 },
-  snapshotSubtitle: { ...typography.caption, fontSize: 11 },
-  snapshotCounts: { flexDirection: 'row', borderTopWidth: 1, borderTopColor: '#263A57', paddingTop: spacing.sm },
-  snapshotItem: { flex: 1, alignItems: 'center' },
-  snapshotNumber: { fontSize: 19, fontWeight: '900' },
-  snapshotLabel: { color: colors.textMuted, fontSize: 10.5 },
   sectionHeading: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   sectionTitle: { ...typography.title, fontSize: 20, lineHeight: 25 },
   rule: { flex: 1, height: 1, backgroundColor: '#6B4D27' },
