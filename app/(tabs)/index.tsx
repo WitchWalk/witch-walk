@@ -1,4 +1,8 @@
-import { router, useFocusEffect } from 'expo-router';
+import {
+  router,
+  useFocusEffect,
+  type Href,
+} from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, AppState, Linking, Pressable, StyleSheet, View } from 'react-native';
 
@@ -114,7 +118,9 @@ export default function HomeScreen() {
           <View style={styles.devTourStack}>
             <Pressable
               accessibilityRole="button"
-              onPress={() => router.push('/tours')}
+              onPress={() =>
+                router.push('/tours' as Href)
+              }
               style={styles.devTourButton}
             >
               <Text style={styles.devTourTitle}>
