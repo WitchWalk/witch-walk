@@ -14,6 +14,7 @@ import {
 
 import { AppText as Text } from '@/components/AppText';
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
+import { usePlus } from '@/components/plus/PlusProvider';
 import { Screen } from '@/components/Screen';
 import {
   listPublishedCuratedTours,
@@ -36,6 +37,7 @@ export default function ToursScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { hasPlus, ready: plusReady } = usePlus();
 
   useFocusEffect(
     useCallback(() => {
@@ -139,7 +141,13 @@ export default function ToursScreen() {
 
       <Pressable
         accessibilityRole="button"
-        onPress={() => router.push('/build-my-tour')}
+        onPress={() =>
+          router.push(
+            hasPlus
+              ? '/build-my-tour'
+              : '/broomstick-plus',
+          )
+        }
         style={styles.builderCard}
       >
         <View style={styles.builderIcon}>
@@ -151,9 +159,17 @@ export default function ToursScreen() {
         </View>
 
         <View style={styles.builderCopy}>
-          <Text style={styles.builderTitle}>
-            Build My Own Tour
-          </Text>
+          <View style={styles.builderTitleRow}>
+            <Text style={styles.builderTitle}>
+              Build My Own Tour
+            </Text>
+            {plusReady && !hasPlus ? (
+              <View style={styles.lockPill}>
+                <Ionicons name="lock-closed" size={12} color={colors.background} />
+                <Text style={styles.lockPillText}>PLUS</Text>
+              </View>
+            ) : null}
+          </View>
           <Text style={styles.builderText}>
             Choose your stops and let BROOMSTICK route them.
           </Text>
@@ -210,11 +226,22 @@ export default function ToursScreen() {
                 </View>
 
                 <View style={styles.tourTopActions}>
-                  <Text style={styles.plusLabel}>
-                    {tour.published === false
-                      ? 'DEV PREVIEW'
-                      : 'PLUS'}
-                  </Text>
+                  <View style={styles.plusStatus}>
+                    {plusReady && !hasPlus ? (
+                      <Ionicons
+                        name="lock-closed"
+                        size={13}
+                        color={colors.gold}
+                      />
+                    ) : null}
+                    <Text style={styles.plusLabel}>
+                      {tour.published === false
+                        ? 'DEV PREVIEW'
+                        : hasPlus
+                          ? 'PLUS UNLOCKED'
+                          : 'PLUS'}
+                    </Text>
+                  </View>
 
                   <Pressable
                     accessibilityLabel={
@@ -418,6 +445,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
+  },
+
+  plusStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
 
   favoriteButton: {
