@@ -43,6 +43,14 @@ import { getPublishedCuratedTour } from '@/services/curatedTours';
 import { getCachedCuratedTour } from '@/services/tourOffline';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
+type TourSelectableStop = {
+  id: string;
+  name: string;
+  address: string;
+  latitude: number | null;
+  longitude: number | null;
+};
+
 export default function BuildMyTourScreen() {
   const { tourId, autoStart, customize, addedStops } =
     useLocalSearchParams<{
@@ -99,6 +107,8 @@ export default function BuildMyTourScreen() {
     useState<string | null>(null);
   const [curatedBaseIds, setCuratedBaseIds] =
     useState<string[]>([]);
+  const [curatedFallbackStops, setCuratedFallbackStops] =
+    useState<TourSelectableStop[]>([]);
   const [curatedTourLoaded, setCuratedTourLoaded] =
     useState(false);
   const [resumeChecked, setResumeChecked] =
@@ -106,15 +116,33 @@ export default function BuildMyTourScreen() {
   const [curatedAutoStartHandled, setCuratedAutoStartHandled] =
     useState(false);
 
-  const selectable = useMemo(
-    () =>
-      attractions.filter(
+  const selectable = useMemo<TourSelectableStop[]>(() => {
+    const liveStops = attractions
+      .filter(
         (attraction) =>
           attraction.latitude !== null &&
           attraction.longitude !== null,
-      ),
-    [attractions],
-  );
+      )
+      .map((attraction) => ({
+        id: attraction.id,
+        name: attraction.name,
+        address: attraction.address,
+        latitude: attraction.latitude,
+        longitude: attraction.longitude,
+      }));
+
+    const merged = new Map<string, TourSelectableStop>();
+
+    for (const stop of curatedFallbackStops) {
+      merged.set(stop.id, stop);
+    }
+
+    for (const stop of liveStops) {
+      merged.set(stop.id, stop);
+    }
+
+    return Array.from(merged.values());
+  }, [attractions, curatedFallbackStops]);
 
   const filteredSelectable = useMemo(() => {
     const query = stopSearch.trim().toLowerCase();
@@ -138,7 +166,7 @@ export default function BuildMyTourScreen() {
   useEffect(() => {
     let active = true;
 
-    if (!tourId || !ready || curatedTourLoaded) {
+    if (!tourId || curatedTourLoaded) {
       return () => {
         active = false;
       };
@@ -153,18 +181,35 @@ export default function BuildMyTourScreen() {
           return;
         }
 
+        const fallbackStops = resolvedTour.stops
+          .filter(
+            (stop) =>
+              stop.latitude !== null &&
+              stop.longitude !== null,
+          )
+          .map((stop) => ({
+            id: stop.attractionId,
+            name: stop.name,
+            address: stop.address,
+            latitude: stop.latitude,
+            longitude: stop.longitude,
+          }));
+
+        setCuratedFallbackStops(fallbackStops);
+
+        const availableIds = new Set([
+          ...selectable.map((item) => item.id),
+          ...fallbackStops.map((item) => item.id),
+        ]);
+
         const ids = resolvedTour.stops
           .map((stop) => stop.attractionId)
-          .filter((id) =>
-            selectable.some((item) => item.id === id),
-          );
+          .filter((id) => availableIds.has(id));
 
         const extras = addedStops
           ? addedStops
               .split(',')
-              .filter((id) =>
-                selectable.some((item) => item.id === id),
-              )
+              .filter((id) => availableIds.has(id))
           : [];
 
         const combinedIds = Array.from(
@@ -190,18 +235,35 @@ export default function BuildMyTourScreen() {
           return;
         }
 
+        const fallbackStops = cached.stops
+          .filter(
+            (stop) =>
+              stop.latitude !== null &&
+              stop.longitude !== null,
+          )
+          .map((stop) => ({
+            id: stop.attractionId,
+            name: stop.name,
+            address: stop.address,
+            latitude: stop.latitude,
+            longitude: stop.longitude,
+          }));
+
+        setCuratedFallbackStops(fallbackStops);
+
+        const availableIds = new Set([
+          ...selectable.map((item) => item.id),
+          ...fallbackStops.map((item) => item.id),
+        ]);
+
         const ids = cached.stops
           .map((stop) => stop.attractionId)
-          .filter((id) =>
-            selectable.some((item) => item.id === id),
-          );
+          .filter((id) => availableIds.has(id));
 
         const extras = addedStops
           ? addedStops
               .split(',')
-              .filter((id) =>
-                selectable.some((item) => item.id === id),
-              )
+              .filter((id) => availableIds.has(id))
           : [];
 
         const combinedIds = Array.from(
@@ -231,7 +293,6 @@ export default function BuildMyTourScreen() {
     };
   }, [
     curatedTourLoaded,
-    ready,
     selectable,
     tourId,
     addedStops,
@@ -764,6 +825,7 @@ export default function BuildMyTourScreen() {
     setLiveRouteDraftIds([]);
     setTourUpdateMessage('');
     setCuratedTourName(null);
+    setCuratedFallbackStops([]);
     void clearSavedTourProgress();
   };
 
