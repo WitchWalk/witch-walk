@@ -25,6 +25,11 @@ import {
   type TourTravelMode,
 } from '@/services/tourRouteCore';
 import {
+  clearSavedTourProgress,
+  loadSavedTourProgress,
+  saveTourProgress,
+} from '@/services/tourProgress';
+import {
   buildTravelTimeTourRoute,
   getTourLegEstimate,
   type TourRouteSource,
@@ -81,6 +86,8 @@ export default function BuildMyTourScreen() {
   const [curatedTourName, setCuratedTourName] =
     useState<string | null>(null);
   const [curatedTourLoaded, setCuratedTourLoaded] =
+    useState(false);
+  const [resumeChecked, setResumeChecked] =
     useState(false);
 
   const selectable = useMemo(
@@ -158,6 +165,80 @@ export default function BuildMyTourScreen() {
     ready,
     selectable,
     tourId,
+  ]);
+
+  useEffect(() => {
+    let active = true;
+
+    if (tourId || !ready || resumeChecked) {
+      return () => {
+        active = false;
+      };
+    }
+
+    void loadSavedTourProgress()
+      .then((progress) => {
+        if (!active || !progress) {
+          return;
+        }
+
+        const selected = progress.selectedIds.filter((id) =>
+          selectable.some((item) => item.id === id),
+        );
+
+        const completed = progress.completedIds.filter((id) =>
+          selected.includes(id),
+        );
+
+        if (!selected.length) {
+          return;
+        }
+
+        setSelectedIds(selected);
+        setCompletedIds(completed);
+        setTravelMode(progress.travelMode);
+        setStrategy(progress.strategy);
+        setCuratedTourName(progress.curatedTourName);
+        setTourStarted(true);
+      })
+      .finally(() => {
+        if (active) {
+          setResumeChecked(true);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [
+    ready,
+    resumeChecked,
+    selectable,
+    tourId,
+  ]);
+
+  useEffect(() => {
+    if (!tourStarted) {
+      return;
+    }
+
+    void saveTourProgress({
+      tourId: tourId ?? null,
+      curatedTourName,
+      selectedIds,
+      completedIds,
+      travelMode,
+      strategy,
+      tourStarted,
+    });
+  }, [
+    completedIds,
+    curatedTourName,
+    selectedIds,
+    strategy,
+    tourId,
+    tourStarted,
+    travelMode,
   ]);
 
   const selected = useMemo(
@@ -509,6 +590,8 @@ export default function BuildMyTourScreen() {
     setNarrationSource(null);
     setNarrationLoading(false);
     setTourStarted(false);
+    setCuratedTourName(null);
+    void clearSavedTourProgress();
   };
 
   const tourComplete =
