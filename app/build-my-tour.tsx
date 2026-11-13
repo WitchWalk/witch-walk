@@ -111,6 +111,8 @@ export default function BuildMyTourScreen() {
     useState<TourSelectableStop[]>([]);
   const [curatedTourLoaded, setCuratedTourLoaded] =
     useState(false);
+  const [curatedLoadedFromCache, setCuratedLoadedFromCache] =
+    useState(false);
   const [resumeChecked, setResumeChecked] =
     useState(false);
   const [curatedAutoStartHandled, setCuratedAutoStartHandled] =
@@ -236,6 +238,7 @@ export default function BuildMyTourScreen() {
 
       if (cached) {
         applyTour(cached);
+        setCuratedLoadedFromCache(true);
         setCuratedTourLoaded(true);
 
         void getPublishedCuratedTour(tourId)
@@ -258,6 +261,7 @@ export default function BuildMyTourScreen() {
         }
 
         applyTour(fresh);
+        setCuratedLoadedFromCache(false);
       } finally {
         if (active) {
           setCuratedTourLoaded(true);
@@ -573,10 +577,31 @@ export default function BuildMyTourScreen() {
     }
 
     setCuratedAutoStartHandled(true);
+
+    if (curatedLoadedFromCache) {
+      setCompletedIds([]);
+      setTourStarted(true);
+
+      void calculateRoute(selectedIds, [])
+        .catch(() => {
+          setOrderedIds(selectedIds);
+          setRouteSource(null);
+          setRouteDurationSeconds(null);
+          setRouteDistanceMeters(null);
+          setRouteCoordinates([]);
+          setNextStopDurationSeconds(null);
+          setNextStopDistanceMeters(null);
+          setNextStopState('ready');
+        });
+
+      return;
+    }
+
     void buildRoute();
   }, [
     autoStart,
     curatedAutoStartHandled,
+    curatedLoadedFromCache,
     curatedTourLoaded,
     curatedTourName,
     selected.length,
@@ -803,6 +828,7 @@ export default function BuildMyTourScreen() {
     setTourUpdateMessage('');
     setCuratedTourName(null);
     setCuratedFallbackStops([]);
+    setCuratedLoadedFromCache(false);
     void clearSavedTourProgress();
   };
 
