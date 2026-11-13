@@ -16,6 +16,7 @@ import {
 import {
   cacheCuratedTourForOffline,
   getCachedCuratedTour,
+  getTourSafeOfflineStatus,
 } from '@/services/tourOffline';
 import {
   colors,
@@ -41,6 +42,10 @@ export default function TourDetailScreen() {
   const [downloading, setDownloading] = useState(false);
   const [offlineMessage, setOfflineMessage] =
     useState('');
+  const [offlineReady, setOfflineReady] =
+    useState(false);
+  const [offlineCoverage, setOfflineCoverage] =
+    useState<{ cached: number; total: number } | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -104,6 +109,35 @@ export default function TourDetailScreen() {
     };
   }, [id]);
 
+  useEffect(() => {
+    let active = true;
+
+    if (!tour) {
+      setOfflineReady(false);
+      setOfflineCoverage(null);
+      return () => {
+        active = false;
+      };
+    }
+
+    void getTourSafeOfflineStatus(
+      tour,
+      addedStopIds,
+    ).then((status) => {
+      if (!active) return;
+
+      setOfflineReady(status.ready);
+      setOfflineCoverage({
+        cached: status.cached,
+        total: status.total,
+      });
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [tour, addedStops]);
+
   const downloadOffline = async () => {
     if (!tour || downloading) {
       return;
@@ -114,10 +148,21 @@ export default function TourDetailScreen() {
 
     try {
       const result =
-        await cacheCuratedTourForOffline(tour);
+        await cacheCuratedTourForOffline(
+          tour,
+          addedStopIds,
+        );
+
+      const ready = result.unavailable === 0;
+
+      setOfflineReady(ready);
+      setOfflineCoverage({
+        cached: result.cached,
+        total: result.total,
+      });
 
       setOfflineMessage(
-        result.unavailable === 0
+        ready
           ? `✓ TourSafe ready: ${result.cached} of ${result.total} narrations saved offline.`
           : `TourSafe saved ${result.cached} of ${result.total} narrations. ${result.unavailable} stop(s) are not ready yet.`,
       );
@@ -300,20 +345,43 @@ export default function TourDetailScreen() {
             onPress={() => void downloadOffline()}
             style={[
               styles.offlineButton,
+              offlineReady && styles.offlineButtonReady,
               downloading && styles.startButtonDisabled,
             ]}
           >
             <Ionicons
-              name="download-outline"
+              name={
+                offlineReady
+                  ? 'shield-checkmark'
+                  : 'download-outline'
+              }
               size={20}
-              color={colors.gold}
+              color={
+                offlineReady
+                  ? colors.background
+                  : colors.gold
+              }
             />
-            <Text style={styles.offlineButtonText}>
+            <Text
+              style={[
+                styles.offlineButtonText,
+                offlineReady &&
+                  styles.offlineButtonTextReady,
+              ]}
+            >
               {downloading
                 ? 'Downloading TourSafe…'
-                : 'DOWNLOAD FOR OFFLINE'}
+                : offlineReady
+                  ? 'TOURSAFE READY'
+                  : 'DOWNLOAD FOR OFFLINE'}
             </Text>
           </Pressable>
+
+          {offlineCoverage ? (
+            <Text style={styles.offlineCoverageText}>
+              {offlineCoverage.cached} of {offlineCoverage.total} tour narrations saved on this phone
+            </Text>
+          ) : null}
 
           {offlineMessage ? (
             <View style={styles.offlineStatus}>
@@ -614,6 +682,22 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.gold,
     fontWeight: '900',
+  },
+
+  offlineButtonReady: {
+    borderColor: colors.success,
+    backgroundColor: colors.success,
+  },
+
+  offlineButtonTextReady: {
+    color: colors.background,
+  },
+
+  offlineCoverageText: {
+    ...typography.caption,
+    color: colors.textMuted,
+    textAlign: 'center',
+    fontWeight: '700',
   },
 
   offlineStatus: {
