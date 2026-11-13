@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Linking,
@@ -34,9 +34,12 @@ import {
   resolveTourNarration,
   type TourNarrationSource,
 } from '@/services/tourNarration';
+import { getPublishedCuratedTour } from '@/services/curatedTours';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 export default function BuildMyTourScreen() {
+  const { tourId } =
+    useLocalSearchParams<{ tourId?: string }>();
   const { attractions, ready } = useAttractions();
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -75,6 +78,10 @@ export default function BuildMyTourScreen() {
     useState<TourNarrationSource | null>(null);
   const [stopSearch, setStopSearch] =
     useState('');
+  const [curatedTourName, setCuratedTourName] =
+    useState<string | null>(null);
+  const [curatedTourLoaded, setCuratedTourLoaded] =
+    useState(false);
 
   const selectable = useMemo(
     () =>
@@ -104,6 +111,54 @@ export default function BuildMyTourScreen() {
       );
     });
   }, [selectable, stopSearch]);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!tourId || !ready || curatedTourLoaded) {
+      return () => {
+        active = false;
+      };
+    }
+
+    void getPublishedCuratedTour(tourId)
+      .then((tour) => {
+        if (!active || !tour) {
+          return;
+        }
+
+        const ids = tour.stops
+          .map((stop) => stop.attractionId)
+          .filter((id) =>
+            selectable.some((item) => item.id === id),
+          );
+
+        setSelectedIds(ids);
+        setOrderedIds(ids);
+        setCuratedTourName(tour.name);
+        setStrategy('keep-order');
+
+        if (tour.tourMode === 'driving') {
+          setTravelMode('driving');
+        } else {
+          setTravelMode('walking');
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setCuratedTourLoaded(true);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [
+    curatedTourLoaded,
+    ready,
+    selectable,
+    tourId,
+  ]);
 
   const selected = useMemo(
     () =>
@@ -488,6 +543,24 @@ export default function BuildMyTourScreen() {
           </Text>
         </View>
       </View>
+
+      {curatedTourName ? (
+        <View style={styles.curatedNotice}>
+          <Ionicons
+            name="sparkles"
+            size={20}
+            color={colors.gold}
+          />
+          <View style={styles.curatedNoticeCopy}>
+            <Text style={styles.curatedNoticeTitle}>
+              Curated tour loaded
+            </Text>
+            <Text style={styles.curatedNoticeText}>
+              {curatedTourName}
+            </Text>
+          </View>
+        </View>
+      ) : null}
 
       <View style={styles.notice}>
         <Ionicons
@@ -1358,6 +1431,33 @@ const styles = StyleSheet.create({
     ...typography.display,
     fontSize: 32,
     lineHeight: 38,
+  },
+
+  curatedNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    borderWidth: 2,
+    borderColor: colors.gold,
+    borderRadius: radius.md,
+    backgroundColor: '#21172B',
+    padding: spacing.md,
+  },
+
+  curatedNoticeCopy: {
+    flex: 1,
+    gap: 2,
+  },
+
+  curatedNoticeTitle: {
+    ...typography.heading,
+    color: colors.gold,
+  },
+
+  curatedNoticeText: {
+    ...typography.caption,
+    color: colors.text,
+    fontWeight: '700',
   },
 
   notice: {
