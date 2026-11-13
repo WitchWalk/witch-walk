@@ -24,7 +24,14 @@ export function BrandHeader({ onSettingsPress }: BrandHeaderProps) {
         <View style={styles.artworkShade} />
         <View style={styles.heroCopy}>
           <Text style={styles.kicker}>THE SALEM GUIDEBOOK</Text>
-          <Text style={styles.title}>BROOMSTICK</Text>
+          <Text
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.72}
+            style={styles.title}
+          >
+            BROOMSTICK
+          </Text>
           <Text style={styles.subtitle}>Explore Salem your way</Text>
         </View>
       </ImageBackground>
@@ -68,7 +75,7 @@ const styles = StyleSheet.create({
   heroCopy: {
     position: 'absolute',
     left: spacing.lg,
-    right: 72,
+    right: 58,
     bottom: spacing.lg,
   },
   kicker: {
@@ -79,8 +86,9 @@ const styles = StyleSheet.create({
   title: {
     ...typography.display,
     color: colors.text,
-    fontSize: 34,
-    lineHeight: 38,
+    width: '100%',
+    fontSize: 30,
+    lineHeight: 34,
     marginTop: 2,
     textShadowColor: colors.black,
     textShadowOffset: { width: 0, height: 2 },
