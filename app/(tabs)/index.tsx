@@ -14,19 +14,14 @@ import { Screen } from '@/components/Screen';
 import { homeActions } from '@/data/homeActions';
 import { loadHouseArauzChannelUrl } from '@/services/houseArauzContentRepository';
 import { openExternalUrl } from '@/services/supportLinkCore';
-import { subscribeWaitAggregates } from '@/services/waitAggregateEvents';
-import {
-  getWaitTimeAggregates,
-  isWaitAggregateServiceUnavailable,
-} from '@/services/waitAggregationService';
-import { aggregateDowntownCrowdStatus } from '@/services/downtownCrowdStatus';
-import type { WaitTimeAggregate } from '@/services/waitReportCore';
+import { getAdminDowntownCrowdStatus } from '@/services/downtownCrowdStatus';
+import { loadPublicSettings } from '@/services/publicSettingsRepository';
 import { colors, spacing, typography } from '@/theme/tokens';
 
 export default function HomeScreen() {
   const [houseArauzChannelUrl, setHouseArauzChannelUrl] = useState<string | null>(null);
-  const [waitAggregates, setWaitAggregates] = useState<Record<string, WaitTimeAggregate>>({});
-  const [liveStatusUnavailable, setLiveStatusUnavailable] = useState(false);
+  const [downtownCrowdLevel, setDowntownCrowdLevel] =
+    useState<'light' | 'moderate' | 'busy' | null>(null);
   const shortcutRows = [homeActions.slice(0, 3), homeActions.slice(3, 6)];
   const featuredActions = homeActions.slice(6, 8);
 
@@ -39,31 +34,19 @@ export default function HomeScreen() {
   useFocusEffect(useCallback(() => { void refreshHouseArauzChannel(); }, [refreshHouseArauzChannel]));
   useFocusEffect(useCallback(() => {
     let active = true;
-    const unsubscribe = subscribeWaitAggregates((values) => {
+
+    void loadPublicSettings().then((result) => {
       if (!active) return;
-      setLiveStatusUnavailable(false);
-      setWaitAggregates((current) => ({
-        ...current,
-        ...Object.fromEntries(values.map((value) => [value.attractionId, value])),
-      }));
+      setDowntownCrowdLevel(
+        result.settings.downtownSalemCrowdLevel,
+      );
     });
-    const refresh = () => {
-      void getWaitTimeAggregates().then((next) => {
-        if (!active) return;
-        setWaitAggregates(next);
-        setLiveStatusUnavailable(isWaitAggregateServiceUnavailable());
-      }).catch(() => {
-        if (active) setLiveStatusUnavailable(true);
-      });
-    };
-    refresh();
-    const interval = setInterval(refresh, 60_000);
+
     return () => {
       active = false;
-      unsubscribe();
-      clearInterval(interval);
     };
   }, []));
+
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
       if (state === 'active') void refreshHouseArauzChannel();
@@ -71,9 +54,10 @@ export default function HomeScreen() {
     return () => subscription.remove();
   }, [refreshHouseArauzChannel]);
 
-  const downtownCrowdStatus = useMemo(() => aggregateDowntownCrowdStatus(waitAggregates, {
-    liveStatusUnavailable,
-  }), [liveStatusUnavailable, waitAggregates]);
+  const downtownCrowdStatus = useMemo(
+    () => getAdminDowntownCrowdStatus(downtownCrowdLevel),
+    [downtownCrowdLevel],
+  );
 
   const openAction = async (action: (typeof homeActions)[number]) => {
     if (action.title !== 'HOUSE ARAUZ Videos') {
