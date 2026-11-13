@@ -88,6 +88,8 @@ export default function BuildMyTourScreen() {
     useState<TourNarrationSource | null>(null);
   const [stopSearch, setStopSearch] =
     useState('');
+  const [liveStopEditorOpen, setLiveStopEditorOpen] =
+    useState(false);
   const [curatedTourName, setCuratedTourName] =
     useState<string | null>(null);
   const [curatedBaseIds, setCuratedBaseIds] =
@@ -668,6 +670,7 @@ export default function BuildMyTourScreen() {
     setNarrationSource(null);
     setNarrationLoading(false);
     setTourStarted(false);
+    setLiveStopEditorOpen(false);
     setCuratedTourName(null);
     void clearSavedTourProgress();
   };
@@ -860,7 +863,9 @@ export default function BuildMyTourScreen() {
         </>
       ) : null}
 
-      {(!curatedTourName || customize === '1' || tourStarted) ? (
+      {(!curatedTourName ||
+        customize === '1' ||
+        (tourStarted && liveStopEditorOpen)) ? (
       <View style={styles.section}>
         {curatedTourName ? (
           <View style={styles.curatedStopsHeading}>
@@ -1198,6 +1203,27 @@ export default function BuildMyTourScreen() {
                 {building ? 'Updating…' : 'UPDATE ROUTE'}
               </Text>
             </Pressable>
+
+            {curatedTourName ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => {
+                  setLiveStopEditorOpen((open) => !open);
+                  setStopSearch('');
+                }}
+                style={styles.secondaryButton}
+              >
+                <Ionicons
+                  name={liveStopEditorOpen ? 'chevron-up' : 'add-circle-outline'}
+                  size={18}
+                  color={colors.gold}
+                />
+
+                <Text style={styles.secondaryButtonText}>
+                  {liveStopEditorOpen ? 'CLOSE STOPS' : 'ADD / REMOVE STOPS'}
+                </Text>
+              </Pressable>
+            ) : null}
 
             <Pressable
               accessibilityRole="button"
@@ -2109,6 +2135,7 @@ const styles = StyleSheet.create({
 
   activeControls: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
   },
 
@@ -2131,7 +2158,8 @@ const styles = StyleSheet.create({
   },
 
   secondaryButton: {
-    flex: 1,
+    flexGrow: 1,
+    flexBasis: 145,
     minHeight: 48,
     flexDirection: 'row',
     alignItems: 'center',
