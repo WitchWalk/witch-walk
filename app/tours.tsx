@@ -160,7 +160,9 @@ export default function ToursScreen() {
                 </View>
 
                 <Text style={styles.plusLabel}>
-                  PLUS
+                  {tour.published === false
+                    ? 'DEV PREVIEW'
+                    : 'PLUS'}
                 </Text>
               </View>
 
