@@ -30,6 +30,7 @@ type NarrationPlayerProps = {
     | 'not-entitled'
     | 'service-unavailable'
     | null;
+  autoPlay?: boolean;
 };
 
 export function NarrationPlayer({
@@ -39,6 +40,7 @@ export function NarrationPlayer({
   loading = false,
   offlineAvailable = false,
   unavailableReason = null,
+  autoPlay = false,
 }: NarrationPlayerProps) {
   const player = useAudioPlayer(null, {
     updateInterval: 250,
@@ -62,10 +64,19 @@ export function NarrationPlayer({
       player.loop =
         __DEV__ &&
         sourceUri.includes('dev-tour-narration-test.mp3');
+
+      if (autoPlay) {
+        player.setActiveForLockScreen(true, {
+          title,
+          artist: 'BROOMSTICK Salem',
+          albumTitle: 'BROOMSTICK Plus Tour',
+        });
+        player.play();
+      }
     } else {
       player.loop = false;
     }
-  }, [player, sourceUri]);
+  }, [autoPlay, player, sourceUri, title]);
 
   const hasAudio = Boolean(sourceUri);
   const positionSeconds =
