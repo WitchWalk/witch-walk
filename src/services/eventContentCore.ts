@@ -181,8 +181,38 @@ export function getEventTimeLabel(event: { startTime: string | null; endTime: st
   if (event.endTime) return `Ends ${formatEventTime(event.endTime)}`;
   return 'Time unavailable';
 }
+export function getUpcomingOccurrences(
+  event: Pick<EventLocation, 'occurrences'>,
+  now = new Date(),
+) {
+  return event.occurrences.filter(
+    (item) => Date.parse(item.endsAt) > now.getTime(),
+  );
+}
+
 export function getNextUpcomingOccurrence(event: Pick<EventLocation, 'occurrences'>, now = new Date()) {
-  return event.occurrences.find(item => Date.parse(item.endsAt) > now.getTime()) ?? null;
+  return getUpcomingOccurrences(event, now)[0] ?? null;
+}
+
+export function getEventTimingBadge(
+  occurrence: Pick<EventOccurrence, 'startDate'>,
+  now = new Date(),
+) {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/New_York',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+
+  const today = formatter.format(now);
+  const tomorrow = formatter.format(
+    new Date(now.getTime() + 24 * 60 * 60 * 1000),
+  );
+
+  if (occurrence.startDate === today) return 'TODAY';
+  if (occurrence.startDate === tomorrow) return 'TOMORROW';
+  return 'UPCOMING';
 }
 export function isEventExpired(event: Pick<EventLocation, 'occurrences'>, now = new Date()) {
   return !getNextUpcomingOccurrence(event, now);
