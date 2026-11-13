@@ -811,6 +811,33 @@ export default function BuildMyTourScreen() {
     setTourUpdateMessage('Tour updated. Your remaining route has been refreshed.');
   };
 
+  const restartTour = async () => {
+    setCompletedIds([]);
+    setLiveStopEditorOpen(false);
+    setLiveRouteDraftIds([]);
+    setTourUpdateMessage('');
+    setNextStopState('ready');
+    setNarrationPlayerVisible(false);
+    setNarrationSource(null);
+    setNarrationLoading(false);
+    setOrderedIds(selectedIds);
+
+    try {
+      await recalculate(
+        selectedIds,
+        [],
+        strategy,
+      );
+    } catch {
+      setOrderedIds(selectedIds);
+    }
+  };
+
+  const finishAndReturnToTours = () => {
+    resetTour();
+    router.replace('/tours');
+  };
+
   const resetTour = () => {
     setSelectedIds([]);
     setCompletedIds([]);
@@ -1265,19 +1292,60 @@ export default function BuildMyTourScreen() {
 
       {tourComplete ? (
         <View style={styles.completeCard}>
-          <Ionicons
-            name="checkmark-circle"
-            size={34}
-            color={colors.success}
-          />
+          <View style={styles.completeIconShell}>
+            <Ionicons
+              name="checkmark-circle"
+              size={38}
+              color={colors.background}
+            />
+          </View>
+
+          <Text style={styles.completeEyebrow}>
+            BROOMSTICK TOUR COMPLETE
+          </Text>
 
           <Text style={styles.completeTitle}>
-            Tour complete
+            You finished the tour
           </Text>
 
-          <Text style={styles.muted}>
-            You completed every selected stop.
+          <Text style={styles.completeSummary}>
+            {completed.length} stop{completed.length === 1 ? '' : 's'} completed
           </Text>
+
+          <Text style={styles.completeText}>
+            Nice work. Your TourSafe downloads stay on this phone for later unless you remove them.
+          </Text>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={finishAndReturnToTours}
+            style={styles.completePrimaryButton}
+          >
+            <Ionicons
+              name="map-outline"
+              size={20}
+              color={colors.background}
+            />
+            <Text style={styles.completePrimaryButtonText}>
+              BACK TO TOURS
+            </Text>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            disabled={building}
+            onPress={() => void restartTour()}
+            style={styles.completeSecondaryButton}
+          >
+            <Ionicons
+              name="refresh"
+              size={19}
+              color={colors.gold}
+            />
+            <Text style={styles.completeSecondaryButtonText}>
+              {building ? 'RESTARTING…' : 'RESTART TOUR'}
+            </Text>
+          </Pressable>
         </View>
       ) : null}
 
@@ -3048,15 +3116,86 @@ const styles = StyleSheet.create({
   completeCard: {
     alignItems: 'center',
     gap: spacing.sm,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: colors.success,
     borderRadius: radius.lg,
     backgroundColor: '#10251E',
     padding: spacing.xl,
   },
 
+  completeIconShell: {
+    width: 62,
+    height: 62,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.pill,
+    backgroundColor: colors.success,
+    marginBottom: spacing.xs,
+  },
+
+  completeEyebrow: {
+    ...typography.eyebrow,
+    color: colors.success,
+    textAlign: 'center',
+  },
+
   completeTitle: {
     ...typography.title,
+    color: colors.text,
+    fontSize: 24,
+    lineHeight: 29,
+    textAlign: 'center',
+  },
+
+  completeSummary: {
+    ...typography.body,
     color: colors.success,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+
+  completeText: {
+    ...typography.caption,
+    color: colors.textMuted,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+
+  completePrimaryButton: {
+    width: '100%',
+    minHeight: 54,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: colors.success,
+    paddingHorizontal: spacing.md,
+  },
+
+  completePrimaryButtonText: {
+    ...typography.body,
+    color: colors.background,
+    fontWeight: '900',
+  },
+
+  completeSecondaryButton: {
+    width: '100%',
+    minHeight: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.gold,
+    borderRadius: radius.md,
+    backgroundColor: '#21172B',
+    paddingHorizontal: spacing.md,
+  },
+
+  completeSecondaryButtonText: {
+    ...typography.caption,
+    color: colors.gold,
+    fontWeight: '900',
   },
 });
