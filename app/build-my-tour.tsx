@@ -43,8 +43,12 @@ import { getPublishedCuratedTour } from '@/services/curatedTours';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 export default function BuildMyTourScreen() {
-  const { tourId } =
-    useLocalSearchParams<{ tourId?: string }>();
+  const { tourId, autoStart, customize } =
+    useLocalSearchParams<{
+      tourId?: string;
+      autoStart?: string;
+      customize?: string;
+    }>();
   const { attractions, ready } = useAttractions();
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -88,6 +92,8 @@ export default function BuildMyTourScreen() {
   const [curatedTourLoaded, setCuratedTourLoaded] =
     useState(false);
   const [resumeChecked, setResumeChecked] =
+    useState(false);
+  const [curatedAutoStartHandled, setCuratedAutoStartHandled] =
     useState(false);
 
   const selectable = useMemo(
@@ -165,6 +171,30 @@ export default function BuildMyTourScreen() {
     ready,
     selectable,
     tourId,
+  ]);
+
+  useEffect(() => {
+    if (
+      autoStart !== '1' ||
+      !curatedTourName ||
+      !curatedTourLoaded ||
+      curatedAutoStartHandled ||
+      tourStarted ||
+      selected.length < 2
+    ) {
+      return;
+    }
+
+    setCuratedAutoStartHandled(true);
+    void buildRoute();
+  }, [
+    autoStart,
+    buildRoute,
+    curatedAutoStartHandled,
+    curatedTourLoaded,
+    curatedTourName,
+    selected.length,
+    tourStarted,
   ]);
 
   useEffect(() => {
@@ -662,7 +692,10 @@ export default function BuildMyTourScreen() {
         </Text>
       </View>
 
-      {!tourStarted && curatedTourName ? (
+      {!tourStarted &&
+      curatedTourName &&
+      autoStart !== '1' &&
+      customize !== '1' ? (
         <Pressable
           accessibilityRole="button"
           disabled={building || selected.length < 2}
@@ -782,6 +815,7 @@ export default function BuildMyTourScreen() {
         </>
       ) : null}
 
+      {(!curatedTourName || customize === '1') ? (
       <View style={styles.section}>
         {curatedTourName ? (
           <View style={styles.curatedStopsHeading}>
@@ -932,6 +966,7 @@ export default function BuildMyTourScreen() {
           </View>
         )}
       </View>
+      ) : null}
 
       {!tourStarted && !curatedTourName ? (
         <Pressable
