@@ -1281,6 +1281,38 @@ export default function BuildMyTourScreen() {
         </View>
       ) : null}
 
+      {tourStarted && completed.length > 0 ? (
+        <View style={styles.section}>
+          <View style={styles.completedHeader}>
+            <Text style={styles.sectionTitle}>
+              Completed
+            </Text>
+            <Text style={styles.completedCount}>
+              {completed.length} done
+            </Text>
+          </View>
+
+          <View style={styles.completedList}>
+            {completed.map((attraction) => (
+              <View
+                key={attraction.id}
+                style={styles.completedRow}
+              >
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color={colors.success}
+                />
+
+                <Text style={styles.completedName}>
+                  {attraction.name}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
       {tourStarted && ordered.length > 0 ? (
         <View style={styles.section}>
           {tourSafeOfflineMode ? (
@@ -1927,37 +1959,7 @@ export default function BuildMyTourScreen() {
             route from your current GPS position.
           </Text>
         </View>
-      {tourStarted && completed.length > 0 ? (
-        <View style={styles.section}>
-          <View style={styles.completedHeader}>
-            <Text style={styles.sectionTitle}>
-              Completed
-            </Text>
-            <Text style={styles.completedCount}>
-              {completed.length} done
-            </Text>
-          </View>
 
-          <View style={styles.completedList}>
-            {completed.map((attraction) => (
-              <View
-                key={attraction.id}
-                style={styles.completedRow}
-              >
-                <Ionicons
-                  name="checkmark-circle"
-                  size={20}
-                  color={colors.success}
-                />
-
-                <Text style={styles.completedName}>
-                  {attraction.name}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      ) : null}
 
       ) : null}
     </Screen>
