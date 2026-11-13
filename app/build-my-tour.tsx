@@ -174,30 +174,6 @@ export default function BuildMyTourScreen() {
   ]);
 
   useEffect(() => {
-    if (
-      autoStart !== '1' ||
-      !curatedTourName ||
-      !curatedTourLoaded ||
-      curatedAutoStartHandled ||
-      tourStarted ||
-      selected.length < 2
-    ) {
-      return;
-    }
-
-    setCuratedAutoStartHandled(true);
-    void buildRoute();
-  }, [
-    autoStart,
-    buildRoute,
-    curatedAutoStartHandled,
-    curatedTourLoaded,
-    curatedTourName,
-    selected.length,
-    tourStarted,
-  ]);
-
-  useEffect(() => {
     let active = true;
 
     if (tourId || !ready || resumeChecked) {
@@ -450,6 +426,29 @@ export default function BuildMyTourScreen() {
       setBuilding(false);
     }
   };
+
+  useEffect(() => {
+    if (
+      autoStart !== '1' ||
+      !curatedTourName ||
+      !curatedTourLoaded ||
+      curatedAutoStartHandled ||
+      tourStarted ||
+      selected.length < 2
+    ) {
+      return;
+    }
+
+    setCuratedAutoStartHandled(true);
+    void buildRoute();
+  }, [
+    autoStart,
+    curatedAutoStartHandled,
+    curatedTourLoaded,
+    curatedTourName,
+    selected.length,
+    tourStarted,
+  ]);
 
   const recalculate = async (
     nextSelectedIds = selectedIds,
