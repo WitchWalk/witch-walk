@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { ImageBackground, Pressable, StyleSheet, View } from 'react-native';
 
-import { colors, radius, shadows, spacing } from '@/theme/tokens';
+import { AppText as Text } from '@/components/AppText';
+import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
-const heroArtwork = require('../../Photos/Broomstick Header.png');
+const heroArtwork = require('../../assets/images/home/live-map.png');
 
 type BrandHeaderProps = {
   onSettingsPress: () => void;
@@ -12,15 +13,21 @@ type BrandHeaderProps = {
 export function BrandHeader({ onSettingsPress }: BrandHeaderProps) {
   return (
     <View style={styles.container}>
-      <View style={styles.artworkWindow}>
-        <Image
-          source={heroArtwork}
-          style={styles.artwork}
-          resizeMode="cover"
-          accessibilityLabel="BROOMSTICK — The Salem Guidebook"
-          accessibilityIgnoresInvertColors
-        />
-      </View>
+      <ImageBackground
+        source={heroArtwork}
+        style={styles.artworkWindow}
+        imageStyle={styles.artwork}
+        resizeMode="cover"
+        accessibilityLabel="BROOMSTICK — The Salem Guidebook"
+        accessibilityIgnoresInvertColors
+      >
+        <View style={styles.artworkShade} />
+        <View style={styles.heroCopy}>
+          <Text style={styles.kicker}>THE SALEM GUIDEBOOK</Text>
+          <Text style={styles.title}>BROOMSTICK</Text>
+          <Text style={styles.subtitle}>Explore Salem your way</Text>
+        </View>
+      </ImageBackground>
 
       <Pressable
         accessibilityRole="button"
@@ -51,8 +58,42 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   artwork: {
-    width: '100%',
-    height: '100%',
+    borderRadius: radius.lg - 1,
+  },
+  artworkShade: {
+    position: 'absolute',
+    inset: 0,
+    backgroundColor: 'rgba(7, 4, 12, 0.34)',
+  },
+  heroCopy: {
+    position: 'absolute',
+    left: spacing.lg,
+    right: 72,
+    bottom: spacing.lg,
+  },
+  kicker: {
+    ...typography.eyebrow,
+    color: colors.gold,
+    letterSpacing: 1.2,
+  },
+  title: {
+    ...typography.display,
+    color: colors.text,
+    fontSize: 34,
+    lineHeight: 38,
+    marginTop: 2,
+    textShadowColor: colors.black,
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 5,
+  },
+  subtitle: {
+    color: '#F0E7DA',
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: 2,
+    textShadowColor: colors.black,
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   settingsButton: {
     position: 'absolute',
