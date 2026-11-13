@@ -160,11 +160,13 @@ export async function resolveTourNarration(
       (data ?? {}) as NarrationFunctionResponse;
 
     if (result.status === 'forbidden') {
-      return {
-        kind: 'unavailable',
-        attractionId,
-        reason: 'not-entitled',
-      };
+      return (
+        cached ?? {
+          kind: 'unavailable',
+          attractionId,
+          reason: 'not-entitled',
+        }
+      );
     }
 
     if (
