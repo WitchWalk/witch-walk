@@ -1086,10 +1086,11 @@ export default function BuildMyTourScreen() {
             </Pressable>
           </>
         ) : (
-        <View style={styles.searchArea}>
-          <Text style={styles.searchLabel}>
-            SEARCH TOUR STOPS
-          </Text>
+          <>
+            <View style={styles.searchArea}>
+              <Text style={styles.searchLabel}>
+                SEARCH TOUR STOPS
+              </Text>
 
           <View style={styles.searchShell}>
             <View style={styles.searchIconShell}>
@@ -1198,8 +1199,8 @@ export default function BuildMyTourScreen() {
               </View>
             ) : null}
           </View>
-
-        )}        )}
+          </>
+        )}
       </View>
       ) : null}
 
