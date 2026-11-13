@@ -16,6 +16,7 @@ type HomeShortcutCardProps = {
   accent: string;
   image?: ImageSourcePropType;
   wide?: boolean;
+  visualVariant?: 'default' | 'hotel';
   onPress: () => void;
 };
 
@@ -27,6 +28,7 @@ export function HomeShortcutCard({
   accent,
   image,
   wide = false,
+  visualVariant = 'default',
   onPress,
 }: HomeShortcutCardProps) {
   return (
@@ -34,7 +36,12 @@ export function HomeShortcutCard({
       accessibilityRole="button"
       accessibilityLabel={`${title}. ${subtitle}`}
       onPress={onPress}
-      style={({ pressed }) => [styles.card, wide && styles.wideCard, pressed && styles.pressed]}
+      style={({ pressed }) => [
+        styles.card,
+        visualVariant === 'hotel' && styles.hotelCard,
+        wide && styles.wideCard,
+        pressed && styles.pressed,
+      ]}
     >
       {image ? (
         <ImageBackground
@@ -43,8 +50,18 @@ export function HomeShortcutCard({
           style={[styles.image, wide && styles.wideImage]}
           imageStyle={styles.imageRadius}
         >
-          <View style={styles.imageShade} />
-          <View style={styles.bottomShade} />
+          <View
+            style={[
+              styles.imageShade,
+              visualVariant === 'hotel' && styles.hotelImageShade,
+            ]}
+          />
+          <View
+            style={[
+              styles.bottomShade,
+              visualVariant === 'hotel' && styles.hotelBottomShade,
+            ]}
+          />
           <View style={[styles.content, wide && styles.wideContent]}>
             {iconFamily === 'material-community' ? (
               <MaterialCommunityIcons name={icon as MaterialIconName} size={38} color={accent} style={styles.icon} />
@@ -105,6 +122,10 @@ const styles = StyleSheet.create({
   wideCard: {
     minHeight: 112,
   },
+  hotelCard: {
+    borderColor: '#9B78C6',
+    borderWidth: 2,
+  },
   pressed: {
     opacity: 0.78,
     transform: [{ scale: 0.97 }],
@@ -145,6 +166,13 @@ const styles = StyleSheet.create({
     left: 0,
     height: '68%',
     backgroundColor: 'rgba(4, 4, 9, 0.64)',
+  },
+  hotelImageShade: {
+    backgroundColor: 'rgba(5, 4, 10, 0.08)',
+  },
+  hotelBottomShade: {
+    height: '58%',
+    backgroundColor: 'rgba(18, 9, 28, 0.56)',
   },
   content: {
     alignItems: 'center',
