@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { FavoritesProvider } from '@/components/favorites/FavoritesProvider';
+import { PlusProvider } from '@/components/plus/PlusProvider';
 import { StartupSequence } from '@/components/StartupSequence';
 import { AttractionsProvider } from '@/components/attractions/AttractionsProvider';
 import { RestaurantsProvider } from '@/components/restaurants/RestaurantsProvider';
@@ -57,7 +58,8 @@ export default function RootLayout() {
               <BathroomsProvider>
                 <EventsProvider>
                   <FavoritesProvider>
-                    <WitchWatchProvider>
+                    <PlusProvider>
+                      <WitchWatchProvider>
                       <WaitRealtimeProvider>
                         <View style={styles.container}>
                           <StatusBar style="light" />
@@ -76,6 +78,7 @@ export default function RootLayout() {
                             <Stack.Screen name="settings" />
                             <Stack.Screen name="house-arauz" />
                             <Stack.Screen name="events" />
+                            <Stack.Screen name="broomstick-plus" />
                             <Stack.Screen
                               name="live-map"
                               options={{
@@ -92,6 +95,7 @@ export default function RootLayout() {
                         </View>
                       </WaitRealtimeProvider>
                     </WitchWatchProvider>
+                    </PlusProvider>
                   </FavoritesProvider>
                 </EventsProvider>
               </BathroomsProvider>
