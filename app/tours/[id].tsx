@@ -233,6 +233,64 @@ export default function TourDetailScreen() {
             </View>
           </View>
 
+          <Pressable
+            accessibilityRole="button"
+            disabled={tour.stops.length === 0}
+            onPress={() =>
+              router.push({
+                pathname: '/build-my-tour',
+                params: { tourId: tour.id },
+              })
+            }
+            style={[
+              styles.startButton,
+              tour.stops.length === 0 &&
+                styles.startButtonDisabled,
+            ]}
+          >
+            <Ionicons
+              name="navigate"
+              size={22}
+              color={colors.background}
+            />
+            <Text style={styles.startButtonText}>
+              START TOUR
+            </Text>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            disabled={downloading}
+            onPress={() => void downloadOffline()}
+            style={[
+              styles.offlineButton,
+              downloading && styles.startButtonDisabled,
+            ]}
+          >
+            <Ionicons
+              name="download-outline"
+              size={20}
+              color={colors.gold}
+            />
+            <Text style={styles.offlineButtonText}>
+              {downloading
+                ? 'Downloading TourSafe…'
+                : 'DOWNLOAD FOR OFFLINE'}
+            </Text>
+          </Pressable>
+
+          {offlineMessage ? (
+            <View style={styles.offlineStatus}>
+              <Text style={styles.offlineStatusText}>
+                {offlineMessage}
+              </Text>
+            </View>
+          ) : null}
+
+          <Text style={styles.tourSafeNote}>
+            Save narration before heading out so the tour can keep working in weak cellular areas.
+          </Text>
+
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
               Tour stops
@@ -269,65 +327,7 @@ export default function TourDetailScreen() {
             </View>
           </View>
 
-          <Pressable
-            accessibilityRole="button"
-            disabled={downloading}
-            onPress={() => void downloadOffline()}
-            style={[
-              styles.offlineButton,
-              downloading && styles.startButtonDisabled,
-            ]}
-          >
-            <Ionicons
-              name="download-outline"
-              size={20}
-              color={colors.gold}
-            />
-            <Text style={styles.offlineButtonText}>
-              {downloading
-                ? 'Downloading TourSafe…'
-                : 'Download Tour for Offline'}
-            </Text>
-          </Pressable>
 
-          {offlineMessage ? (
-            <View style={styles.offlineStatus}>
-              <Text style={styles.offlineStatusText}>
-                {offlineMessage}
-              </Text>
-            </View>
-          ) : null}
-
-          <Pressable
-            accessibilityRole="button"
-            disabled={tour.stops.length === 0}
-            onPress={() =>
-              router.push({
-                pathname: '/build-my-tour',
-                params: { tourId: tour.id },
-              })
-            }
-            style={[
-              styles.startButton,
-              tour.stops.length === 0 &&
-                styles.startButtonDisabled,
-            ]}
-          >
-            <Ionicons
-              name="navigate"
-              size={21}
-              color={colors.background}
-            />
-            <Text style={styles.startButtonText}>
-              Start This Tour
-            </Text>
-          </Pressable>
-
-          <Text style={styles.tourSafeNote}>
-            TourSafe downloads narration as you use the tour so
-            approved audio can remain available if your connection
-            drops.
-          </Text>
         </>
       ) : null}
     </Screen>
