@@ -911,7 +911,9 @@ export default function BuildMyTourScreen() {
           <Text style={styles.buildButtonText}>
             {building
               ? 'Building Route…'
-              : 'Build My Route'}
+              : curatedTourName
+                ? `Start ${curatedTourName}`
+                : 'Build My Route'}
           </Text>
         </Pressable>
       ) : (
