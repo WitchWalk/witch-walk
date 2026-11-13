@@ -14,7 +14,7 @@ type HomeShortcutCardProps = {
   icon: IconName | MaterialIconName;
   iconFamily?: 'ionicons' | 'material-community';
   accent: string;
-  image: ImageSourcePropType;
+  image?: ImageSourcePropType;
   wide?: boolean;
   onPress: () => void;
 };
@@ -36,33 +36,57 @@ export function HomeShortcutCard({
       onPress={onPress}
       style={({ pressed }) => [styles.card, wide && styles.wideCard, pressed && styles.pressed]}
     >
-      <ImageBackground
-        source={image}
-        resizeMode="cover"
-        style={[styles.image, wide && styles.wideImage]}
-        imageStyle={styles.imageRadius}
-      >
-        <View style={styles.imageShade} />
-        <View style={styles.bottomShade} />
-        <View style={[styles.content, wide && styles.wideContent]}>
-          {iconFamily === 'material-community' ? (
-            <MaterialCommunityIcons name={icon as MaterialIconName} size={38} color={accent} style={styles.icon} />
-          ) : (
-            <Ionicons name={icon as IconName} size={38} color={accent} style={styles.icon} />
-          )}
-          <Text
-            numberOfLines={wide ? 2 : 1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.7}
-            style={[styles.title, wide && styles.wideTitle]}
-          >
-            {title}
-          </Text>
-          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76} style={styles.subtitle}>
-            {subtitle}
-          </Text>
+      {image ? (
+        <ImageBackground
+          source={image}
+          resizeMode="cover"
+          style={[styles.image, wide && styles.wideImage]}
+          imageStyle={styles.imageRadius}
+        >
+          <View style={styles.imageShade} />
+          <View style={styles.bottomShade} />
+          <View style={[styles.content, wide && styles.wideContent]}>
+            {iconFamily === 'material-community' ? (
+              <MaterialCommunityIcons name={icon as MaterialIconName} size={38} color={accent} style={styles.icon} />
+            ) : (
+              <Ionicons name={icon as IconName} size={38} color={accent} style={styles.icon} />
+            )}
+            <Text
+              numberOfLines={wide ? 2 : 1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+              style={[styles.title, wide && styles.wideTitle]}
+            >
+              {title}
+            </Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76} style={styles.subtitle}>
+              {subtitle}
+            </Text>
+          </View>
+        </ImageBackground>
+      ) : (
+        <View style={[styles.image, styles.iconOnlyCard, wide && styles.wideImage]}>
+          <View style={styles.iconGlow} />
+          <View style={[styles.content, wide && styles.wideContent]}>
+            {iconFamily === 'material-community' ? (
+              <MaterialCommunityIcons name={icon as MaterialIconName} size={42} color={accent} style={styles.icon} />
+            ) : (
+              <Ionicons name={icon as IconName} size={42} color={accent} style={styles.icon} />
+            )}
+            <Text
+              numberOfLines={wide ? 2 : 1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+              style={[styles.title, wide && styles.wideTitle]}
+            >
+              {title}
+            </Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76} style={styles.subtitle}>
+              {subtitle}
+            </Text>
+          </View>
         </View>
-      </ImageBackground>
+      )}
     </Pressable>
   );
 }
@@ -92,6 +116,19 @@ const styles = StyleSheet.create({
   },
   wideImage: {
     minHeight: 110,
+  },
+  iconOnlyCard: {
+    position: 'relative',
+    backgroundColor: '#241A31',
+  },
+  iconGlow: {
+    position: 'absolute',
+    top: 16,
+    alignSelf: 'center',
+    width: 74,
+    height: 74,
+    borderRadius: 37,
+    backgroundColor: 'rgba(215, 179, 255, 0.10)',
   },
   imageRadius: {
     borderRadius: radius.md - 1,
