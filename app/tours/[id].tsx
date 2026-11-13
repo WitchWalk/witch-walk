@@ -294,34 +294,7 @@ export default function TourDetailScreen() {
             </View>
           </View>
 
-          <Pressable
-            accessibilityRole="button"
-            disabled={tour.stops.length === 0}
-            onPress={() =>
-              router.push({
-                pathname: '/build-my-tour',
-                params: {
-                  tourId: tour.id,
-                  autoStart: '1',
-                  addedStops,
-                },
-              })
-            }
-            style={[
-              styles.startButton,
-              tour.stops.length === 0 &&
-                styles.startButtonDisabled,
-            ]}
-          >
-            <Ionicons
-              name="navigate"
-              size={22}
-              color={colors.background}
-            />
-            <Text style={styles.startButtonText}>
-              START TOUR
-            </Text>
-          </Pressable>
+
 
           <Pressable
             accessibilityRole="button"
@@ -343,14 +316,26 @@ export default function TourDetailScreen() {
               color={colors.gold}
             />
             <Text style={styles.addStopsButtonText}>
-              ADD MORE STOPS
+              CUSTOMIZE TOUR STOPS
             </Text>
           </Pressable>
+
+          <View style={styles.prepHeader}>
+            <Text style={styles.eyebrow}>
+              BEFORE YOU START
+            </Text>
+            <Text style={styles.prepTitle}>
+              Get the tour ready
+            </Text>
+            <Text style={styles.prepText}>
+              Save the narration for weak-service areas, or customize the stops before you begin.
+            </Text>
+          </View>
 
           <Pressable
             accessibilityRole="button"
             disabled={downloading}
-            onPress={() => void downloadOffline()}
+            onPress={() => void downloadOffline()
             style={[
               styles.offlineButton,
               offlineReady && styles.offlineButtonReady,
@@ -400,8 +385,37 @@ export default function TourDetailScreen() {
           ) : null}
 
           <Text style={styles.tourSafeNote}>
-            Save narration before heading out so the tour can keep working in weak cellular areas.
+            TourSafe keeps downloaded narration available even when cellular service is weak or unavailable.
           </Text>
+
+          <Pressable
+            accessibilityRole="button"
+            disabled={tour.stops.length === 0}
+            onPress={() =>
+              router.push({
+                pathname: '/build-my-tour',
+                params: {
+                  tourId: tour.id,
+                  autoStart: '1',
+                  addedStops,
+                },
+              })
+            }
+            style={[
+              styles.startButton,
+              tour.stops.length === 0 &&
+                styles.startButtonDisabled,
+            ]}
+          >
+            <Ionicons
+              name="navigate"
+              size={22}
+              color={colors.background}
+            />
+            <Text style={styles.startButtonText}>
+              START TOUR
+            </Text>
+          </Pressable>
 
           {addedStopIds.length > 0 ? (
             <View style={styles.addedStopsNotice}>
@@ -617,6 +631,22 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.gold,
     fontWeight: '800',
+  },
+
+  prepHeader: {
+    gap: 3,
+    marginTop: spacing.xs,
+  },
+
+  prepTitle: {
+    ...typography.title,
+    fontSize: 20,
+    lineHeight: 25,
+  },
+
+  prepText: {
+    ...typography.caption,
+    color: colors.textMuted,
   },
 
   addStopsButton: {
