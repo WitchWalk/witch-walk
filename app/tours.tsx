@@ -1,5 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router, useFocusEffect } from 'expo-router';
+import {
+  router,
+  useFocusEffect,
+  type Href,
+} from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   Pressable,
@@ -132,10 +136,12 @@ export default function ToursScreen() {
               accessibilityRole="button"
               key={tour.id}
               onPress={() =>
-                router.push({
-                  pathname: '/tours/[id]',
-                  params: { id: tour.id },
-                })
+                router.push(
+                  {
+                    pathname: '/tours/[id]',
+                    params: { id: tour.id },
+                  } as Href,
+                )
               }
               style={styles.tourCard}
             >
