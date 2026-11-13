@@ -172,121 +172,98 @@ export default function BuildMyTourScreen() {
       };
     }
 
-    void getPublishedCuratedTour(tourId)
-      .then(async (tour) => {
-        const resolvedTour =
-          tour ?? (await getCachedCuratedTour(tourId));
+    const applyTour = (
+      resolvedTour: Awaited<ReturnType<typeof getPublishedCuratedTour>>,
+    ) => {
+      if (!active || !resolvedTour) {
+        return;
+      }
 
-        if (!active || !resolvedTour) {
+      const fallbackStops = resolvedTour.stops
+        .filter(
+          (stop) =>
+            stop.latitude !== null &&
+            stop.longitude !== null,
+        )
+        .map((stop) => ({
+          id: stop.attractionId,
+          name: stop.name,
+          address: stop.address,
+          latitude: stop.latitude,
+          longitude: stop.longitude,
+        }));
+
+      setCuratedFallbackStops(fallbackStops);
+
+      const availableIds = new Set([
+        ...selectable.map((item) => item.id),
+        ...fallbackStops.map((item) => item.id),
+      ]);
+
+      const ids = resolvedTour.stops
+        .map((stop) => stop.attractionId)
+        .filter((id) => availableIds.has(id));
+
+      const extras = addedStops
+        ? addedStops
+            .split(',')
+            .filter((id) => availableIds.has(id))
+        : [];
+
+      const combinedIds = Array.from(
+        new Set([...ids, ...extras]),
+      );
+
+      setSelectedIds(combinedIds);
+      setOrderedIds(combinedIds);
+      setCuratedBaseIds(ids);
+      setCuratedTourName(resolvedTour.name);
+      setStrategy('keep-order');
+
+      if (resolvedTour.tourMode === 'driving') {
+        setTravelMode('driving');
+      } else {
+        setTravelMode('walking');
+      }
+    };
+
+    void (async () => {
+      const cached = await getCachedCuratedTour(tourId);
+
+      if (!active) {
+        return;
+      }
+
+      if (cached) {
+        applyTour(cached);
+        setCuratedTourLoaded(true);
+
+        void getPublishedCuratedTour(tourId)
+          .then((fresh) => {
+            if (!active || !fresh) return;
+            applyTour(fresh);
+          })
+          .catch(() => {
+            // Cached TourSafe copy is already active.
+          });
+
+        return;
+      }
+
+      try {
+        const fresh = await getPublishedCuratedTour(tourId);
+
+        if (!active) {
           return;
         }
 
-        const fallbackStops = resolvedTour.stops
-          .filter(
-            (stop) =>
-              stop.latitude !== null &&
-              stop.longitude !== null,
-          )
-          .map((stop) => ({
-            id: stop.attractionId,
-            name: stop.name,
-            address: stop.address,
-            latitude: stop.latitude,
-            longitude: stop.longitude,
-          }));
-
-        setCuratedFallbackStops(fallbackStops);
-
-        const availableIds = new Set([
-          ...selectable.map((item) => item.id),
-          ...fallbackStops.map((item) => item.id),
-        ]);
-
-        const ids = resolvedTour.stops
-          .map((stop) => stop.attractionId)
-          .filter((id) => availableIds.has(id));
-
-        const extras = addedStops
-          ? addedStops
-              .split(',')
-              .filter((id) => availableIds.has(id))
-          : [];
-
-        const combinedIds = Array.from(
-          new Set([...ids, ...extras]),
-        );
-
-        setSelectedIds(combinedIds);
-        setOrderedIds(combinedIds);
-        setCuratedBaseIds(ids);
-        setCuratedTourName(resolvedTour.name);
-        setStrategy('keep-order');
-
-        if (resolvedTour.tourMode === 'driving') {
-          setTravelMode('driving');
-        } else {
-          setTravelMode('walking');
-        }
-      })
-      .catch(async () => {
-        const cached = await getCachedCuratedTour(tourId);
-
-        if (!active || !cached) {
-          return;
-        }
-
-        const fallbackStops = cached.stops
-          .filter(
-            (stop) =>
-              stop.latitude !== null &&
-              stop.longitude !== null,
-          )
-          .map((stop) => ({
-            id: stop.attractionId,
-            name: stop.name,
-            address: stop.address,
-            latitude: stop.latitude,
-            longitude: stop.longitude,
-          }));
-
-        setCuratedFallbackStops(fallbackStops);
-
-        const availableIds = new Set([
-          ...selectable.map((item) => item.id),
-          ...fallbackStops.map((item) => item.id),
-        ]);
-
-        const ids = cached.stops
-          .map((stop) => stop.attractionId)
-          .filter((id) => availableIds.has(id));
-
-        const extras = addedStops
-          ? addedStops
-              .split(',')
-              .filter((id) => availableIds.has(id))
-          : [];
-
-        const combinedIds = Array.from(
-          new Set([...ids, ...extras]),
-        );
-
-        setSelectedIds(combinedIds);
-        setOrderedIds(combinedIds);
-        setCuratedBaseIds(ids);
-        setCuratedTourName(cached.name);
-        setStrategy('keep-order');
-
-        if (cached.tourMode === 'driving') {
-          setTravelMode('driving');
-        } else {
-          setTravelMode('walking');
-        }
-      })
-      .finally(() => {
+        applyTour(fresh);
+      } finally {
         if (active) {
           setCuratedTourLoaded(true);
         }
-      });
+      }
+    })();
 
     return () => {
       active = false;
