@@ -5,7 +5,7 @@ import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, View } from '
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText as Text } from '@/components/AppText';
 import { useEvents } from '@/components/events/EventsProvider';
-import { getEventDateLabel, getEventTimeLabel, getNextUpcomingOccurrence, getUpcomingEvents, type EventLocation } from '@/services/eventContentCore';
+import { getEventDateLabel, getEventTimeLabel, getEventTimingBadge, getNextUpcomingOccurrence, getUpcomingEvents, type EventLocation } from '@/services/eventContentCore';
 import { colors, radius, shadows, spacing, typography } from '@/theme/tokens';
 
 export default function EventsScreen() {
@@ -49,12 +49,20 @@ function EventCard({ event, now }: { event: EventLocation; now: Date }) {
     style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
     <Image resizeMode="cover" source={event.image} style={styles.photo} />
     <View style={styles.cardContent}>
-      {event.featured ? <Text style={styles.featured}>Featured Event</Text> : null}
+      <View style={styles.badgeRow}>
+        <Text style={styles.timingBadge}>
+          {getEventTimingBadge(occurrence, now)}
+        </Text>
+        {event.featured ? <Text style={styles.featured}>Featured</Text> : null}
+      </View>
       <Text style={styles.cardTitle}>{event.title}</Text>
       <View style={styles.meta}><Ionicons color={colors.gold} name="calendar-outline" size={15} /><Text style={styles.metaText}>{getEventDateLabel(occurrence)}</Text></View>
       <View style={styles.meta}><Ionicons color={colors.gold} name="time-outline" size={15} /><Text style={styles.metaText}>{getEventTimeLabel(occurrence)}</Text></View>
       {event.venue ? <View style={styles.meta}><Ionicons color={colors.orange} name="location-outline" size={15} /><Text style={styles.metaText}>{event.venue}</Text></View> : null}
-      <Text style={styles.category}>{event.category}</Text>
+      <View style={styles.cardFooterMeta}>
+        <Text style={styles.category}>{event.category}</Text>
+        {event.cost ? <Text style={styles.cost}>{event.cost}</Text> : null}
+      </View>
       {event.shortDescription ? <Text numberOfLines={3} style={styles.description}>{event.shortDescription}</Text> : null}
       <View style={styles.detailsRow}><Text style={styles.detailsText}>View Details</Text><Ionicons color={colors.gold} name="chevron-forward" size={18} /></View>
     </View>
@@ -71,11 +79,17 @@ const styles = StyleSheet.create({
   list: { gap: spacing.md },
   card: { ...shadows.card, overflow: 'hidden', borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, backgroundColor: colors.backgroundRaised },
   pressed: { opacity: 0.8 }, photo: { width: '100%', height: 160 },
-  cardContent: { padding: spacing.lg, gap: spacing.sm }, featured: { ...typography.eyebrow },
+  cardContent: { padding: spacing.lg, gap: spacing.sm },
+  badgeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  timingBadge: { ...typography.caption, color: colors.background, fontSize: 10, lineHeight: 12, fontWeight: '900', letterSpacing: 0.5, borderRadius: radius.pill, backgroundColor: colors.gold, paddingHorizontal: spacing.sm, paddingVertical: 4 },
+  featured: { ...typography.caption, color: colors.lavender, fontSize: 10, lineHeight: 12, fontWeight: '900', textTransform: 'uppercase' },
   cardTitle: { ...typography.title, fontSize: 22, lineHeight: 27 },
   meta: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   metaText: { ...typography.caption, color: colors.text, flex: 1 },
-  category: { ...typography.caption, color: colors.lavender }, description: { ...typography.caption },
+  cardFooterMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+  category: { ...typography.caption, flex: 1, color: colors.lavender },
+  cost: { ...typography.caption, color: colors.gold, fontWeight: '800' },
+  description: { ...typography.caption },
   detailsRow: { alignSelf: 'flex-end', flexDirection: 'row', alignItems: 'center', gap: spacing.xs, borderWidth: 1, borderColor: colors.gold, borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
   detailsText: { color: colors.gold, fontWeight: '800' },
   empty: { alignItems: 'center', gap: spacing.sm, borderWidth: 1, borderColor: colors.borderSoft, borderRadius: radius.md, backgroundColor: colors.surface, padding: spacing.xl },
