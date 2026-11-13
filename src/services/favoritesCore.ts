@@ -1,4 +1,11 @@
-export const FAVORITE_CATEGORIES = ['attractions', 'restaurants', 'parking', 'bathrooms'] as const;
+export const FAVORITE_CATEGORIES = [
+  'attractions',
+  'restaurants',
+  'parking',
+  'bathrooms',
+  'hotels',
+  'tours',
+] as const;
 
 export type FavoriteCategory = (typeof FAVORITE_CATEGORIES)[number];
 
