@@ -90,6 +90,10 @@ export default function BuildMyTourScreen() {
     useState('');
   const [liveStopEditorOpen, setLiveStopEditorOpen] =
     useState(false);
+  const [liveRouteStopIds, setLiveRouteStopIds] =
+    useState<string[]>([]);
+  const [liveRouteDraftIds, setLiveRouteDraftIds] =
+    useState<string[]>([]);
   const [curatedTourName, setCuratedTourName] =
     useState<string | null>(null);
   const [curatedBaseIds, setCuratedBaseIds] =
@@ -328,6 +332,19 @@ export default function BuildMyTourScreen() {
             Boolean(item),
         ),
     [completedIds, selectable],
+  );
+
+  const liveRouteStops = useMemo(
+    () =>
+      liveRouteStopIds
+        .map((id) =>
+          selectable.find((item) => item.id === id),
+        )
+        .filter(
+          (item): item is NonNullable<typeof item> =>
+            Boolean(item),
+        ),
+    [liveRouteStopIds, selectable],
   );
 
   const getCurrentOrigin = async () => {
@@ -654,6 +671,42 @@ export default function BuildMyTourScreen() {
     );
   };
 
+  const openLiveStopEditor = () => {
+    const remainingRouteIds = selectedIds.filter(
+      (id) => !completedIds.includes(id),
+    );
+
+    setLiveRouteStopIds(remainingRouteIds);
+    setLiveRouteDraftIds(remainingRouteIds);
+    setStopSearch('');
+    setLiveStopEditorOpen(true);
+  };
+
+  const toggleLiveRouteStop = (id: string) => {
+    setLiveRouteDraftIds((current) =>
+      current.includes(id)
+        ? current.filter((item) => item !== id)
+        : [...current, id],
+    );
+  };
+
+  const applyLiveRouteChanges = async () => {
+    const nextSelectedIds = [
+      ...completedIds,
+      ...liveRouteDraftIds,
+    ];
+
+    setSelectedIds(nextSelectedIds);
+    setStrategy('optimize');
+    setLiveStopEditorOpen(false);
+
+    await recalculate(
+      nextSelectedIds,
+      completedIds,
+      'optimize',
+    );
+  };
+
   const resetTour = () => {
     setSelectedIds([]);
     setCompletedIds([]);
@@ -671,6 +724,8 @@ export default function BuildMyTourScreen() {
     setNarrationLoading(false);
     setTourStarted(false);
     setLiveStopEditorOpen(false);
+    setLiveRouteStopIds([]);
+    setLiveRouteDraftIds([]);
     setCuratedTourName(null);
     void clearSavedTourProgress();
   };
@@ -871,13 +926,13 @@ export default function BuildMyTourScreen() {
           <View style={styles.curatedStopsHeading}>
             <Text style={styles.curatedStopsTitle}>
               {tourStarted
-                ? 'ADD OR REMOVE STOPS WHILE TOURING'
+                ? 'UPDATE THIS TOUR'
                 : 'ADD MORE STOPS TO THIS TOUR'}
             </Text>
 
             <Text style={styles.counter}>
               {tourStarted
-                ? 'Changes reroute the remaining tour from your current location.'
+                ? 'Only stops already on this route are shown below.'
                 : `${addedStopCount} new stop${addedStopCount === 1 ? '' : 's'} selected`}
             </Text>
 
@@ -926,7 +981,7 @@ export default function BuildMyTourScreen() {
                   color={colors.gold}
                 />
                 <Text style={styles.liveEditNoticeText}>
-                  Tap any stop below to add or remove it. BROOMSTICK will optimize the remaining route automatically.
+                  Uncheck any stop you want to skip, or re-check it before updating the tour.
                 </Text>
               </View>
             )}
@@ -956,6 +1011,81 @@ export default function BuildMyTourScreen() {
           </View>
         ) : null}
 
+        {tourStarted && curatedTourName ? (
+          <>
+            <View style={styles.stopList}>
+              {liveRouteStops.map((attraction) => {
+                const isSelected =
+                  liveRouteDraftIds.includes(attraction.id);
+
+                return (
+                  <Pressable
+                    accessibilityRole="checkbox"
+                    accessibilityState={{
+                      checked: isSelected,
+                    }}
+                    key={attraction.id}
+                    onPress={() =>
+                      toggleLiveRouteStop(attraction.id)
+                    }
+                    style={[
+                      styles.stopCard,
+                      isSelected &&
+                        styles.stopCardSelected,
+                    ]}
+                  >
+                    <View style={styles.stopCopy}>
+                      <Text style={styles.stopName}>
+                        {attraction.name}
+                      </Text>
+
+                      <Text style={styles.stopAddress}>
+                        {attraction.address}
+                      </Text>
+                    </View>
+
+                    <Ionicons
+                      name={
+                        isSelected
+                          ? 'checkmark-circle'
+                          : 'ellipse-outline'
+                      }
+                      size={26}
+                      color={
+                        isSelected
+                          ? colors.gold
+                          : colors.textMuted
+                      }
+                    />
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <Pressable
+              accessibilityRole="button"
+              disabled={building || liveRouteDraftIds.length === 0}
+              onPress={() => void applyLiveRouteChanges()}
+              style={({ pressed }) => [
+                styles.applyStopsButton,
+                (building || liveRouteDraftIds.length === 0) &&
+                  styles.buildButtonDisabled,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Ionicons
+                name="refresh-circle"
+                size={21}
+                color={colors.background}
+              />
+              <Text style={styles.applyStopsButtonText}>
+                {building
+                  ? 'UPDATING TOUR…'
+                  : 'UPDATE TOUR & RETURN'}
+              </Text>
+            </Pressable>
+          </>
+        ) : (
         <View style={styles.searchArea}>
           <Text style={styles.searchLabel}>
             SEARCH TOUR STOPS
@@ -1068,7 +1198,8 @@ export default function BuildMyTourScreen() {
               </View>
             ) : null}
           </View>
-        )}
+
+        )}        )}
       </View>
       ) : null}
 
@@ -1208,8 +1339,12 @@ export default function BuildMyTourScreen() {
               <Pressable
                 accessibilityRole="button"
                 onPress={() => {
-                  setLiveStopEditorOpen((open) => !open);
-                  setStopSearch('');
+                  if (liveStopEditorOpen) {
+                    setLiveStopEditorOpen(false);
+                    return;
+                  }
+
+                  openLiveStopEditor();
                 }}
                 style={styles.secondaryButton}
               >
