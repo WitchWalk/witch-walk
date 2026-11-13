@@ -24,14 +24,22 @@ export type TourSafeOfflineStatus = {
 
 export async function cacheCuratedTourForOffline(
   tour: CuratedTourDetail,
+  extraAttractionIds: string[] = [],
 ): Promise<OfflineTourDownloadResult> {
   let cached = 0;
   let unavailable = 0;
 
-  for (const stop of tour.stops) {
+  const attractionIds = Array.from(
+    new Set([
+      ...tour.stops.map((stop) => stop.attractionId),
+      ...extraAttractionIds,
+    ]),
+  );
+
+  for (const attractionId of attractionIds) {
     try {
       const source = await resolveTourNarration(
-        stop.attractionId,
+        attractionId,
       );
 
       if (source.kind === 'cached') {
@@ -60,7 +68,7 @@ export async function cacheCuratedTourForOffline(
   );
 
   return {
-    total: tour.stops.length,
+    total: attractionIds.length,
     cached,
     unavailable,
   };
@@ -89,19 +97,27 @@ export async function getCachedCuratedTour(
 
 export async function getTourSafeOfflineStatus(
   tour: CuratedTourDetail,
+  extraAttractionIds: string[] = [],
 ): Promise<TourSafeOfflineStatus> {
   let cached = 0;
 
-  for (const stop of tour.stops) {
+  const attractionIds = Array.from(
+    new Set([
+      ...tour.stops.map((stop) => stop.attractionId),
+      ...extraAttractionIds,
+    ]),
+  );
+
+  for (const attractionId of attractionIds) {
     const narration =
-      await getCachedTourNarration(stop.attractionId);
+      await getCachedTourNarration(attractionId);
 
     if (narration) {
       cached += 1;
     }
   }
 
-  const total = tour.stops.length;
+  const total = attractionIds.length;
   const missing = Math.max(0, total - cached);
 
   return {
