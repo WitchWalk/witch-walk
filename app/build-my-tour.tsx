@@ -921,84 +921,298 @@ export default function BuildMyTourScreen() {
       {(!curatedTourName ||
         customize === '1' ||
         (tourStarted && liveStopEditorOpen)) ? (
-      <View style={styles.section}>
-        {curatedTourName ? (
-          <View style={styles.curatedStopsHeading}>
-            <Text style={styles.curatedStopsTitle}>
-              {tourStarted
-                ? 'UPDATE THIS TOUR'
-                : 'ADD MORE STOPS TO THIS TOUR'}
-            </Text>
+        <View style={styles.section}>
+          {curatedTourName ? (
+            <View style={styles.curatedStopsHeading}>
+              <Text style={styles.curatedStopsTitle}>
+                {tourStarted
+                  ? 'UPDATE THIS TOUR'
+                  : 'ADD MORE STOPS TO THIS TOUR'}
+              </Text>
 
-            <Text style={styles.counter}>
-              {tourStarted
-                ? 'Only stops already on this route are shown below.'
-                : `${addedStopCount} new stop${addedStopCount === 1 ? '' : 's'} selected`}
-            </Text>
+              <Text style={styles.counter}>
+                {tourStarted
+                  ? 'Only stops already on this route are shown below.'
+                  : `${addedStopCount} new stop${addedStopCount === 1 ? '' : 's'} selected`}
+              </Text>
 
-            {!tourStarted ? (
+              {tourStarted ? (
+                <View style={styles.liveEditNotice}>
+                  <Ionicons
+                    name="flash"
+                    size={18}
+                    color={colors.gold}
+                  />
+                  <Text style={styles.liveEditNoticeText}>
+                    Uncheck any stop you want to skip, then update the tour to return.
+                  </Text>
+                </View>
+              ) : (
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={addedStopCount === 0}
+                  onPress={() => {
+                    if (!tourId) return;
+
+                    const extras = selectedIds.filter(
+                      (id) => !curatedBaseIds.includes(id),
+                    );
+
+                    router.replace({
+                      pathname: '/tours/[id]',
+                      params: {
+                        id: tourId,
+                        addedStops: extras.join(','),
+                      },
+                    });
+                  }}
+                  style={({ pressed }) => [
+                    styles.applyStopsButton,
+                    addedStopCount === 0 &&
+                      styles.buildButtonDisabled,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Ionicons
+                    name="add-circle"
+                    size={20}
+                    color={colors.background}
+                  />
+                  <Text style={styles.applyStopsButtonText}>
+                    {addedStopCount > 0
+                      ? `ADD ${addedStopCount} SELECTED STOP${addedStopCount === 1 ? '' : 'S'}`
+                      : 'SELECT EXTRA STOPS BELOW'}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          ) : (
+            <View style={styles.sectionHeading}>
+              <Text style={styles.sectionTitle}>
+                Choose your stops
+              </Text>
+
+              <Text style={styles.counter}>
+                {selectedIds.length} selected
+              </Text>
+            </View>
+          )}
+
+          {!tourStarted && !curatedTourName ? (
+            <View style={styles.bottomReminder}>
+              <Ionicons
+                name="arrow-down-circle-outline"
+                size={20}
+                color={colors.gold}
+              />
+              <Text style={styles.bottomReminderText}>
+                After choosing your locations, keep scrolling. The Build My Route button is below the location list.
+              </Text>
+            </View>
+          ) : null}
+
+          {tourStarted && curatedTourName ? (
+            <>
+              <View style={styles.stopList}>
+                {liveRouteStops.map((attraction) => {
+                  const isSelected =
+                    liveRouteDraftIds.includes(attraction.id);
+
+                  return (
+                    <Pressable
+                      accessibilityRole="checkbox"
+                      accessibilityState={{
+                        checked: isSelected,
+                      }}
+                      key={attraction.id}
+                      onPress={() =>
+                        toggleLiveRouteStop(attraction.id)
+                      }
+                      style={[
+                        styles.stopCard,
+                        isSelected &&
+                          styles.stopCardSelected,
+                      ]}
+                    >
+                      <View style={styles.stopCopy}>
+                        <Text style={styles.stopName}>
+                          {attraction.name}
+                        </Text>
+
+                        <Text style={styles.stopAddress}>
+                          {attraction.address}
+                        </Text>
+                      </View>
+
+                      <Ionicons
+                        name={
+                          isSelected
+                            ? 'checkmark-circle'
+                            : 'ellipse-outline'
+                        }
+                        size={26}
+                        color={
+                          isSelected
+                            ? colors.gold
+                            : colors.textMuted
+                        }
+                      />
+                    </Pressable>
+                  );
+                })}
+              </View>
+
               <Pressable
                 accessibilityRole="button"
-                disabled={addedStopCount === 0}
-                onPress={() => {
-                  if (!tourId) return;
-
-                  const extras = selectedIds.filter(
-                    (id) => !curatedBaseIds.includes(id),
-                  );
-
-                  router.replace({
-                    pathname: '/tours/[id]',
-                    params: {
-                      id: tourId,
-                      addedStops: extras.join(','),
-                    },
-                  });
-                }}
+                disabled={
+                  building ||
+                  liveRouteDraftIds.length === 0
+                }
+                onPress={() =>
+                  void applyLiveRouteChanges()
+                }
                 style={({ pressed }) => [
                   styles.applyStopsButton,
-                  addedStopCount === 0 &&
+                  (building ||
+                    liveRouteDraftIds.length === 0) &&
                     styles.buildButtonDisabled,
                   pressed && styles.pressed,
                 ]}
               >
                 <Ionicons
-                  name="add-circle"
-                  size={20}
+                  name="refresh-circle"
+                  size={21}
                   color={colors.background}
                 />
                 <Text style={styles.applyStopsButtonText}>
-                  {addedStopCount > 0
-                    ? `ADD ${addedStopCount} SELECTED STOP${addedStopCount === 1 ? '' : 'S'}`
-                    : 'SELECT EXTRA STOPS BELOW'}
+                  {building
+                    ? 'UPDATING TOUR…'
+                    : 'UPDATE TOUR & RETURN'}
                 </Text>
               </Pressable>
-            ) : (
-              <View style={styles.liveEditNotice}>
-                <Ionicons
-                  name="flash"
-                  size={18}
-                  color={colors.gold}
-                />
-                <Text style={styles.liveEditNoticeText}>
-                  Uncheck any stop you want to skip, or re-check it before updating the tour.
+            </>
+          ) : (
+            <>
+              <View style={styles.searchArea}>
+                <Text style={styles.searchLabel}>
+                  SEARCH TOUR STOPS
+                </Text>
+
+                <View style={styles.searchShell}>
+                  <View style={styles.searchIconShell}>
+                    <Ionicons
+                      name="search"
+                      size={20}
+                      color={colors.background}
+                    />
+                  </View>
+
+                  <TextInput
+                    accessibilityLabel="Search tour stops"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    clearButtonMode="while-editing"
+                    onChangeText={setStopSearch}
+                    placeholder="Type Witch House, Essex Street…"
+                    placeholderTextColor="#A69DAE"
+                    returnKeyType="done"
+                    style={styles.searchInput}
+                    value={stopSearch}
+                  />
+                </View>
+
+                <Text style={styles.searchHelp}>
+                  Results update as you type. Tap a result even while the keyboard is open.
                 </Text>
               </View>
-            )}
-          </View>
-        ) : (
-          <View style={styles.sectionHeading}>
-            <Text style={styles.sectionTitle}>
-              Choose your stops
-            </Text>
 
-            <Text style={styles.counter}>
-              {selectedIds.length} selected
-            </Text>
-          </View>
-        )}
+              {!ready ? (
+                <View style={styles.emptyCard}>
+                  <Text style={styles.muted}>
+                    Loading attractions…
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.stopList}>
+                  {extraSelectable.map((attraction) => {
+                    const isSelected =
+                      selectedIds.includes(attraction.id);
 
-        {!tourStarted && !curatedTourName ? (
+                    const isCompleted =
+                      completedIds.includes(attraction.id);
+
+                    return (
+                      <Pressable
+                        accessibilityRole="checkbox"
+                        accessibilityState={{
+                          checked: isSelected,
+                          disabled: isCompleted,
+                        }}
+                        key={attraction.id}
+                        disabled={isCompleted}
+                        onPress={() =>
+                          void toggleStop(attraction.id)
+                        }
+                        style={[
+                          styles.stopCard,
+                          isSelected &&
+                            styles.stopCardSelected,
+                          isCompleted &&
+                            styles.stopCardCompleted,
+                        ]}
+                      >
+                        <View style={styles.stopCopy}>
+                          <Text style={styles.stopName}>
+                            {attraction.name}
+                          </Text>
+
+                          <Text style={styles.stopAddress}>
+                            {attraction.address}
+                          </Text>
+
+                          {isCompleted ? (
+                            <Text style={styles.completedLabel}>
+                              Completed
+                            </Text>
+                          ) : null}
+                        </View>
+
+                        <Ionicons
+                          name={
+                            isCompleted
+                              ? 'checkmark-done-circle'
+                              : isSelected
+                                ? 'checkmark-circle'
+                                : 'ellipse-outline'
+                          }
+                          size={26}
+                          color={
+                            isCompleted
+                              ? colors.success
+                              : isSelected
+                                ? colors.gold
+                                : colors.textMuted
+                          }
+                        />
+                      </Pressable>
+                    );
+                  })}
+
+                  {extraSelectable.length === 0 ? (
+                    <View style={styles.emptyCard}>
+                      <Text style={styles.muted}>
+                        No attractions match “{stopSearch}”.
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+              )}
+            </>
+          )}
+        </View>
+      ) : null}
+
+      {!tourStarted && !curatedTourName ? (
           <View style={styles.bottomReminder}>
             <Ionicons
               name="arrow-down-circle-outline"
