@@ -94,8 +94,7 @@ export default function HomeScreen() {
           ))}
         </View>
 
-        {__DEV__ ? (
-          <Pressable
+        <Pressable
             accessibilityRole="button"
             accessibilityLabel="BROOMSTICK Plus Tours. Curated narrated tours and Build My Own Tour."
             onPress={() => router.push('/tours' as Href)}
@@ -116,7 +115,7 @@ export default function HomeScreen() {
                 Salem Tours
               </Text>
               <Text style={styles.plusTourText}>
-                Curated narrated tours + build your own adventure
+                Choose a ready-made Salem tour or build your own
               </Text>
             </View>
 
@@ -128,7 +127,6 @@ export default function HomeScreen() {
               />
             </View>
           </Pressable>
-        ) : null}
       </View>
     </Screen>
   );
