@@ -196,6 +196,9 @@ export default function BuildMyTourScreen() {
 
         setSelectedIds(selected);
         setCompletedIds(completed);
+        setOrderedIds(
+          selected.filter((id) => !completed.includes(id)),
+        );
         setTravelMode(progress.travelMode);
         setStrategy(progress.strategy);
         setCuratedTourName(progress.curatedTourName);
