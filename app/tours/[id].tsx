@@ -329,13 +329,18 @@ export default function TourDetailScreen() {
 
           {addedStopIds.length > 0 ? (
             <View style={styles.addedStopsNotice}>
-              <Ionicons
-                name="checkmark-circle"
-                size={20}
-                color={colors.success}
-              />
+              <View style={styles.addedStopsNoticeHeader}>
+                <Ionicons
+                  name="checkmark-circle"
+                  size={24}
+                  color={colors.background}
+                />
+                <Text style={styles.addedStopsNoticeTitle}>
+                  EXTRA STOPS ADDED TO THIS TOUR
+                </Text>
+              </View>
               <Text style={styles.addedStopsNoticeText}>
-                {addedStopIds.length} extra stop{addedStopIds.length === 1 ? '' : 's'} added to this tour
+                {addedStopIds.length} extra stop{addedStopIds.length === 1 ? '' : 's'} will appear in your Tour List once you start the tour.
               </Text>
             </View>
           ) : null}
@@ -558,19 +563,38 @@ const styles = StyleSheet.create({
   },
 
   addedStopsNotice: {
+    gap: spacing.sm,
+    borderWidth: 2,
+    borderColor: colors.gold,
+    borderRadius: radius.md,
+    backgroundColor: '#2A1C38',
+    padding: spacing.md,
+  },
+
+  addedStopsNoticeHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
-    borderRadius: radius.md,
-    backgroundColor: '#10251E',
-    padding: spacing.md,
+    borderRadius: radius.sm,
+    backgroundColor: colors.gold,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+
+  addedStopsNoticeTitle: {
+    ...typography.body,
+    flex: 1,
+    color: colors.background,
+    fontWeight: '900',
+    textAlign: 'center',
   },
 
   addedStopsNoticeText: {
-    ...typography.caption,
-    color: colors.success,
-    fontWeight: '900',
+    ...typography.body,
+    color: colors.text,
+    fontWeight: '800',
+    textAlign: 'center',
   },
 
   offlineButton: {
