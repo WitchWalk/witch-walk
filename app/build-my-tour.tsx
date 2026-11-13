@@ -113,6 +113,8 @@ export default function BuildMyTourScreen() {
     useState(false);
   const [curatedLoadedFromCache, setCuratedLoadedFromCache] =
     useState(false);
+  const [tourSafeOfflineMode, setTourSafeOfflineMode] =
+    useState(false);
   const [resumeChecked, setResumeChecked] =
     useState(false);
   const [curatedAutoStartHandled, setCuratedAutoStartHandled] =
@@ -550,6 +552,7 @@ export default function BuildMyTourScreen() {
     try {
       setCompletedIds([]);
       await calculateRoute(selectedIds, []);
+      setTourSafeOfflineMode(false);
       setTourStarted(true);
     } catch (error) {
       Alert.alert(
@@ -580,6 +583,7 @@ export default function BuildMyTourScreen() {
 
     if (curatedLoadedFromCache) {
       setCompletedIds([]);
+      setTourSafeOfflineMode(true);
       setTourStarted(true);
 
       void calculateRoute(selectedIds, [])
@@ -829,6 +833,7 @@ export default function BuildMyTourScreen() {
     setCuratedTourName(null);
     setCuratedFallbackStops([]);
     setCuratedLoadedFromCache(false);
+    setTourSafeOfflineMode(false);
     void clearSavedTourProgress();
   };
 
@@ -1310,6 +1315,24 @@ export default function BuildMyTourScreen() {
 
       {tourStarted && ordered.length > 0 ? (
         <View style={styles.section}>
+          {tourSafeOfflineMode ? (
+            <View style={styles.tourSafeModeBanner}>
+              <Ionicons
+                name="shield-checkmark"
+                size={20}
+                color={colors.success}
+              />
+              <View style={styles.tourSafeModeCopy}>
+                <Text style={styles.tourSafeModeTitle}>
+                  TOURSAFE OFFLINE MODE
+                </Text>
+                <Text style={styles.tourSafeModeText}>
+                  This tour is running from the copy saved on your phone. Narration remains available without cellular service.
+                </Text>
+              </View>
+            </View>
+          ) : null}
+
           <View style={styles.resultHeader}>
             <View>
               <Text style={styles.eyebrow}>
@@ -2455,6 +2478,36 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     ...typography.caption,
     fontWeight: '800',
+  },
+
+  tourSafeModeBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.success,
+    borderRadius: radius.md,
+    backgroundColor: '#10251E',
+    padding: spacing.md,
+  },
+
+  tourSafeModeCopy: {
+    flex: 1,
+    gap: 2,
+  },
+
+  tourSafeModeTitle: {
+    ...typography.heading,
+    color: colors.success,
+    fontSize: 15,
+    lineHeight: 19,
+    fontWeight: '900',
+  },
+
+  tourSafeModeText: {
+    ...typography.caption,
+    color: colors.text,
+    fontWeight: '700',
   },
 
   resultHeader: {
