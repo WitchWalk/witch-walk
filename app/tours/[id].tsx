@@ -25,7 +25,15 @@ import {
 } from '@/theme/tokens';
 
 export default function TourDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, addedStops } =
+    useLocalSearchParams<{
+      id: string;
+      addedStops?: string;
+    }>();
+
+  const addedStopIds = addedStops
+    ? addedStops.split(',').filter(Boolean)
+    : [];
   const [tour, setTour] =
     useState<CuratedTourDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -201,7 +209,7 @@ export default function TourDetailScreen() {
                   color={colors.gold}
                 />
                 <Text style={styles.statText}>
-                  {tour.stops.length} stops
+                  {tour.stops.length + addedStopIds.length} stops
                 </Text>
               </View>
 
@@ -242,6 +250,7 @@ export default function TourDetailScreen() {
                 params: {
                   tourId: tour.id,
                   autoStart: '1',
+                  addedStops,
                 },
               })
             }
@@ -269,6 +278,7 @@ export default function TourDetailScreen() {
                 params: {
                   tourId: tour.id,
                   customize: '1',
+                  addedStops,
                 },
               })
             }
@@ -316,6 +326,19 @@ export default function TourDetailScreen() {
           <Text style={styles.tourSafeNote}>
             Save narration before heading out so the tour can keep working in weak cellular areas.
           </Text>
+
+          {addedStopIds.length > 0 ? (
+            <View style={styles.addedStopsNotice}>
+              <Ionicons
+                name="checkmark-circle"
+                size={20}
+                color={colors.success}
+              />
+              <Text style={styles.addedStopsNoticeText}>
+                {addedStopIds.length} extra stop{addedStopIds.length === 1 ? '' : 's'} added to this tour
+              </Text>
+            </View>
+          ) : null}
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
@@ -531,6 +554,22 @@ const styles = StyleSheet.create({
   addStopsButtonText: {
     ...typography.body,
     color: colors.gold,
+    fontWeight: '900',
+  },
+
+  addedStopsNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: '#10251E',
+    padding: spacing.md,
+  },
+
+  addedStopsNoticeText: {
+    ...typography.caption,
+    color: colors.success,
     fontWeight: '900',
   },
 
