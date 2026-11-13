@@ -131,7 +131,7 @@ export function ParkingDetailsView({ location }: ParkingDetailsViewProps) {
         <View style={styles.disclaimerCard}>
           <Ionicons color={colors.gold} name="warning-outline" size={21} />
           <Text style={styles.disclaimerText}>
-            Rates, access, and restrictions may change during events, October, and snow emergencies. Always follow posted signs.
+            Live parking availability is not available. Rates, access, and restrictions may change during events, October, and snow emergencies. Always follow posted signs.
           </Text>
         </View>
       </ScrollView>
