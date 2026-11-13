@@ -1127,7 +1127,14 @@ export default function BuildMyTourScreen() {
               </Text>
 
               <Text style={styles.sectionTitle}>
-                Remaining stops
+                Tour List
+              </Text>
+
+              <Text style={styles.tourListSummary}>
+                {ordered.length} stop{ordered.length === 1 ? '' : 's'} remaining
+                {addedStopCount > 0
+                  ? ` • ${addedStopCount} added by you`
+                  : ''}
               </Text>
             </View>
 
@@ -1219,6 +1226,20 @@ export default function BuildMyTourScreen() {
               <Text style={styles.nextStopName}>
                 {ordered[0].name}
               </Text>
+
+              {curatedBaseIds.length > 0 &&
+              !curatedBaseIds.includes(ordered[0].id) ? (
+                <View style={styles.addedStopBadge}>
+                  <Ionicons
+                    name="add-circle"
+                    size={15}
+                    color={colors.background}
+                  />
+                  <Text style={styles.addedStopBadgeText}>
+                    ADDED STOP
+                  </Text>
+                </View>
+              ) : null}
 
               <Text style={styles.stopAddress}>
                 {ordered[0].address}
@@ -1501,9 +1522,25 @@ export default function BuildMyTourScreen() {
                 </View>
 
                 <View style={styles.routeCopy}>
-                  <Text style={styles.stopName}>
-                    {attraction.name}
-                  </Text>
+                  <View style={styles.routeStopTitleRow}>
+                    <Text style={styles.stopName}>
+                      {attraction.name}
+                    </Text>
+
+                    {curatedBaseIds.length > 0 &&
+                    !curatedBaseIds.includes(attraction.id) ? (
+                      <View style={styles.addedStopBadge}>
+                        <Ionicons
+                          name="add-circle"
+                          size={14}
+                          color={colors.background}
+                        />
+                        <Text style={styles.addedStopBadgeText}>
+                          ADDED STOP
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
 
                   <Text style={styles.stopAddress}>
                     {attraction.address}
@@ -2076,6 +2113,13 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
 
+  tourListSummary: {
+    ...typography.caption,
+    color: colors.textMuted,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+
   modePill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2366,6 +2410,32 @@ const styles = StyleSheet.create({
   routeCopy: {
     flex: 1,
     gap: spacing.sm,
+  },
+
+  routeStopTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+
+  addedStopBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 4,
+    borderRadius: radius.pill,
+    backgroundColor: colors.gold,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+  },
+
+  addedStopBadgeText: {
+    ...typography.caption,
+    color: colors.background,
+    fontSize: 11,
+    lineHeight: 14,
+    fontWeight: '900',
   },
 
   stopActions: {
