@@ -18,7 +18,7 @@ export function CrowdStatusCard({ onPress, status }: CrowdStatusCardProps) {
   const liveStatus = status.kind === 'crowd' ? crowdPresentation[status.level] : null;
   const statusText = status.kind === 'crowd'
     ? liveStatus?.label.toUpperCase()
-    : status.kind === 'unavailable' ? 'Live status unavailable' : 'No recent crowd data';
+    : status.kind === 'unavailable' ? 'Status unavailable' : 'Crowd level not set';
   const statusColor = liveStatus?.color ?? colors.textMuted;
 
   return (
