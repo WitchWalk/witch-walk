@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import { ImageBackground, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -18,6 +18,15 @@ import {
   type FavoriteLocation,
 } from '@/data/favoriteLocations';
 import type { FavoriteCategory } from '@/services/favoritesCore';
+import {
+  loadPublishedHotels,
+  type Hotel,
+} from '@/services/hotelContentRepository';
+import {
+  listPublishedCuratedTours,
+  type CuratedTourSummary,
+} from '@/services/curatedTours';
+import { listCachedCuratedTours } from '@/services/tourOffline';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
 
 const heroImage = require('../../assets/images/home/events.png');
@@ -30,20 +39,84 @@ export default function FavoritesScreen() {
   const { restaurants, ready: restaurantsReady } = useRestaurants();
   const { locations: parkingLocations, ready: parkingReady } = useParking();
   const { locations: bathroomLocations, ready: bathroomsReady } = useBathrooms();
+  const [hotels, setHotels] = useState<Hotel[]>([]);
+  const [tours, setTours] = useState<CuratedTourSummary[]>([]);
+  const [extrasReady, setExtrasReady] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      void (async () => {
+        const [hotelData, cachedTours] = await Promise.all([
+          loadPublishedHotels(),
+          listCachedCuratedTours(),
+        ]);
+
+        let tourData: CuratedTourSummary[] = cachedTours;
+
+        try {
+          const liveTours = await listPublishedCuratedTours();
+          const merged = new Map(
+            cachedTours.map((tour) => [tour.id, tour as CuratedTourSummary]),
+          );
+
+          for (const tour of liveTours) {
+            merged.set(tour.id, tour);
+          }
+
+          tourData = Array.from(merged.values());
+        } catch {
+          // Cached tours remain available.
+        }
+
+        if (!active) return;
+
+        setHotels(hotelData);
+        setTours(tourData);
+        setExtrasReady(true);
+      })();
+
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
 
   const savedLocations = useMemo(() => filterFavoriteLocations(
     favoriteReferences
-      .map((reference) => resolveFavoriteLocation(reference, attractions, restaurants, parkingLocations, bathroomLocations))
+      .map((reference) =>
+        resolveFavoriteLocation(
+          reference,
+          attractions,
+          restaurants,
+          parkingLocations,
+          bathroomLocations,
+          hotels,
+          tours,
+        ),
+      )
       .filter((location): location is FavoriteLocation => Boolean(location)),
     filter,
   ),
-  [attractions, favoriteReferences, filter, restaurants, parkingLocations, bathroomLocations]);
+  [
+    attractions,
+    favoriteReferences,
+    filter,
+    restaurants,
+    parkingLocations,
+    bathroomLocations,
+    hotels,
+    tours,
+  ]);
 
   const openDetails = (location: FavoriteLocation) => {
     if (location.category === 'attractions') router.push({ pathname: '/attractions/[id]', params: { id: location.id } });
     else if (location.category === 'restaurants') router.push({ pathname: '/restaurants/[id]', params: { id: location.id } });
     else if (location.category === 'parking') router.push({ pathname: '/parking/[id]', params: { id: location.id } });
-    else router.push({ pathname: '/bathrooms/[id]', params: { id: location.id } });
+    else if (location.category === 'bathrooms') router.push({ pathname: '/bathrooms/[id]', params: { id: location.id } });
+    else if (location.category === 'hotels') router.push({ pathname: '/hotels/[id]', params: { id: location.id } });
+    else router.push(`/tours/${encodeURIComponent(location.id)}` as never);
   };
 
   return (
@@ -79,7 +152,7 @@ export default function FavoritesScreen() {
           })}
         </ScrollView>
 
-        {!ready || !attractionsReady || !restaurantsReady || !parkingReady || !bathroomsReady ? (
+        {!ready || !attractionsReady || !restaurantsReady || !parkingReady || !bathroomsReady || !extrasReady ? (
           <View style={styles.emptyState}>
             <Ionicons color={colors.gold} name="heart-outline" size={42} />
             <Text style={styles.emptyTitle}>Loading favorites…</Text>
@@ -112,7 +185,18 @@ export default function FavoritesScreen() {
 function FilterIcon({ category, selected }: { category: FavoriteFilter; selected: boolean }) {
   const color = selected ? colors.black : colors.textMuted;
   if (category === 'bathrooms') return <MaterialCommunityIcons color={color} name="toilet" size={17} />;
-  const icon = category === 'all' ? 'sparkles' : category === 'attractions' ? 'location' : category === 'restaurants' ? 'restaurant' : 'car-sport';
+  const icon =
+    category === 'all'
+      ? 'sparkles'
+      : category === 'attractions'
+        ? 'location'
+        : category === 'restaurants'
+          ? 'restaurant'
+          : category === 'parking'
+            ? 'car-sport'
+            : category === 'hotels'
+              ? 'bed'
+              : 'map';
   return <Ionicons color={color} name={icon} size={17} />;
 }
 
