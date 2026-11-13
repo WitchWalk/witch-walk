@@ -332,6 +332,14 @@ export default function BuildMyTourScreen() {
     [completedIds, selectable],
   );
 
+  const remainingSelectedIds = useMemo(
+    () =>
+      selectedIds.filter(
+        (id) => !completedIds.includes(id),
+      ),
+    [completedIds, selectedIds],
+  );
+
   const getCurrentOrigin = async () => {
     let permission =
       await Location.getForegroundPermissionsAsync();
@@ -631,6 +639,10 @@ export default function BuildMyTourScreen() {
     ];
 
     setCompletedIds(nextCompletedIds);
+    setLiveRouteDraftIds((current) =>
+      current.filter((item) => item !== id),
+    );
+    setLiveStopEditorOpen(false);
 
     await recalculate(
       selectedIds,
@@ -657,7 +669,7 @@ export default function BuildMyTourScreen() {
   };
 
   const openLiveRouteEditor = () => {
-    setLiveRouteDraftIds(orderedIds);
+    setLiveRouteDraftIds(remainingSelectedIds);
     setLiveStopEditorOpen(true);
   };
 
@@ -711,7 +723,7 @@ export default function BuildMyTourScreen() {
   const tourComplete =
     tourStarted &&
     completedIds.length > 0 &&
-    selectedIds.length === completedIds.length;
+    remainingSelectedIds.length === 0;
 
   return (
     <Screen scroll contentContainerStyle={styles.content}>
@@ -1154,9 +1166,14 @@ export default function BuildMyTourScreen() {
 
       {tourStarted && completed.length > 0 ? (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            Completed
-          </Text>
+          <View style={styles.completedHeader}>
+            <Text style={styles.sectionTitle}>
+              Completed
+            </Text>
+            <Text style={styles.completedCount}>
+              {completed.length} done
+            </Text>
+          </View>
 
           <View style={styles.completedList}>
             {completed.map((attraction) => (
@@ -1192,7 +1209,7 @@ export default function BuildMyTourScreen() {
               </Text>
 
               <Text style={styles.tourListSummary}>
-                {ordered.length} stop{ordered.length === 1 ? '' : 's'} remaining
+                {remainingSelectedIds.length} stop{remainingSelectedIds.length === 1 ? '' : 's'} remaining
                 {addedStopCount > 0
                   ? ` • ${addedStopCount} added by you`
                   : ''}
@@ -1307,7 +1324,12 @@ export default function BuildMyTourScreen() {
               </Text>
 
               <View style={styles.stopList}>
-                {ordered.map((attraction) => {
+                {ordered
+                  .filter(
+                    (attraction) =>
+                      !completedIds.includes(attraction.id),
+                  )
+                  .map((attraction) => {
                   const isIncluded =
                     liveRouteDraftIds.includes(attraction.id);
 
@@ -2721,6 +2743,19 @@ const styles = StyleSheet.create({
   routeFootnote: {
     ...typography.caption,
     fontStyle: 'italic',
+  },
+
+  completedHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+
+  completedCount: {
+    ...typography.caption,
+    color: colors.success,
+    fontWeight: '900',
   },
 
   completedList: {
