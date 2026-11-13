@@ -1305,7 +1305,7 @@ export default function BuildMyTourScreen() {
           </Text>
 
           <Text style={styles.completeTitle}>
-            You finished the tour
+            YOU FINISHED THE TOUR
           </Text>
 
           <Text style={styles.completeSummary}>
@@ -3141,15 +3141,19 @@ const styles = StyleSheet.create({
 
   completeTitle: {
     ...typography.title,
-    color: colors.text,
-    fontSize: 24,
-    lineHeight: 29,
+    color: colors.gold,
+    fontSize: 30,
+    lineHeight: 36,
+    fontWeight: '900',
     textAlign: 'center',
+    letterSpacing: 1.1,
   },
 
   completeSummary: {
     ...typography.body,
     color: colors.success,
+    fontSize: 18,
+    lineHeight: 23,
     fontWeight: '900',
     textAlign: 'center',
   },
