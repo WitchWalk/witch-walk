@@ -31,7 +31,17 @@ export default function EventsScreen() {
         </Pressable>
         <Text style={styles.brand}>BROOMSTICK</Text><View style={styles.backButton} />
       </View>
-      <View style={styles.intro}><Text style={styles.title}>Events</Text><Text style={styles.subtitle}>Upcoming events in Salem.</Text></View>
+      <View style={styles.intro}>
+        <Text style={styles.eyebrow}>WHAT'S HAPPENING</Text>
+        <Text style={styles.title}>Events</Text>
+        <Text style={styles.subtitle}>
+          {ready
+            ? upcoming.length === 1
+              ? '1 upcoming Salem event.'
+              : `${upcoming.length} upcoming Salem events.`
+            : 'Upcoming events in Salem.'}
+        </Text>
+      </View>
       {!ready ? <View style={styles.empty}><Text style={styles.emptyTitle}>Loading events…</Text></View>
         : upcoming.length ? <View style={styles.list}>{upcoming.map(event => <EventCard key={event.id} event={event} now={new Date(clock)} />)}</View>
         : <View style={styles.empty}><Ionicons color={colors.gold} name="calendar-outline" size={38} />
@@ -74,7 +84,9 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 58 },
   backButton: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center' },
   brand: { ...typography.title, color: colors.gold, fontSize: 21 },
-  intro: { paddingBottom: spacing.sm }, title: { ...typography.display },
+  intro: { paddingBottom: spacing.sm },
+  eyebrow: { ...typography.eyebrow, color: colors.gold, marginBottom: 2 },
+  title: { ...typography.display },
   subtitle: { ...typography.body, color: colors.textMuted, marginTop: spacing.xs },
   list: { gap: spacing.md },
   card: { ...shadows.card, overflow: 'hidden', borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, backgroundColor: colors.backgroundRaised },
