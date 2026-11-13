@@ -72,7 +72,23 @@ export function getDowntownCrowdAccessibilityLabel(status: DowntownCrowdStatus) 
     return `Downtown Salem is currently ${status.level}. Open the live map.`;
   }
   if (status.kind === 'unavailable') {
-    return 'Downtown Salem live status is unavailable. Open the live map.';
+    return 'Downtown Salem crowd status is unavailable. Open the live map.';
   }
-  return 'Downtown Salem has no recent crowd data. Open the live map.';
+  return 'Downtown Salem crowd status has not been set. Open the live map.';
+}
+
+
+export function getAdminDowntownCrowdStatus(
+  level: ApprovedCrowdLevel | null,
+): DowntownCrowdStatus {
+  return level
+    ? {
+        kind: 'crowd',
+        level,
+        contributingAttractionCount: 0,
+      }
+    : {
+        kind: 'no-data',
+        contributingAttractionCount: 0,
+      };
 }
