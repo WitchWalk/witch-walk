@@ -10,6 +10,7 @@ export type CuratedTourSummary = {
   estimatedDistanceMiles: number | null;
   priceCents: number | null;
   featured: boolean;
+  published?: boolean;
 };
 
 export type CuratedTourStop = {
@@ -36,7 +37,30 @@ type TourRow = {
   estimated_distance_miles: number | string | null;
   price_cents: number | null;
   featured: boolean;
+  published?: boolean;
 };
+
+type PreviewListResponse = {
+  tours?: CuratedTourSummary[];
+};
+
+type PreviewGetResponse = {
+  tour?: CuratedTourDetail | null;
+};
+
+const PREVIEW_FUNCTION = 'broomstick-tour-preview';
+
+async function previewHeaders() {
+  const devToken =
+    process.env
+      .EXPO_PUBLIC_BROOMSTICK_DEV_NARRATION_TOKEN;
+
+  return __DEV__ && devToken
+    ? {
+        'x-broomstick-dev-token': devToken,
+      }
+    : undefined;
+}
 
 function mapTour(row: TourRow): CuratedTourSummary {
   return {
@@ -52,12 +76,36 @@ function mapTour(row: TourRow): CuratedTourSummary {
         : Number(row.estimated_distance_miles),
     priceCents: row.price_cents,
     featured: row.featured,
+    published: row.published,
   };
 }
 
 export async function listPublishedCuratedTours(): Promise<
   CuratedTourSummary[]
 > {
+  if (__DEV__) {
+    const headers = await previewHeaders();
+
+    if (headers) {
+      const preview = await supabase.functions.invoke(
+        PREVIEW_FUNCTION,
+        {
+          body: { action: 'list' },
+          headers,
+        },
+      );
+
+      if (!preview.error) {
+        const result =
+          (preview.data ?? {}) as PreviewListResponse;
+
+        if (Array.isArray(result.tours)) {
+          return result.tours;
+        }
+      }
+    }
+  }
+
   const { data, error } = await supabase
     .from('broomstick_tours')
     .select(
@@ -78,6 +126,32 @@ export async function listPublishedCuratedTours(): Promise<
 export async function getPublishedCuratedTour(
   id: string,
 ): Promise<CuratedTourDetail | null> {
+  if (__DEV__) {
+    const headers = await previewHeaders();
+
+    if (headers) {
+      const preview = await supabase.functions.invoke(
+        PREVIEW_FUNCTION,
+        {
+          body: {
+            action: 'get',
+            tourId: id,
+          },
+          headers,
+        },
+      );
+
+      if (!preview.error) {
+        const result =
+          (preview.data ?? {}) as PreviewGetResponse;
+
+        if (result.tour) {
+          return result.tour;
+        }
+      }
+    }
+  }
+
   const tourResult = await supabase
     .from('broomstick_tours')
     .select(
