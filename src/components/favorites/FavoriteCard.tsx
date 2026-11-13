@@ -62,8 +62,26 @@ function CategoryIcon({ category }: Pick<FavoriteLocation, 'category'>) {
   if (category === 'bathrooms') {
     return <MaterialCommunityIcons color="#F4D46C" name="toilet" size={17} />;
   }
-  const icon = category === 'attractions' ? 'location' : category === 'restaurants' ? 'restaurant' : 'car-sport';
-  const color = category === 'attractions' ? '#D27AF2' : category === 'restaurants' ? colors.orange : '#70AEFF';
+  const icon =
+    category === 'attractions'
+      ? 'location'
+      : category === 'restaurants'
+        ? 'restaurant'
+        : category === 'parking'
+          ? 'car-sport'
+          : category === 'hotels'
+            ? 'bed'
+            : 'map';
+  const color =
+    category === 'attractions'
+      ? '#D27AF2'
+      : category === 'restaurants'
+        ? colors.orange
+        : category === 'parking'
+          ? '#70AEFF'
+          : category === 'hotels'
+            ? '#D7B3FF'
+            : colors.gold;
   return <Ionicons color={color} name={icon} size={17} />;
 }
 
