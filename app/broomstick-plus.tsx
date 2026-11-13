@@ -53,6 +53,8 @@ export default function BroomstickPlusScreen() {
     setDevUnlocked,
   } = usePlus();
   const [message, setMessage] = useState('');
+  const [previewLocked, setPreviewLocked] = useState(__DEV__);
+  const showUnlockedState = hasPlus && !previewLocked;
 
   const buy = async () => {
     setMessage('');
@@ -158,10 +160,10 @@ export default function BroomstickPlusScreen() {
 
         <View style={styles.unlockSection}>
           <Text style={styles.unlockEyebrow}>
-            {hasPlus ? 'PLUS ACTIVE' : 'READY TO UNLOCK?'}
+            {showUnlockedState ? 'PLUS ACTIVE' : 'READY TO UNLOCK?'}
           </Text>
 
-        {hasPlus ? (
+        {showUnlockedState ? (
           <View style={styles.unlockedCard}>
             <Ionicons
               name="checkmark-circle"
@@ -224,7 +226,7 @@ export default function BroomstickPlusScreen() {
           </View>
         ) : null}
 
-        {!configured && !hasPlus ? (
+        {!configured && !showUnlockedState ? (
           <View style={styles.setupNote}>
             <Ionicons
               name="construct-outline"
@@ -238,19 +240,36 @@ export default function BroomstickPlusScreen() {
         ) : null}
 
         {__DEV__ ? (
-          <View style={styles.devCard}>
-            <View style={styles.devCopy}>
-              <Text style={styles.devTitle}>Developer Plus Access</Text>
-              <Text style={styles.devText}>
-                Test the locked and unlocked Plus experience without making a purchase.
-              </Text>
+          <View style={styles.devSection}>
+            <View style={styles.devCard}>
+              <View style={styles.devCopy}>
+                <Text style={styles.devTitle}>Developer Plus Access</Text>
+                <Text style={styles.devText}>
+                  Keeps Plus features unlocked elsewhere in the app.
+                </Text>
+              </View>
+              <Switch
+                value={devUnlocked}
+                onValueChange={(value) => void setDevUnlocked(value)}
+                trackColor={{ false: '#4A4250', true: '#8A6730' }}
+                thumbColor={devUnlocked ? colors.gold : '#D0C8D2'}
+              />
             </View>
-            <Switch
-              value={devUnlocked}
-              onValueChange={(value) => void setDevUnlocked(value)}
-              trackColor={{ false: '#4A4250', true: '#8A6730' }}
-              thumbColor={devUnlocked ? colors.gold : '#D0C8D2'}
-            />
+
+            <View style={styles.devCard}>
+              <View style={styles.devCopy}>
+                <Text style={styles.devTitle}>Preview Customer Paywall</Text>
+                <Text style={styles.devText}>
+                  Show the locked purchase experience here even while developer access stays unlocked.
+                </Text>
+              </View>
+              <Switch
+                value={previewLocked}
+                onValueChange={setPreviewLocked}
+                trackColor={{ false: '#4A4250', true: '#8A6730' }}
+                thumbColor={previewLocked ? colors.gold : '#D0C8D2'}
+              />
+            </View>
           </View>
         ) : null}
 
@@ -309,7 +328,7 @@ const styles = StyleSheet.create({
     fontSize: 21,
   },
   hero: {
-    minHeight: 390,
+    minHeight: 430,
     overflow: 'hidden',
     justifyContent: 'space-between',
     borderWidth: 2,
@@ -345,7 +364,7 @@ const styles = StyleSheet.create({
   },
   plusBadgeText: {
     color: colors.background,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '900',
     letterSpacing: 1,
   },
@@ -372,7 +391,7 @@ const styles = StyleSheet.create({
   title: {
     ...typography.display,
     marginTop: 3,
-    fontSize: 33,
+    fontSize: 38,
     lineHeight: 39,
     textAlign: 'left',
   },
@@ -587,6 +606,9 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.textMuted,
     marginTop: 2,
+  },
+  devSection: {
+    gap: spacing.sm,
   },
   devCard: {
     flexDirection: 'row',
