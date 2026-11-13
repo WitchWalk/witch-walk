@@ -1281,38 +1281,6 @@ export default function BuildMyTourScreen() {
         </View>
       ) : null}
 
-      {tourStarted && completed.length > 0 ? (
-        <View style={styles.section}>
-          <View style={styles.completedHeader}>
-            <Text style={styles.sectionTitle}>
-              Completed
-            </Text>
-            <Text style={styles.completedCount}>
-              {completed.length} done
-            </Text>
-          </View>
-
-          <View style={styles.completedList}>
-            {completed.map((attraction) => (
-              <View
-                key={attraction.id}
-                style={styles.completedRow}
-              >
-                <Ionicons
-                  name="checkmark-circle"
-                  size={20}
-                  color={colors.success}
-                />
-
-                <Text style={styles.completedName}>
-                  {attraction.name}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      ) : null}
-
       {tourStarted && ordered.length > 0 ? (
         <View style={styles.section}>
           {tourSafeOfflineMode ? (
@@ -1349,6 +1317,10 @@ export default function BuildMyTourScreen() {
                   ? ` • ${addedStopCount} added by you`
                   : ''}
               </Text>
+
+              <Text style={styles.activeTourHint}>
+                Your next stop is below. Route tools stay out of the way unless you need them.
+              </Text>
             </View>
 
             <View style={styles.modePill}>
@@ -1384,7 +1356,7 @@ export default function BuildMyTourScreen() {
               />
 
               <Text style={styles.updateRouteButtonText}>
-                {building ? 'Updating…' : 'UPDATE ROUTE'}
+                {building ? 'Updating…' : 'REFRESH ROUTE'}
               </Text>
             </Pressable>
 
@@ -1407,7 +1379,7 @@ export default function BuildMyTourScreen() {
                 />
 
                 <Text style={styles.secondaryButtonText}>
-                  {liveStopEditorOpen ? 'CLOSE STOPS' : 'ADD / REMOVE STOPS'}
+                  {liveStopEditorOpen ? 'CLOSE STOP EDITOR' : 'EDIT TOUR STOPS'}
                 </Text>
               </Pressable>
             ) : null}
@@ -1955,6 +1927,38 @@ export default function BuildMyTourScreen() {
             route from your current GPS position.
           </Text>
         </View>
+      {tourStarted && completed.length > 0 ? (
+        <View style={styles.section}>
+          <View style={styles.completedHeader}>
+            <Text style={styles.sectionTitle}>
+              Completed
+            </Text>
+            <Text style={styles.completedCount}>
+              {completed.length} done
+            </Text>
+          </View>
+
+          <View style={styles.completedList}>
+            {completed.map((attraction) => (
+              <View
+                key={attraction.id}
+                style={styles.completedRow}
+              >
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color={colors.success}
+                />
+
+                <Text style={styles.completedName}>
+                  {attraction.name}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
       ) : null}
     </Screen>
   );
@@ -2522,6 +2526,13 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontWeight: '700',
     marginTop: 2,
+  },
+
+  activeTourHint: {
+    ...typography.caption,
+    color: colors.textMuted,
+    marginTop: 4,
+    maxWidth: 270,
   },
 
   modePill: {
