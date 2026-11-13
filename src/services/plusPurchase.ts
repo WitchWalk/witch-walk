@@ -188,7 +188,7 @@ export async function purchaseBroomstickPlus(): Promise<PlusPurchaseResult> {
     }
 
     const result = await Purchases.purchasePackage(
-      selected as Parameters<typeof Purchases.purchasePackage>[0],
+      selected as never,
     );
 
     return {
