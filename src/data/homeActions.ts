@@ -71,7 +71,7 @@ export const homeActions: HomeAction[] = [
     subtitle: 'Places to stay',
     icon: 'bed',
     accent: '#D7B3FF',
-    image: require('../../Photos/Pickering Wharf.png'),
+    image: require('../../assets/images/home/events.png'),
     href: '/hotels',
     visualVariant: 'hotel',
   },
