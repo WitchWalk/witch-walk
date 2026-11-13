@@ -9,6 +9,7 @@ import {
 
 import { AppText as Text } from '@/components/AppText';
 import { useFavorites } from '@/components/favorites/FavoritesProvider';
+import { usePlus } from '@/components/plus/PlusProvider';
 import { Screen } from '@/components/Screen';
 import {
   getPublishedCuratedTour,
@@ -48,6 +49,7 @@ export default function TourDetailScreen() {
   const [offlineCoverage, setOfflineCoverage] =
     useState<{ cached: number; total: number } | null>(null);
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { hasPlus, ready: plusReady } = usePlus();
 
   useEffect(() => {
     let active = true;
@@ -342,7 +344,11 @@ export default function TourDetailScreen() {
           <Pressable
             accessibilityRole="button"
             disabled={downloading}
-            onPress={() => void downloadOffline()}
+            onPress={() =>
+              hasPlus
+                ? void downloadOffline()
+                : router.push('/broomstick-plus')
+            }
             style={[
               styles.offlineButton,
               offlineReady && styles.offlineButtonReady,
@@ -371,9 +377,13 @@ export default function TourDetailScreen() {
             >
               {downloading
                 ? 'Downloading TourSafe…'
-                : offlineReady
-                  ? 'TOURSAFE READY'
-                  : 'DOWNLOAD FOR OFFLINE'}
+                : !plusReady
+                  ? 'CHECKING PLUS ACCESS…'
+                  : !hasPlus
+                    ? 'UNLOCK PLUS FOR TOURSAFE'
+                    : offlineReady
+                      ? 'TOURSAFE READY'
+                      : 'DOWNLOAD FOR OFFLINE'}
             </Text>
           </Pressable>
 
@@ -398,14 +408,16 @@ export default function TourDetailScreen() {
           <Pressable
             accessibilityRole="button"
             onPress={() =>
-              router.push({
-                pathname: '/build-my-tour',
-                params: {
-                  tourId: tour.id,
-                  customize: '1',
-                  addedStops,
-                },
-              })
+              hasPlus
+                ? router.push({
+                    pathname: '/build-my-tour',
+                    params: {
+                      tourId: tour.id,
+                      customize: '1',
+                      addedStops,
+                    },
+                  })
+                : router.push('/broomstick-plus')
             }
             style={styles.addStopsButton}
           >
@@ -415,7 +427,7 @@ export default function TourDetailScreen() {
               color={colors.gold}
             />
             <Text style={styles.addStopsButtonText}>
-              CUSTOMIZE TOUR STOPS
+              {hasPlus ? 'CUSTOMIZE TOUR STOPS' : 'UNLOCK PLUS TO CUSTOMIZE'}
             </Text>
           </Pressable>
 
@@ -423,14 +435,16 @@ export default function TourDetailScreen() {
             accessibilityRole="button"
             disabled={tour.stops.length === 0}
             onPress={() =>
-              router.push({
-                pathname: '/build-my-tour',
-                params: {
-                  tourId: tour.id,
-                  autoStart: '1',
-                  addedStops,
-                },
-              })
+              hasPlus
+                ? router.push({
+                    pathname: '/build-my-tour',
+                    params: {
+                      tourId: tour.id,
+                      autoStart: '1',
+                      addedStops,
+                    },
+                  })
+                : router.push('/broomstick-plus')
             }
             style={[
               styles.startButton,
@@ -444,7 +458,7 @@ export default function TourDetailScreen() {
               color={colors.background}
             />
             <Text style={styles.startButtonText}>
-              START TOUR
+              {hasPlus ? 'START TOUR' : 'UNLOCK PLUS TO START'}
             </Text>
           </Pressable>
 
