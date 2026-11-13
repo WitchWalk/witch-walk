@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 
 import { AppText as Text } from '@/components/AppText';
+import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import { Screen } from '@/components/Screen';
 import {
   listPublishedCuratedTours,
@@ -34,6 +35,7 @@ export default function ToursScreen() {
   const [tours, setTours] = useState<CuratedTourSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   useFocusEffect(
     useCallback(() => {
@@ -207,11 +209,42 @@ export default function ToursScreen() {
                   </Text>
                 </View>
 
-                <Text style={styles.plusLabel}>
-                  {tour.published === false
-                    ? 'DEV PREVIEW'
-                    : 'PLUS'}
-                </Text>
+                <View style={styles.tourTopActions}>
+                  <Text style={styles.plusLabel}>
+                    {tour.published === false
+                      ? 'DEV PREVIEW'
+                      : 'PLUS'}
+                  </Text>
+
+                  <Pressable
+                    accessibilityLabel={
+                      isFavorite('tours', tour.id)
+                        ? `Remove ${tour.name} from favorites`
+                        : `Save ${tour.name} to favorites`
+                    }
+                    accessibilityRole="button"
+                    hitSlop={8}
+                    onPress={(event) => {
+                      event.stopPropagation();
+                      toggleFavorite('tours', tour.id);
+                    }}
+                    style={styles.favoriteButton}
+                  >
+                    <Ionicons
+                      name={
+                        isFavorite('tours', tour.id)
+                          ? 'heart'
+                          : 'heart-outline'
+                      }
+                      size={22}
+                      color={
+                        isFavorite('tours', tour.id)
+                          ? '#FF5C68'
+                          : colors.gold
+                      }
+                    />
+                  </Pressable>
+                </View>
               </View>
 
               <Text style={styles.tourTitle}>
@@ -379,6 +412,19 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.gold,
     fontWeight: '800',
+  },
+
+  tourTopActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+
+  favoriteButton: {
+    width: 34,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   plusLabel: {
