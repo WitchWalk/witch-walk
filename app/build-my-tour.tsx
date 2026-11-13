@@ -2134,13 +2134,11 @@ const styles = StyleSheet.create({
   },
 
   activeControls: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: spacing.sm,
   },
 
   updateRouteButton: {
-    flex: 1,
+    width: '100%',
     minHeight: 50,
     flexDirection: 'row',
     alignItems: 'center',
@@ -2158,8 +2156,7 @@ const styles = StyleSheet.create({
   },
 
   secondaryButton: {
-    flexGrow: 1,
-    flexBasis: 145,
+    width: '100%',
     minHeight: 48,
     flexDirection: 'row',
     alignItems: 'center',
