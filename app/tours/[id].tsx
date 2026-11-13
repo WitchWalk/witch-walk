@@ -181,7 +181,11 @@ export default function TourDetailScreen() {
                 </Text>
               </View>
 
-              <Text style={styles.plusText}>PLUS</Text>
+              <Text style={styles.plusText}>
+                {tour.published === false
+                  ? 'DEV PREVIEW'
+                  : 'PLUS'}
+              </Text>
             </View>
 
             <Text style={styles.description}>
