@@ -6,6 +6,7 @@ import {
 } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
+  Image,
   Pressable,
   StyleSheet,
   View,
@@ -23,6 +24,8 @@ import {
   spacing,
   typography,
 } from '@/theme/tokens';
+
+const toursHero = require('../Photos/Broomstick Header.png');
 
 export default function ToursScreen() {
   const [tours, setTours] = useState<CuratedTourSummary[]>([]);
@@ -63,6 +66,14 @@ export default function ToursScreen() {
 
   return (
     <Screen scroll contentContainerStyle={styles.content}>
+      <View style={styles.heroArtworkShell}>
+        <Image
+          source={toursHero}
+          resizeMode="cover"
+          style={styles.heroArtwork}
+        />
+      </View>
+
       <View style={styles.header}>
         <Pressable
           accessibilityRole="button"
@@ -211,6 +222,19 @@ const styles = StyleSheet.create({
   content: {
     gap: spacing.lg,
     paddingBottom: spacing.xxxl,
+  },
+
+  heroArtworkShell: {
+    overflow: 'hidden',
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+
+  heroArtwork: {
+    width: '100%',
+    height: 180,
   },
 
   header: {
