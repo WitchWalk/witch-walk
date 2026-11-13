@@ -4,6 +4,10 @@ export const PLUS_ENTITLEMENT_ID =
   process.env.EXPO_PUBLIC_BROOMSTICK_PLUS_ENTITLEMENT_ID?.trim() ||
   'broomstick_plus';
 
+export const PLUS_PRODUCT_ID =
+  process.env.EXPO_PUBLIC_BROOMSTICK_PLUS_PRODUCT_ID?.trim() ||
+  'com.housearauz.witchwalk.plus';
+
 export const PLUS_FALLBACK_PRICE =
   process.env.EXPO_PUBLIC_BROOMSTICK_PLUS_PRICE_FALLBACK?.trim() ||
   '$8.99';
@@ -86,6 +90,9 @@ function choosePlusPackage(offerings: unknown): StorePackageLike | null {
     : [];
 
   return (
+    available.find(
+      (item) => item.product?.identifier === PLUS_PRODUCT_ID,
+    ) ??
     available.find((item) =>
       [
         item.identifier,
