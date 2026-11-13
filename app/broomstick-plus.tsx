@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
+  ImageBackground,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,6 +14,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText as Text } from '@/components/AppText';
 import { usePlus } from '@/components/plus/PlusProvider';
 import { colors, radius, spacing, typography } from '@/theme/tokens';
+
+const plusHero = require('../Photos/Broomstick Header.png');
 
 const benefits = [
   {
@@ -84,39 +87,79 @@ export default function BroomstickPlusScreen() {
           <View style={styles.circleButtonPlaceholder} />
         </View>
 
-        <View style={styles.hero}>
-          <View style={styles.heroIcon}>
-            <Text style={styles.broom}>🧹</Text>
-          </View>
-          <Text style={styles.eyebrow}>BROOMSTICK PLUS</Text>
-          <Text style={styles.title}>Unlock Salem Tours</Text>
-          <Text style={styles.subtitle}>
-            Ready-made narrated tours, custom routes, and TourSafe offline access.
-          </Text>
+        <ImageBackground
+          source={plusHero}
+          resizeMode="cover"
+          imageStyle={styles.heroImage}
+          style={styles.hero}
+        >
+          <View style={styles.heroShade} />
+          <View style={styles.heroTop}>
+            <View style={styles.plusBadge}>
+              <Ionicons name="sparkles" size={15} color={colors.background} />
+              <Text style={styles.plusBadgeText}>BROOMSTICK PLUS</Text>
+            </View>
 
-          <View style={styles.pricePill}>
-            <Text style={styles.price}>{storePrice}</Text>
-            <Text style={styles.priceCaption}>ONE-TIME UNLOCK</Text>
+            <View style={styles.heroIcon}>
+              <Text style={styles.broom}>🧹</Text>
+            </View>
           </View>
+
+          <View style={styles.heroCopy}>
+            <Text style={styles.heroKicker}>YOUR SALEM ADVENTURE, UPGRADED</Text>
+            <Text style={styles.title}>Unlock Salem Tours</Text>
+            <Text style={styles.subtitle}>
+              Narrated tours, custom routes, smart rerouting, and TourSafe offline access.
+            </Text>
+
+            <View style={styles.priceRow}>
+              <View style={styles.pricePill}>
+                <Text style={styles.price}>{storePrice}</Text>
+                <Text style={styles.priceCaption}>ONE-TIME UNLOCK</Text>
+              </View>
+              <View style={styles.noSubscriptionPill}>
+                <Ionicons name="checkmark-circle" size={16} color={colors.success} />
+                <Text style={styles.noSubscriptionText}>No subscription</Text>
+              </View>
+            </View>
+          </View>
+        </ImageBackground>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionEyebrow}>INCLUDED WITH PLUS</Text>
+          <Text style={styles.sectionTitle}>More Salem. Less fumbling.</Text>
+          <Text style={styles.sectionText}>
+            Everything here is built to make the tour feel smoother before, during, and after you start walking.
+          </Text>
         </View>
 
         <View style={styles.benefits}>
-          {benefits.map((benefit) => (
+          {benefits.map((benefit, index) => (
             <View key={benefit.title} style={styles.benefit}>
               <View style={styles.benefitIcon}>
                 <Ionicons
                   name={benefit.icon}
-                  size={24}
+                  size={25}
                   color={colors.gold}
                 />
               </View>
               <View style={styles.benefitCopy}>
-                <Text style={styles.benefitTitle}>{benefit.title}</Text>
+                <View style={styles.benefitTitleRow}>
+                  <Text style={styles.benefitNumber}>
+                    {String(index + 1).padStart(2, '0')}
+                  </Text>
+                  <Text style={styles.benefitTitle}>{benefit.title}</Text>
+                </View>
                 <Text style={styles.benefitText}>{benefit.text}</Text>
               </View>
             </View>
           ))}
         </View>
+
+        <View style={styles.unlockSection}>
+          <Text style={styles.unlockEyebrow}>
+            {hasPlus ? 'PLUS ACTIVE' : 'READY TO UNLOCK?'}
+          </Text>
 
         {hasPlus ? (
           <View style={styles.unlockedCard}>
@@ -158,6 +201,8 @@ export default function BroomstickPlusScreen() {
             </Text>
           </Pressable>
         )}
+
+        </View>
 
         <Pressable
           accessibilityRole="button"
@@ -264,12 +309,45 @@ const styles = StyleSheet.create({
     fontSize: 21,
   },
   hero: {
-    alignItems: 'center',
+    minHeight: 390,
+    overflow: 'hidden',
+    justifyContent: 'space-between',
     borderWidth: 2,
     borderColor: '#D4A94A',
     borderRadius: radius.lg,
     backgroundColor: '#27163A',
-    padding: spacing.xl,
+    padding: spacing.lg,
+  },
+  heroImage: {
+    borderRadius: radius.lg - 2,
+  },
+  heroShade: {
+    position: 'absolute',
+    inset: 0,
+    backgroundColor: 'rgba(8, 4, 14, 0.48)',
+  },
+  heroTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  heroCopy: {
+    alignItems: 'flex-start',
+  },
+  plusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.gold,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 7,
+  },
+  plusBadgeText: {
+    color: colors.background,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1,
   },
   heroIcon: {
     width: 72,
@@ -285,28 +363,35 @@ const styles = StyleSheet.create({
     fontSize: 38,
     lineHeight: 44,
   },
-  eyebrow: {
+  heroKicker: {
     ...typography.eyebrow,
     color: colors.gold,
-    marginTop: spacing.md,
-    letterSpacing: 1.3,
+    letterSpacing: 1.35,
+    marginBottom: spacing.xs,
   },
   title: {
     ...typography.display,
     marginTop: 3,
     fontSize: 33,
     lineHeight: 39,
-    textAlign: 'center',
+    textAlign: 'left',
   },
   subtitle: {
     ...typography.body,
-    color: '#E9E0EC',
+    maxWidth: 310,
+    color: '#F0E8F2',
     marginTop: spacing.sm,
-    textAlign: 'center',
+    textAlign: 'left',
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginTop: spacing.lg,
   },
   pricePill: {
     alignItems: 'center',
-    marginTop: spacing.lg,
     borderWidth: 1,
     borderColor: '#8E6D39',
     borderRadius: radius.pill,
@@ -326,6 +411,42 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 1,
   },
+  noSubscriptionPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderWidth: 1,
+    borderColor: '#55765E',
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(10, 24, 13, 0.88)',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  noSubscriptionText: {
+    color: '#CFE7D4',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  sectionHeader: {
+    gap: 3,
+    paddingHorizontal: spacing.xs,
+    paddingTop: spacing.sm,
+  },
+  sectionEyebrow: {
+    ...typography.eyebrow,
+    color: colors.gold,
+  },
+  sectionTitle: {
+    ...typography.title,
+    fontSize: 24,
+    lineHeight: 29,
+  },
+  sectionText: {
+    ...typography.body,
+    color: colors.textMuted,
+    fontSize: 13.5,
+    lineHeight: 19,
+  },
   benefits: {
     gap: spacing.sm,
   },
@@ -334,9 +455,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
     borderWidth: 1,
-    borderColor: '#51425F',
+    borderColor: '#5C486C',
     borderRadius: radius.md,
-    backgroundColor: '#111018',
+    backgroundColor: '#15101D',
     padding: spacing.md,
   },
   benefitIcon: {
@@ -350,6 +471,17 @@ const styles = StyleSheet.create({
   benefitCopy: {
     flex: 1,
   },
+  benefitTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  benefitNumber: {
+    color: '#8E78A1',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+  },
   benefitTitle: {
     ...typography.heading,
     fontSize: 16,
@@ -358,6 +490,19 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.textMuted,
     marginTop: 2,
+  },
+  unlockSection: {
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: '#5E4B34',
+    borderRadius: radius.lg,
+    backgroundColor: '#17120F',
+    padding: spacing.md,
+  },
+  unlockEyebrow: {
+    ...typography.eyebrow,
+    color: colors.gold,
+    textAlign: 'center',
   },
   buyButton: {
     minHeight: 58,
