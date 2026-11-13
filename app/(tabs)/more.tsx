@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText as Text } from '@/components/AppText';
 import { useAppSettings } from '@/components/settings/AppSettingsProvider';
+import { usePlus } from '@/components/plus/PlusProvider';
 import { SettingsRow, SettingsSection, SettingsSwitchRow } from '@/components/settings/SettingsComponents';
 import { usePublicContentSettings } from '@/hooks/usePublicContentSettings';
 import {
@@ -32,6 +33,7 @@ export default function MoreScreen() {
   const [message, setMessage] = useState('');
   const { settings: publicSettings } = usePublicContentSettings();
   const versionLabel = getInstalledAppVersionLabel();
+  const { hasPlus, ready: plusReady, storePrice } = usePlus();
 
   useFocusEffect(useCallback(() => {
     let active = true;
@@ -147,6 +149,27 @@ export default function MoreScreen() {
         <SettingsSection icon="settings" title="Appearance & Accessibility">
           <SettingsRow icon="text" iconColor={colors.purple} label="Text Size" value={settings.textSizePreference === 'larger' ? 'Larger' : 'Default'} onPress={() => router.push('/settings/text-size')} />
           <SettingsRow icon="accessibility" iconColor="#8FA8FF" label="Accessibility Options" onPress={() => router.push('/settings/accessibility')} />
+        </SettingsSection>
+
+        <SettingsSection icon="sparkles" title="BROOMSTICK Plus">
+          <SettingsRow
+            icon={hasPlus ? 'checkmark-circle' : 'lock-closed'}
+            iconColor={hasPlus ? colors.success : colors.gold}
+            label="BROOMSTICK Plus"
+            value={
+              !plusReady
+                ? 'Checking…'
+                : hasPlus
+                  ? 'Unlocked'
+                  : storePrice
+            }
+            hint={
+              hasPlus
+                ? 'Salem Tours and TourSafe are unlocked.'
+                : 'Unlock curated tours, custom tours, and TourSafe.'
+            }
+            onPress={() => router.push('/broomstick-plus')}
+          />
         </SettingsSection>
 
         <SettingsSection icon="heart" title="My Stuff">
