@@ -92,6 +92,8 @@ export default function BuildMyTourScreen() {
     useState(false);
   const [liveRouteDraftIds, setLiveRouteDraftIds] =
     useState<string[]>([]);
+  const [tourUpdateMessage, setTourUpdateMessage] =
+    useState('');
   const [curatedTourName, setCuratedTourName] =
     useState<string | null>(null);
   const [curatedBaseIds, setCuratedBaseIds] =
@@ -690,12 +692,15 @@ export default function BuildMyTourScreen() {
     setSelectedIds(nextSelectedIds);
     setStrategy('optimize');
     setLiveStopEditorOpen(false);
+    setTourUpdateMessage('');
 
     await recalculate(
       nextSelectedIds,
       completedIds,
       'optimize',
     );
+
+    setTourUpdateMessage('Tour updated. Your remaining route has been refreshed.');
   };
 
   const resetTour = () => {
@@ -716,6 +721,7 @@ export default function BuildMyTourScreen() {
     setTourStarted(false);
     setLiveStopEditorOpen(false);
     setLiveRouteDraftIds([]);
+    setTourUpdateMessage('');
     setCuratedTourName(null);
     void clearSavedTourProgress();
   };
@@ -1293,6 +1299,19 @@ export default function BuildMyTourScreen() {
               </Text>
             </Pressable>
           </View>
+
+          {tourUpdateMessage ? (
+            <View style={styles.tourUpdatedBanner}>
+              <Ionicons
+                name="checkmark-circle"
+                size={20}
+                color={colors.success}
+              />
+              <Text style={styles.tourUpdatedBannerText}>
+                {tourUpdateMessage}
+              </Text>
+            </View>
+          ) : null}
 
           {liveStopEditorOpen && curatedTourName ? (
             <View style={styles.liveRouteEditor}>
@@ -2360,6 +2379,24 @@ const styles = StyleSheet.create({
   modeText: {
     ...typography.caption,
     color: colors.gold,
+    fontWeight: '800',
+  },
+
+  tourUpdatedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.success,
+    borderRadius: radius.md,
+    backgroundColor: '#10251E',
+    padding: spacing.md,
+  },
+
+  tourUpdatedBannerText: {
+    ...typography.caption,
+    flex: 1,
+    color: colors.success,
     fontWeight: '800',
   },
 
