@@ -31,12 +31,12 @@ export function FeaturedAttractionCard({ attraction, favorite, onFavoritePress, 
         </View>
 
         <View style={styles.content}>
-          <Text numberOfLines={2} style={styles.name}>{attraction.name}</Text>
+          <Text style={styles.name}>{attraction.name}</Text>
           <View style={styles.metaRow}>
             <Ionicons name="location" size={14} color={colors.orange} />
-            <Text numberOfLines={1} style={styles.meta}>{attraction.address}</Text>
+            <Text style={styles.meta}>{attraction.address}</Text>
           </View>
-          <Text numberOfLines={2} style={styles.description}>{attraction.description}</Text>
+          <Text style={styles.description}>{attraction.description}</Text>
           <View style={styles.hoursRow}>
             <View style={[styles.statusDot, attraction.status === 'open' ? styles.openDot : styles.neutralDot]} />
             <Text style={[styles.status, attraction.status === 'open' && styles.openStatus]}>{attraction.statusLabel}</Text>
@@ -72,21 +72,21 @@ export function FeaturedAttractionCard({ attraction, favorite, onFavoritePress, 
 const styles = StyleSheet.create({
   card: {
     ...shadows.card,
-    minHeight: 252,
+    minHeight: 270,
     overflow: 'hidden',
     backgroundColor: '#0C0911',
     borderWidth: 1,
     borderColor: '#80602C',
     borderRadius: radius.md,
   },
-  cardBody: { width: '100%', flex: 1, flexDirection: 'row' },
+  cardBody: { width: '100%', flex: 1, flexDirection: 'row', alignItems: 'stretch' },
   pressed: { opacity: 0.86, transform: [{ scale: 0.995 }] },
-  image: { width: '53%', minWidth: 166, maxWidth: '55%', minHeight: 252, flexBasis: '53%', flexShrink: 0, overflow: 'hidden', padding: spacing.sm },
+  image: { width: '46%', minWidth: 148, maxWidth: '48%', minHeight: 270, flexBasis: '46%', flexShrink: 0, alignSelf: 'stretch', overflow: 'hidden', padding: spacing.sm },
   imagePhoto: { position: 'absolute', inset: 0, width: '100%', height: '100%' },
   imageShade: { position: 'absolute', inset: 0, backgroundColor: 'rgba(5, 3, 9, 0.1)' },
   mustSeeBadge: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#54206E', borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 5 },
   mustSeeText: { color: colors.text, fontSize: 10, fontWeight: '900' },
-  content: { flex: 1, justifyContent: 'center', padding: 10 },
+  content: { flex: 1, minWidth: 0, justifyContent: 'flex-start', padding: spacing.md, paddingTop: 48 },
   favoriteButton: {
     position: 'absolute',
     top: spacing.sm,
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     backgroundColor: 'rgba(4, 3, 8, 0.72)',
   },
-  name: { ...typography.title, paddingRight: 31, fontSize: 19, lineHeight: 23 },
+  name: { ...typography.title, flexShrink: 1, fontSize: 19, lineHeight: 23 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: spacing.xs },
   meta: { ...typography.caption, flex: 1, fontSize: 11, lineHeight: 15 },
   description: { ...typography.caption, marginTop: spacing.sm, fontSize: 11, lineHeight: 16 },
