@@ -74,7 +74,7 @@ export function ParkingCard({
           <Text numberOfLines={1} style={styles.typeLabel}>{location.type === 'Unknown' ? 'Parking type unavailable' : location.type}</Text>
           <View style={styles.metaRow}>
             <Ionicons color={colors.orange} name="location" size={14} />
-            <Text numberOfLines={1} style={styles.metaText}>{location.address}</Text>
+            <Text style={styles.metaText}>{location.address}</Text>
           </View>
           {distance ? <View style={styles.travelRow}>
             <View style={styles.travelItem}>
@@ -159,8 +159,8 @@ const styles = StyleSheet.create({
   featuredBadgeText: { color: colors.text, fontSize: 8.5, fontWeight: '900', textTransform: 'uppercase' },
   favoriteButton: { position: 'absolute', right: spacing.sm, bottom: spacing.sm, width: 36, height: 36, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill, backgroundColor: 'rgba(7,5,11,0.82)' },
   info: { flex: 1, minWidth: 0, padding: spacing.md, paddingLeft: 10 },
-  titleRow: { height: 48, overflow: 'hidden', flexDirection: 'row', alignItems: 'flex-start', gap: 2 },
-  name: { ...typography.title, flex: 1, fontSize: 19, lineHeight: 23 },
+  titleRow: { minHeight: 48, flexDirection: 'row', alignItems: 'flex-start', gap: 2 },
+  name: { ...typography.title, flex: 1, flexShrink: 1, fontSize: 19, lineHeight: 23 },
   nameNarrow: { fontSize: 16.5, lineHeight: 19 },
   typeLabel: { color: '#8FAFE1', fontSize: 9.5, fontWeight: '800', marginTop: 1 },
   metaRow: { minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
