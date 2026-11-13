@@ -958,49 +958,10 @@ export default function BuildMyTourScreen() {
           <Text style={styles.buildButtonText}>
             {building
               ? 'Building Route…'
-              : curatedTourName
-                ? `Start ${curatedTourName}`
-                : 'Build My Route'}
+              : 'Build My Route'}
           </Text>
         </Pressable>
-      ) : (
-        <View style={styles.activeControls}>
-          <Pressable
-            accessibilityRole="button"
-            disabled={building}
-            onPress={() =>
-              void recalculate()
-            }
-            style={styles.secondaryButton}
-          >
-            <Ionicons
-              name="refresh"
-              size={18}
-              color={colors.gold}
-            />
-
-            <Text style={styles.secondaryButtonText}>
-              Recalculate
-            </Text>
-          </Pressable>
-
-          <Pressable
-            accessibilityRole="button"
-            onPress={resetTour}
-            style={styles.secondaryButton}
-          >
-            <Ionicons
-              name="close"
-              size={18}
-              color={colors.textMuted}
-            />
-
-            <Text style={styles.secondaryButtonText}>
-              End Tour
-            </Text>
-          </Pressable>
-        </View>
-      )}
+      ) : null}
 
       {tourComplete ? (
         <View style={styles.completeCard}>
@@ -1077,6 +1038,41 @@ export default function BuildMyTourScreen() {
                   : 'Driving'}
               </Text>
             </View>
+          </View>
+
+          <View style={styles.activeControls}>
+            <Pressable
+              accessibilityRole="button"
+              disabled={building}
+              onPress={() => void recalculate()}
+              style={styles.updateRouteButton}
+            >
+              <Ionicons
+                name="refresh"
+                size={18}
+                color={colors.background}
+              />
+
+              <Text style={styles.updateRouteButtonText}>
+                {building ? 'Updating…' : 'UPDATE ROUTE'}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              accessibilityRole="button"
+              onPress={resetTour}
+              style={styles.secondaryButton}
+            >
+              <Ionicons
+                name="close"
+                size={18}
+                color={colors.textMuted}
+              />
+
+              <Text style={styles.secondaryButtonText}>
+                END TOUR
+              </Text>
+            </Pressable>
           </View>
 
           {ordered[0] ? (
@@ -1896,6 +1892,24 @@ const styles = StyleSheet.create({
   activeControls: {
     flexDirection: 'row',
     gap: spacing.sm,
+  },
+
+  updateRouteButton: {
+    flex: 1,
+    minHeight: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: colors.gold,
+    paddingHorizontal: spacing.md,
+  },
+
+  updateRouteButtonText: {
+    ...typography.caption,
+    color: colors.background,
+    fontWeight: '900',
   },
 
   secondaryButton: {
