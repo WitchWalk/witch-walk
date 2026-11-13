@@ -785,7 +785,7 @@ export default function BuildMyTourScreen() {
       <View style={styles.section}>
         {curatedTourName ? (
           <View style={styles.curatedStopsHeading}>
-            <Text style={styles.sectionTitle}>
+            <Text style={styles.curatedStopsTitle}>
               ADD MORE STOPS TO THIS TOUR
             </Text>
 
@@ -1707,7 +1707,9 @@ const styles = StyleSheet.create({
   },
 
   curatedStopsHeading: {
+    alignItems: 'center',
     gap: 4,
+    paddingHorizontal: spacing.md,
   },
 
   sectionTitle: {
@@ -1716,10 +1718,19 @@ const styles = StyleSheet.create({
     lineHeight: 26,
   },
 
+  curatedStopsTitle: {
+    ...typography.title,
+    maxWidth: 330,
+    fontSize: 20,
+    lineHeight: 26,
+    textAlign: 'center',
+  },
+
   counter: {
     ...typography.caption,
     color: colors.gold,
     fontWeight: '800',
+    textAlign: 'center',
   },
 
   buttonRow: {
