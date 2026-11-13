@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText as Text, AppTextInput as TextInput } from '@/components/AppText';
+import { useFavorites } from '@/components/favorites/FavoritesProvider';
 import {
   loadPublishedHotels,
   type Hotel,
@@ -21,6 +22,7 @@ export default function HotelsScreen() {
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [query, setQuery] = useState('');
   const [ready, setReady] = useState(false);
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const refresh = useCallback(async () => {
     const next = await loadPublishedHotels();
@@ -232,6 +234,35 @@ export default function HotelsScreen() {
                   </View>
                 </View>
 
+                <Pressable
+                  accessibilityLabel={
+                    isFavorite('hotels', hotel.id)
+                      ? `Remove ${hotel.name} from favorites`
+                      : `Save ${hotel.name} to favorites`
+                  }
+                  accessibilityRole="button"
+                  hitSlop={8}
+                  onPress={(event) => {
+                    event.stopPropagation();
+                    toggleFavorite('hotels', hotel.id);
+                  }}
+                  style={styles.favoriteButton}
+                >
+                  <Ionicons
+                    name={
+                      isFavorite('hotels', hotel.id)
+                        ? 'heart'
+                        : 'heart-outline'
+                    }
+                    size={24}
+                    color={
+                      isFavorite('hotels', hotel.id)
+                        ? '#FF5C68'
+                        : colors.textMuted
+                    }
+                  />
+                </Pressable>
+
                 <Ionicons
                   name="chevron-forward"
                   size={22}
@@ -345,6 +376,12 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.78,
     transform: [{ scale: 0.99 }],
+  },
+  favoriteButton: {
+    width: 38,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   image: {
     width: 88,
