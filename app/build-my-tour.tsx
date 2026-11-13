@@ -1606,6 +1606,12 @@ export default function BuildMyTourScreen() {
                 {ordered[0].address}
               </Text>
 
+              <Text style={styles.nextStopHelper}>
+                {nextStopState === 'arrived'
+                  ? 'You’re here. Play the narration, then complete this stop when you’re ready.'
+                  : 'Head here next. Navigation opens in your maps app, and narration is always available manually.'}
+              </Text>
+
               <View style={styles.nextStopStats}>
                 {nextStopDurationSeconds !== null ? (
                   <View style={styles.routeStat}>
@@ -1651,7 +1657,7 @@ export default function BuildMyTourScreen() {
                     <Text style={styles.primaryNextButtonText}>
                       {nextStopState === 'navigating'
                         ? 'Navigation Opened'
-                        : 'Start Navigation'}
+                        : 'START NAVIGATION'}
                     </Text>
                   </Pressable>
 
@@ -1666,7 +1672,7 @@ export default function BuildMyTourScreen() {
                       color={colors.gold}
                     />
                     <Text style={styles.arrivedButtonText}>
-                      I’m Here
+                      I’M HERE
                     </Text>
                   </Pressable>
                 </View>
@@ -1698,10 +1704,10 @@ export default function BuildMyTourScreen() {
 
                     <View style={styles.narrationButtonCopy}>
                       <Text style={styles.narrationButtonTitle}>
-                        Play Narration
+                        PLAY NARRATION
                       </Text>
                       <Text style={styles.narrationButtonSubtitle}>
-                        Hear the story for this stop
+                        Hear this stop’s story
                       </Text>
                     </View>
 
@@ -1725,7 +1731,7 @@ export default function BuildMyTourScreen() {
                       color={colors.background}
                     />
                     <Text style={styles.primaryNextButtonText}>
-                      Complete Stop
+                      COMPLETE THIS STOP
                     </Text>
                   </Pressable>
                 </View>
@@ -2614,7 +2620,7 @@ const styles = StyleSheet.create({
   },
 
   nextStopCard: {
-    gap: spacing.sm,
+    gap: spacing.md,
     borderWidth: 2,
     borderColor: colors.gold,
     borderRadius: radius.lg,
@@ -2662,6 +2668,12 @@ const styles = StyleSheet.create({
     lineHeight: 29,
   },
 
+  nextStopHelper: {
+    ...typography.caption,
+    color: colors.textMuted,
+    fontWeight: '700',
+  },
+
   nextStopStats: {
     flexDirection: 'row',
     gap: spacing.lg,
@@ -2670,6 +2682,7 @@ const styles = StyleSheet.create({
 
   nextStopActions: {
     flexDirection: 'row',
+    alignItems: 'stretch',
     gap: spacing.sm,
   },
 
@@ -2692,6 +2705,7 @@ const styles = StyleSheet.create({
   },
 
   arrivedButton: {
+    flex: 0.72,
     minHeight: 50,
     flexDirection: 'row',
     alignItems: 'center',
