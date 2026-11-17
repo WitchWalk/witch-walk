@@ -430,6 +430,29 @@ const styles = StyleSheet.create({
     gap: 2,
   },
 
+  builderTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+
+  lockPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderRadius: radius.pill,
+    backgroundColor: colors.gold,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+  },
+
+  lockPillText: {
+    color: colors.background,
+    fontSize: 9,
+    fontWeight: '900',
+  },
+
   builderTitle: {
     ...typography.heading,
     color: colors.gold,
