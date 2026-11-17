@@ -102,7 +102,7 @@ export async function loadPublishedHotels(): Promise<Hotel[]> {
     const publicImageUrl = (path: string) =>
       supabase.storage.from(IMAGE_BUCKET).getPublicUrl(path).data.publicUrl || null;
 
-    const hotels = ((data ?? []) as HotelRow[]).map((row) =>
+    const hotels = ((data ?? []) as unknown as HotelRow[]).map((row) =>
       normalizeHotel(row, publicImageUrl),
     );
 
