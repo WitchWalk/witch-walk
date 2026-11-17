@@ -108,7 +108,10 @@ export function PlusProvider({ children }: PropsWithChildren) {
 
       return {
         success: false,
-        message: result.message,
+        message:
+          result.kind === 'unavailable' || result.kind === 'error'
+            ? result.message
+            : 'BROOMSTICK Plus could not be unlocked.',
       };
     } finally {
       setBusy(false);
@@ -147,7 +150,9 @@ export function PlusProvider({ children }: PropsWithChildren) {
         message:
           result.kind === 'cancelled'
             ? 'Restore cancelled.'
-            : result.message,
+            : result.kind === 'unavailable' || result.kind === 'error'
+              ? result.message
+              : 'BROOMSTICK Plus could not be restored.',
       };
     } finally {
       setBusy(false);
