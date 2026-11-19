@@ -11,6 +11,8 @@ export type CuratedTourSummary = {
   priceCents: number | null;
   featured: boolean;
   published?: boolean;
+  stopCount?: number;
+  coverImageUrl?: string | null;
 };
 
 export type CuratedTourStop = {
@@ -38,6 +40,8 @@ type TourRow = {
   price_cents: number | null;
   featured: boolean;
   published?: boolean;
+  stopCount?: number;
+  coverImageUrl?: string | null;
 };
 
 type PreviewListResponse = {
@@ -77,6 +81,8 @@ function mapTour(row: TourRow): CuratedTourSummary {
     priceCents: row.price_cents,
     featured: row.featured,
     published: row.published,
+    stopCount: row.stopCount,
+    coverImageUrl: row.coverImageUrl ?? null,
   };
 }
 
@@ -120,7 +126,78 @@ export async function listPublishedCuratedTours(): Promise<
     throw error;
   }
 
-  return ((data ?? []) as TourRow[]).map(mapTour);
+  const rows = (data ?? []) as TourRow[];
+  const tourIds = rows.map((row) => row.id);
+
+  if (!tourIds.length) {
+    return [];
+  }
+
+  const membershipResult = await supabase
+    .from('broomstick_tour_stops')
+    .select('tour_id,attraction_id,stop_order')
+    .in('tour_id', tourIds)
+    .order('stop_order');
+
+  if (membershipResult.error) {
+    throw membershipResult.error;
+  }
+
+  const memberships = membershipResult.data ?? [];
+  const attractionIds = Array.from(
+    new Set(memberships.map((row) => row.attraction_id)),
+  );
+
+  const attractionResult = attractionIds.length
+    ? await supabase
+        .from('broomstick_attractions')
+        .select('id,image_path')
+        .in('id', attractionIds)
+    : { data: [], error: null };
+
+  if (attractionResult.error) {
+    throw attractionResult.error;
+  }
+
+  const attractionImages = new Map(
+    (attractionResult.data ?? []).map((row) => [
+      row.id,
+      row.image_path as string | null,
+    ]),
+  );
+
+  const membershipsByTour = new Map<
+    string,
+    Array<{ attraction_id: string; stop_order: number }>
+  >();
+
+  for (const membership of memberships) {
+    const current = membershipsByTour.get(membership.tour_id) ?? [];
+    current.push(membership);
+    membershipsByTour.set(membership.tour_id, current);
+  }
+
+  const publicImageUrl = (path: string | null) => {
+    if (!path) return null;
+    const { data: imageData } = supabase.storage
+      .from('broomstick-attraction-images')
+      .getPublicUrl(path);
+    return imageData.publicUrl || null;
+  };
+
+  return rows.map((row) => {
+    const stops = membershipsByTour.get(row.id) ?? [];
+    const firstImagePath =
+      stops
+        .map((stop) => attractionImages.get(stop.attraction_id) ?? null)
+        .find((value) => Boolean(value)) ?? null;
+
+    return {
+      ...mapTour(row),
+      stopCount: stops.length,
+      coverImageUrl: publicImageUrl(firstImagePath),
+    };
+  });
 }
 
 export async function getPublishedCuratedTour(
