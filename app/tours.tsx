@@ -213,41 +213,28 @@ export default function ToursScreen() {
               }
               style={styles.tourCard}
             >
-              <View style={styles.tourTopRow}>
-                <View style={styles.modePill}>
-                  <Ionicons
-                    name={
-                      tour.tourMode === 'driving'
-                        ? 'car'
-                        : 'walk'
-                    }
-                    size={15}
-                    color={colors.gold}
-                  />
-                  <Text style={styles.modeText}>
-                    {tour.tourMode === 'mixed'
-                      ? 'Walking + Driving'
-                      : tour.tourMode === 'driving'
-                        ? 'Driving'
-                        : 'Walking'}
-                  </Text>
-                </View>
+              <View style={styles.tourImageShell}>
+                <Image
+                  source={
+                    tour.coverImageUrl
+                      ? { uri: tour.coverImageUrl }
+                      : toursHero
+                  }
+                  resizeMode="cover"
+                  style={styles.tourImage}
+                />
 
-                <View style={styles.tourTopActions}>
-                  <View style={styles.plusStatus}>
-                    {plusReady && !hasPlus ? (
-                      <Ionicons
-                        name="lock-closed"
-                        size={13}
-                        color={colors.gold}
-                      />
-                    ) : null}
-                    <Text style={styles.plusLabel}>
-                      {tour.published === false
-                        ? 'DEV PREVIEW'
-                        : hasPlus
-                          ? 'PLUS UNLOCKED'
-                          : 'PLUS'}
+                <View style={styles.imageShade} />
+
+                <View style={styles.tourImageTopRow}>
+                  <View style={styles.premiumPill}>
+                    <Ionicons
+                      name="sparkles"
+                      size={13}
+                      color={colors.background}
+                    />
+                    <Text style={styles.premiumPillText}>
+                      BROOMSTICK PLUS
                     </Text>
                   </View>
 
@@ -263,7 +250,7 @@ export default function ToursScreen() {
                       event.stopPropagation();
                       toggleFavorite('tours', tour.id);
                     }}
-                    style={styles.favoriteButton}
+                    style={styles.favoriteButtonPremium}
                   >
                     <Ionicons
                       name={
@@ -274,34 +261,145 @@ export default function ToursScreen() {
                       size={22}
                       color={
                         isFavorite('tours', tour.id)
-                          ? '#FF5C68'
-                          : colors.gold
+                          ? '#FF6672'
+                          : '#FFFFFF'
                       }
                     />
                   </Pressable>
                 </View>
+
+                <View style={styles.imageBottomRow}>
+                  <View style={styles.modePillPremium}>
+                    <Ionicons
+                      name={
+                        tour.tourMode === 'driving'
+                          ? 'car'
+                          : tour.tourMode === 'mixed'
+                            ? 'navigate'
+                            : 'walk'
+                      }
+                      size={14}
+                      color={colors.gold}
+                    />
+                    <Text style={styles.modeTextPremium}>
+                      {tour.tourMode === 'mixed'
+                        ? 'Walking + Driving'
+                        : tour.tourMode === 'driving'
+                          ? 'Driving Tour'
+                          : 'Walking Tour'}
+                    </Text>
+                  </View>
+
+                  {tour.featured ? (
+                    <View style={styles.featuredPill}>
+                      <Ionicons
+                        name="star"
+                        size={12}
+                        color={colors.gold}
+                      />
+                      <Text style={styles.featuredPillText}>
+                        FEATURED
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
               </View>
 
-              <Text style={styles.tourTitle}>
-                {tour.name}
-              </Text>
-
-              <Text style={styles.tourDescription}>
-                {tour.shortDescription}
-              </Text>
-
-              <View style={styles.metaRow}>
-                {tour.estimatedMinutes ? (
-                  <Text style={styles.metaText}>
-                    {tour.estimatedMinutes} min
+              <View style={styles.tourCardBody}>
+                <View style={styles.tourTitleRow}>
+                  <Text style={styles.tourTitle}>
+                    {tour.name}
                   </Text>
-                ) : null}
 
-                {tour.estimatedDistanceMiles != null ? (
-                  <Text style={styles.metaText}>
-                    {tour.estimatedDistanceMiles.toFixed(1)} mi
-                  </Text>
-                ) : null}
+                  {tour.published === false ? (
+                    <View style={styles.devPill}>
+                      <Text style={styles.devPillText}>
+                        DEV
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+
+                <Text
+                  numberOfLines={3}
+                  style={styles.tourDescription}
+                >
+                  {tour.shortDescription}
+                </Text>
+
+                <View style={styles.metaGrid}>
+                  {tour.stopCount != null ? (
+                    <View style={styles.metaChip}>
+                      <Ionicons
+                        name="location-outline"
+                        size={15}
+                        color={colors.gold}
+                      />
+                      <Text style={styles.metaText}>
+                        {tour.stopCount}{' '}
+                        {tour.stopCount === 1 ? 'stop' : 'stops'}
+                      </Text>
+                    </View>
+                  ) : null}
+
+                  {tour.estimatedMinutes ? (
+                    <View style={styles.metaChip}>
+                      <Ionicons
+                        name="time-outline"
+                        size={15}
+                        color={colors.gold}
+                      />
+                      <Text style={styles.metaText}>
+                        {tour.estimatedMinutes} min
+                      </Text>
+                    </View>
+                  ) : null}
+
+                  {tour.estimatedDistanceMiles != null ? (
+                    <View style={styles.metaChip}>
+                      <Ionicons
+                        name="map-outline"
+                        size={15}
+                        color={colors.gold}
+                      />
+                      <Text style={styles.metaText}>
+                        {tour.estimatedDistanceMiles.toFixed(1)} mi
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+
+                <View style={styles.openTourRow}>
+                  <View style={styles.unlockCopy}>
+                    {plusReady && !hasPlus ? (
+                      <Ionicons
+                        name="lock-closed"
+                        size={14}
+                        color={colors.gold}
+                      />
+                    ) : (
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={15}
+                        color={colors.gold}
+                      />
+                    )}
+                    <Text style={styles.unlockText}>
+                      {hasPlus ? 'Included with Plus' : 'Plus tour'}
+                    </Text>
+                  </View>
+
+                  <View style={styles.openTourButton}>
+                    <Text style={styles.openTourButtonText}>
+                      View Tour
+                    </Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={16}
+                      color={colors.background}
+                    />
+                  </View>
+                </View>
               </View>
             </Pressable>
           ))}
@@ -469,80 +567,213 @@ const styles = StyleSheet.create({
   },
 
   tourCard: {
-    gap: spacing.sm,
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#4D3A5C',
     borderRadius: radius.lg,
-    backgroundColor: colors.surfaceElevated,
-    padding: spacing.lg,
+    backgroundColor: '#17111F',
   },
 
-  tourTopRow: {
+  tourImageShell: {
+    height: 168,
+    position: 'relative',
+    overflow: 'hidden',
+    backgroundColor: colors.surface,
+  },
+
+  tourImage: {
+    width: '100%',
+    height: '100%',
+  },
+
+  imageShade: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(8, 5, 12, 0.22)',
+  },
+
+  tourImageTopRow: {
+    position: 'absolute',
+    top: spacing.md,
+    left: spacing.md,
+    right: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
 
-  modePill: {
+  premiumPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
     borderRadius: radius.pill,
-    backgroundColor: '#2A1C38',
+    backgroundColor: colors.gold,
     paddingHorizontal: spacing.sm,
     paddingVertical: 6,
   },
 
-  modeText: {
-    ...typography.caption,
-    color: colors.gold,
-    fontWeight: '800',
+  premiumPillText: {
+    color: colors.background,
+    fontSize: 9.5,
+    fontWeight: '900',
+    letterSpacing: 0.8,
   },
 
-  tourTopActions: {
+  favoriteButtonPremium: {
+    width: 38,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.35)',
+    backgroundColor: 'rgba(12,8,16,0.72)',
+  },
+
+  imageBottomRow: {
+    position: 'absolute',
+    left: spacing.md,
+    right: spacing.md,
+    bottom: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     gap: spacing.sm,
   },
 
-  plusStatus: {
+  modePillPremium: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: 'rgba(231, 190, 91, 0.45)',
+    backgroundColor: 'rgba(18, 10, 25, 0.88)',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
   },
 
-  favoriteButton: {
-    width: 34,
-    height: 34,
+  modeTextPremium: {
+    ...typography.caption,
+    color: '#FFF7E2',
+    fontWeight: '800',
+  },
+
+  featuredPill: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 5,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(18, 10, 25, 0.88)',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
   },
 
-  plusLabel: {
+  featuredPillText: {
     ...typography.eyebrow,
     color: colors.gold,
+    fontSize: 9,
+  },
+
+  tourCardBody: {
+    gap: spacing.sm,
+    padding: spacing.lg,
+  },
+
+  tourTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
   },
 
   tourTitle: {
     ...typography.title,
-    fontSize: 22,
+    flex: 1,
+    color: '#FFF9EE',
+    fontSize: 23,
     lineHeight: 28,
+  },
+
+  devPill: {
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: '#725C82',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+  },
+
+  devPillText: {
+    ...typography.eyebrow,
+    color: '#C7B8D2',
+    fontSize: 8,
   },
 
   tourDescription: {
     ...typography.body,
-    color: colors.textMuted,
+    color: '#C9BFCE',
+    lineHeight: 21,
   },
 
-  metaRow: {
+  metaGrid: {
     flexDirection: 'row',
-    gap: spacing.lg,
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    paddingTop: 2,
+  },
+
+  metaChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderRadius: radius.pill,
+    backgroundColor: '#24182F',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 7,
   },
 
   metaText: {
     ...typography.caption,
+    color: '#F2E8FA',
+    fontWeight: '800',
+  },
+
+  openTourRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: '#352742',
+    marginTop: spacing.xs,
+    paddingTop: spacing.md,
+  },
+
+  unlockCopy: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+
+  unlockText: {
+    ...typography.caption,
     color: colors.gold,
     fontWeight: '800',
+  },
+
+  openTourButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    borderRadius: radius.pill,
+    backgroundColor: colors.gold,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 9,
+  },
+
+  openTourButtonText: {
+    ...typography.caption,
+    color: colors.background,
+    fontWeight: '900',
   },
 
   emptyCard: {
