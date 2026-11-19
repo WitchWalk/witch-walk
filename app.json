@@ -2,7 +2,7 @@
   "expo": {
     "name": "BROOMSTICK",
     "slug": "witch-walk",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/broomstick-app-logo.png",
     "scheme": "witchwalk",
