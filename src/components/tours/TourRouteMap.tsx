@@ -1,8 +1,11 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useEffect, useRef, useState } from 'react';
 import MapView, {
   Marker,
   Polyline,
 } from 'react-native-maps';
 import {
+  Pressable,
   StyleSheet,
   View,
 } from 'react-native';
@@ -32,6 +35,9 @@ export function TourRouteMap({
   routeCoordinates,
   stops,
 }: TourRouteMapProps) {
+  const mapRef = useRef<MapView | null>(null);
+  const [followUser, setFollowUser] = useState(true);
+
   const allCoordinates = [
     ...(origin ? [origin] : []),
     ...stops,
@@ -64,19 +70,59 @@ export function TourRouteMap({
     0.01,
   );
 
-  const initialRegion = {
-    latitude:
-      (minLatitude + maxLatitude) / 2,
-    longitude:
-      (minLongitude + maxLongitude) / 2,
-    latitudeDelta,
-    longitudeDelta,
+  const initialRegion = origin
+    ? {
+        latitude: origin.latitude,
+        longitude: origin.longitude,
+        latitudeDelta: Math.min(latitudeDelta, 0.008),
+        longitudeDelta: Math.min(longitudeDelta, 0.008),
+      }
+    : {
+        latitude:
+          (minLatitude + maxLatitude) / 2,
+        longitude:
+          (minLongitude + maxLongitude) / 2,
+        latitudeDelta,
+        longitudeDelta,
+      };
+
+  const recenter = () => {
+    if (!origin) return;
+
+    setFollowUser(true);
+    mapRef.current?.animateToRegion(
+      {
+        latitude: origin.latitude,
+        longitude: origin.longitude,
+        latitudeDelta: 0.006,
+        longitudeDelta: 0.006,
+      },
+      350,
+    );
   };
+
+  useEffect(() => {
+    if (!origin || !followUser) return;
+
+    mapRef.current?.animateToRegion(
+      {
+        latitude: origin.latitude,
+        longitude: origin.longitude,
+        latitudeDelta: 0.006,
+        longitudeDelta: 0.006,
+      },
+      500,
+    );
+  }, [origin?.latitude, origin?.longitude, followUser]);
 
   return (
     <View style={styles.shell}>
       <MapView
         initialRegion={initialRegion}
+        onPanDrag={() => setFollowUser(false)}
+        ref={mapRef}
+        showsCompass
+        showsUserLocation={false}
         style={StyleSheet.absoluteFill}
       >
         {routeCoordinates.length >= 2 ? (
@@ -89,13 +135,12 @@ export function TourRouteMap({
 
         {origin ? (
           <Marker
+            anchor={{ x: 0.5, y: 0.5 }}
             coordinate={origin}
             title="You are here"
           >
-            <View style={styles.originMarker}>
-              <Text style={styles.originMarkerText}>
-                YOU
-              </Text>
+            <View style={styles.userDotOuter}>
+              <View style={styles.userDotInner} />
             </View>
           </Marker>
         ) : null}
@@ -129,9 +174,31 @@ export function TourRouteMap({
 
       <View style={styles.legend}>
         <Text style={styles.legendText}>
-          Route preview
+          {followUser ? 'Following you' : 'Explore map'}
         </Text>
       </View>
+
+      {origin ? (
+        <Pressable
+          accessibilityLabel="Recenter map on my location"
+          accessibilityRole="button"
+          onPress={recenter}
+          style={[
+            styles.recenterButton,
+            followUser && styles.recenterButtonActive,
+          ]}
+        >
+          <Ionicons
+            name="locate"
+            size={22}
+            color={
+              followUser
+                ? colors.background
+                : colors.gold
+            }
+          />
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -146,23 +213,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
 
-  originMarker: {
-    minWidth: 42,
-    height: 30,
+  userDotOuter: {
+    width: 24,
+    height: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: colors.text,
-    borderRadius: radius.pill,
-    backgroundColor: colors.background,
-    paddingHorizontal: spacing.sm,
+    borderRadius: 12,
+    backgroundColor: 'rgba(62, 150, 255, 0.24)',
   },
 
-  originMarkerText: {
-    ...typography.caption,
-    color: colors.text,
-    fontSize: 10,
-    fontWeight: '900',
+  userDotInner: {
+    width: 14,
+    height: 14,
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    borderRadius: 7,
+    backgroundColor: '#2F86FF',
   },
 
   stopMarker: {
@@ -210,5 +276,23 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.text,
     fontWeight: '800',
+  },
+
+  recenterButton: {
+    position: 'absolute',
+    right: spacing.md,
+    bottom: spacing.md,
+    width: 46,
+    height: 46,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.gold,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(20, 13, 27, 0.94)',
+  },
+
+  recenterButtonActive: {
+    backgroundColor: colors.gold,
   },
 });
