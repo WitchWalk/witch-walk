@@ -267,7 +267,7 @@ export async function getPublishedCuratedTour(
 
   const attractionResult = await supabase
     .from('broomstick_attractions')
-    .select('id,name,address,latitude,longitude')
+    .select('id,name,address,latitude,longitude,image_path')
     .in('id', attractionIds)
     .eq('published', true)
     .is('archived_at', null);
@@ -307,8 +307,23 @@ export async function getPublishedCuratedTour(
       (stop): stop is CuratedTourStop => Boolean(stop),
     );
 
+  const firstImagePath =
+    memberships
+      .map((membership) =>
+        attractionMap.get(membership.attraction_id)?.image_path ?? null,
+      )
+      .find((value) => Boolean(value)) ?? null;
+
+  const coverImageUrl = firstImagePath
+    ? supabase.storage
+        .from('broomstick-attraction-images')
+        .getPublicUrl(firstImagePath).data.publicUrl || null
+    : null;
+
   return {
     ...mapTour(tourResult.data as TourRow),
+    stopCount: stops.length,
+    coverImageUrl,
     stops,
   };
 }
