@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
+  Image,
   Pressable,
   StyleSheet,
   View,
@@ -252,76 +253,107 @@ export default function TourDetailScreen() {
         </View>
       ) : tour ? (
         <>
-          <View style={styles.hero}>
-            <View style={styles.modeRow}>
-              <View style={styles.modePill}>
-                <Ionicons
-                  name={
-                    tour.tourMode === 'driving'
-                      ? 'car'
-                      : 'walk'
-                  }
-                  size={16}
-                  color={colors.gold}
-                />
-                <Text style={styles.modeText}>
-                  {tour.tourMode === 'mixed'
-                    ? 'Walking + Driving'
-                    : tour.tourMode === 'driving'
-                      ? 'Driving'
-                      : 'Walking'}
-                </Text>
+          <View style={styles.heroCard}>
+            <View style={styles.heroImageShell}>
+              <Image
+                source={
+                  tour.coverImageUrl
+                    ? { uri: tour.coverImageUrl }
+                    : require('../../assets/images/home/attractions.png')
+                }
+                resizeMode="cover"
+                style={styles.heroImage}
+              />
+              <View style={styles.heroShade} />
+
+              <View style={styles.heroTopRow}>
+                <View style={styles.plusBadge}>
+                  <Ionicons
+                    name="sparkles"
+                    size={13}
+                    color={colors.background}
+                  />
+                  <Text style={styles.plusBadgeText}>
+                    BROOMSTICK PLUS
+                  </Text>
+                </View>
+
+                {tour.published === false ? (
+                  <View style={styles.devBadge}>
+                    <Text style={styles.devBadgeText}>
+                      DEV PREVIEW
+                    </Text>
+                  </View>
+                ) : null}
               </View>
 
-              <Text style={styles.plusText}>
-                {tour.published === false
-                  ? 'DEV PREVIEW'
-                  : 'PLUS'}
-              </Text>
+              <View style={styles.heroBottom}>
+                <View style={styles.modePill}>
+                  <Ionicons
+                    name={
+                      tour.tourMode === 'driving'
+                        ? 'car'
+                        : tour.tourMode === 'mixed'
+                          ? 'navigate'
+                          : 'walk'
+                    }
+                    size={15}
+                    color={colors.gold}
+                  />
+                  <Text style={styles.modeText}>
+                    {tour.tourMode === 'mixed'
+                      ? 'Walking + Driving'
+                      : tour.tourMode === 'driving'
+                        ? 'Driving Tour'
+                        : 'Walking Tour'}
+                  </Text>
+                </View>
+              </View>
             </View>
 
-            <Text style={styles.description}>
-              {tour.fullDescription ||
-                tour.shortDescription}
-            </Text>
+            <View style={styles.heroBody}>
+              <Text style={styles.description}>
+                {tour.fullDescription || tour.shortDescription}
+              </Text>
 
-            <View style={styles.stats}>
-              <View style={styles.stat}>
-                <Ionicons
-                  name="location-outline"
-                  size={18}
-                  color={colors.gold}
-                />
-                <Text style={styles.statText}>
-                  {tour.stops.length + addedStopIds.length} stops
-                </Text>
+              <View style={styles.stats}>
+                <View style={styles.statChip}>
+                  <Ionicons
+                    name="location-outline"
+                    size={16}
+                    color={colors.gold}
+                  />
+                  <Text style={styles.statText}>
+                    {tour.stops.length + addedStopIds.length} stops
+                  </Text>
+                </View>
+
+                {tour.estimatedMinutes ? (
+                  <View style={styles.statChip}>
+                    <Ionicons
+                      name="time-outline"
+                      size={16}
+                      color={colors.gold}
+                    />
+                    <Text style={styles.statText}>
+                      {tour.estimatedMinutes} min
+                    </Text>
+                  </View>
+                ) : null}
+
+                {tour.estimatedDistanceMiles != null ? (
+                  <View style={styles.statChip}>
+                    <Ionicons
+                      name="map-outline"
+                      size={16}
+                      color={colors.gold}
+                    />
+                    <Text style={styles.statText}>
+                      {tour.estimatedDistanceMiles.toFixed(1)} mi
+                    </Text>
+                  </View>
+                ) : null}
               </View>
-
-              {tour.estimatedMinutes ? (
-                <View style={styles.stat}>
-                  <Ionicons
-                    name="time-outline"
-                    size={18}
-                    color={colors.gold}
-                  />
-                  <Text style={styles.statText}>
-                    {tour.estimatedMinutes} min
-                  </Text>
-                </View>
-              ) : null}
-
-              {tour.estimatedDistanceMiles != null ? (
-                <View style={styles.stat}>
-                  <Ionicons
-                    name="navigate-outline"
-                    size={18}
-                    color={colors.gold}
-                  />
-                  <Text style={styles.statText}>
-                    {tour.estimatedDistanceMiles.toFixed(1)} mi
-                  </Text>
-                </View>
-              ) : null}
             </View>
           </View>
 
@@ -329,7 +361,8 @@ export default function TourDetailScreen() {
 
 
 
-          <View style={styles.prepHeader}>
+          <View style={styles.prepCard}>
+            <View style={styles.prepHeader}>
             <Text style={styles.eyebrow}>
               BEFORE YOU START
             </Text>
@@ -339,7 +372,7 @@ export default function TourDetailScreen() {
             <Text style={styles.prepText}>
               Save the narration for weak-service areas, or customize the stops before you begin.
             </Text>
-          </View>
+            </View>
 
           <Pressable
             accessibilityRole="button"
@@ -431,6 +464,8 @@ export default function TourDetailScreen() {
             </Text>
           </Pressable>
 
+          </View>
+
           <Pressable
             accessibilityRole="button"
             disabled={tour.stops.length === 0}
@@ -481,9 +516,19 @@ export default function TourDetailScreen() {
           ) : null}
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              Tour stops
-            </Text>
+            <View style={styles.sectionHeadingRow}>
+              <View>
+                <Text style={styles.eyebrow}>
+                  YOUR ROUTE
+                </Text>
+                <Text style={styles.sectionTitle}>
+                  Tour stops
+                </Text>
+              </View>
+              <Text style={styles.sectionCount}>
+                {tour.stops.length} stops
+              </Text>
+            </View>
 
             <View style={styles.stopList}>
               {tour.stops.map((stop, index) => (
@@ -491,10 +536,15 @@ export default function TourDetailScreen() {
                   key={stop.attractionId}
                   style={styles.stopRow}
                 >
-                  <View style={styles.number}>
+                  <View style={styles.stopRail}>
+                    <View style={styles.number}>
                     <Text style={styles.numberText}>
                       {index + 1}
                     </Text>
+                    </View>
+                    {index < tour.stops.length - 1 ? (
+                      <View style={styles.stopLine} />
+                    ) : null}
                   </View>
 
                   <View style={styles.stopCopy}>
@@ -572,67 +622,145 @@ const styles = StyleSheet.create({
     lineHeight: 36,
   },
 
-  hero: {
-    gap: spacing.md,
+  heroCard: {
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#4D3A5C',
     borderRadius: radius.lg,
-    backgroundColor: colors.surfaceElevated,
-    padding: spacing.lg,
+    backgroundColor: '#17111F',
   },
 
-  modeRow: {
+  heroImageShell: {
+    height: 210,
+    position: 'relative',
+    overflow: 'hidden',
+    backgroundColor: colors.surface,
+  },
+
+  heroImage: {
+    width: '100%',
+    height: '100%',
+  },
+
+  heroShade: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(8, 5, 12, 0.28)',
+  },
+
+  heroTopRow: {
+    position: 'absolute',
+    top: spacing.md,
+    left: spacing.md,
+    right: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
 
-  modePill: {
+  plusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
     borderRadius: radius.pill,
-    backgroundColor: '#2A1C38',
+    backgroundColor: colors.gold,
     paddingHorizontal: spacing.sm,
     paddingVertical: 6,
   },
 
+  plusBadgeText: {
+    color: colors.background,
+    fontSize: 9.5,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+  },
+
+  devBadge: {
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(18,10,25,0.9)',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
+  },
+
+  devBadgeText: {
+    ...typography.eyebrow,
+    color: '#D8CBE3',
+    fontSize: 8.5,
+  },
+
+  heroBottom: {
+    position: 'absolute',
+    left: spacing.md,
+    right: spacing.md,
+    bottom: spacing.md,
+  },
+
+  modePill: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: 'rgba(231,190,91,0.45)',
+    backgroundColor: 'rgba(18,10,25,0.88)',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 7,
+  },
+
   modeText: {
     ...typography.caption,
-    color: colors.gold,
+    color: '#FFF7E2',
     fontWeight: '800',
   },
 
-  plusText: {
-    ...typography.eyebrow,
-    color: colors.gold,
+  heroBody: {
+    gap: spacing.md,
+    padding: spacing.lg,
   },
 
   description: {
     ...typography.body,
-    color: colors.text,
+    color: '#E9E0EC',
+    lineHeight: 22,
   },
 
   stats: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.md,
+    gap: spacing.sm,
   },
 
-  stat: {
+  statChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    borderRadius: radius.pill,
+    backgroundColor: '#24182F',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 8,
   },
 
   statText: {
     ...typography.caption,
-    color: colors.textMuted,
+    color: '#F2E8FA',
     fontWeight: '800',
   },
 
   section: {
-    gap: spacing.sm,
+    gap: spacing.md,
+  },
+
+  sectionHeadingRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+  },
+
+  sectionCount: {
+    ...typography.caption,
+    color: colors.gold,
+    fontWeight: '800',
   },
 
   sectionTitle: {
@@ -648,10 +776,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.md,
     borderWidth: 1,
-    borderColor: colors.borderSoft,
+    borderColor: '#3B2C47',
     borderRadius: radius.md,
-    backgroundColor: colors.surface,
+    backgroundColor: '#17111F',
     padding: spacing.md,
+  },
+
+  stopRail: {
+    width: 34,
+    alignItems: 'center',
+  },
+
+  stopLine: {
+    width: 2,
+    flex: 1,
+    minHeight: 26,
+    marginTop: 4,
+    backgroundColor: '#4B3A56',
   },
 
   number: {
@@ -689,9 +830,17 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 
+  prepCard: {
+    gap: spacing.md,
+    borderWidth: 1,
+    borderColor: '#4D3A5C',
+    borderRadius: radius.lg,
+    backgroundColor: '#17111F',
+    padding: spacing.lg,
+  },
+
   prepHeader: {
     gap: 3,
-    marginTop: spacing.xs,
   },
 
   prepTitle: {
