@@ -343,6 +343,49 @@ export default function BuildMyTourScreen() {
   ]);
 
   useEffect(() => {
+    if (!tourStarted || travelMode !== 'walking') {
+      return;
+    }
+
+    let active = true;
+    let subscription: Location.LocationSubscription | null = null;
+
+    void (async () => {
+      const permission =
+        await Location.getForegroundPermissionsAsync();
+
+      if (
+        !active ||
+        permission.status !== 'granted'
+      ) {
+        return;
+      }
+
+      subscription =
+        await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.Balanced,
+            distanceInterval: 5,
+            timeInterval: 3000,
+          },
+          (position) => {
+            if (!active) return;
+
+            setRouteOrigin({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            });
+          },
+        );
+    })();
+
+    return () => {
+      active = false;
+      subscription?.remove();
+    };
+  }, [tourStarted, travelMode]);
+
+  useEffect(() => {
     if (!tourStarted) {
       return;
     }
